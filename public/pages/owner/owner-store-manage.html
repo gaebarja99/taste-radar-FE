@@ -21,6 +21,13 @@
     <script src="/assets/js/owner-store-manage.js" defer></script>
   </head>
   <body>
+    <header class="topbar" aria-label="상단 바">
+      <a class="topbar-brand" href="./owner-main.html">Taste Radar</a>
+      <a class="topbar-menu" href="/" title="메인으로" aria-label="메인으로 이동">
+        <i class="ti ti-home" style="font-size: 20px"></i>
+      </a>
+    </header>
+
     <div class="app">
       <aside class="sidebar" aria-label="사이드 메뉴">
         <div class="sidebar-group" data-collapsed="false">
@@ -42,13 +49,17 @@
           <div class="section-head">
             <h2 id="myStoresTitle" class="section-head-title">내 가게 목록</h2>
           </div>
-          <div id="storeStack" class="card-stack" style="padding: 16px"></div>
+          <div id="storeStack" class="card-stack card-stack--compact" style="padding: 10px 12px"></div>
           <p id="storeEmpty" class="empty-state" hidden>등록된 가게가 없어요. 아래에서 새 가게를 등록해 주세요.</p>
         </section>
 
         <section class="table-section" aria-labelledby="newStoreTitle">
-          <div class="section-head">
+          <div class="section-head section-action-row">
             <h2 id="newStoreTitle" class="section-head-title">새 가게 등록</h2>
+            <button type="button" class="btn-primary" id="btnNewStoreSubmit"
+                    style="width:auto;padding:8px 18px;margin-top:0">
+              <i class="ti ti-plus" aria-hidden="true"></i> 가게 등록
+            </button>
           </div>
           <form id="newStoreForm" class="form-grid" style="padding: 16px" novalidate>
             <label>
@@ -91,11 +102,6 @@
               경도(선택)
               <input type="number" name="longitude" step="any" placeholder="126.72" />
             </label>
-            <div class="col-span-2 btn-row" style="justify-content: flex-end">
-              <button type="submit" class="btn-primary" style="width: auto; padding: 0 24px">
-                가게 등록
-              </button>
-            </div>
             <p id="newStoreMsg" class="empty-state" hidden style="grid-column: 1 / -1; margin: 0"></p>
           </form>
         </section>
