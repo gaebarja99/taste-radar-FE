@@ -448,6 +448,128 @@ a {
   color: var(--color-text-muted);
 }
 
+/* ---------- Role selection modal ---------- */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(28, 24, 20, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 100;
+  animation: modalFade 0.15s ease-out;
+}
+
+@keyframes modalFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.modal-card {
+  position: relative;
+  width: min(100%, 460px);
+  background: var(--color-bg-card);
+  border-radius: 20px;
+  padding: 32px 28px 28px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  animation: modalRise 0.18s ease-out;
+}
+
+@keyframes modalRise {
+  from { transform: translateY(8px); opacity: 0; }
+  to   { transform: translateY(0);   opacity: 1; }
+}
+
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 18px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+
+.modal-close:hover {
+  background: var(--color-bg-cream);
+  color: var(--color-text-main);
+}
+
+.modal-title {
+  margin: 0 0 6px;
+  font-size: 19px;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: -0.01em;
+}
+
+.modal-lead {
+  margin: 0 0 22px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.role-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.role-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 22px 14px 18px;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: var(--color-bg-page);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.15s, background 0.15s,
+    box-shadow 0.15s;
+}
+
+.role-card:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-light);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(255, 107, 71, 0.12);
+}
+
+.role-icon {
+  font-size: 32px;
+  color: var(--color-primary);
+}
+
+.role-title {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--color-text-main);
+}
+
+.role-desc {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  line-height: 1.45;
+}
+
+@media (max-width: 480px) {
+  .role-options {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ---------- Footer ---------- */
 .site-footer {
   border-top: 1px solid var(--color-border);

@@ -26,6 +26,10 @@
     const prevBtn = document.getElementById('pagePrev')
     const nextBtn = document.getElementById('pageNext')
     const logoutBtn = document.getElementById('btnLogout')
+    const loginBtn = document.getElementById('btnKakaoLogin')
+
+    loginBtn.addEventListener('click', openRoleModal)
+    setupRoleModal()
 
     form.addEventListener('submit', (e) => {
       e.preventDefault()
@@ -80,6 +84,37 @@
     }
     ;['userId', 'email', 'nickname', 'role'].forEach((k) => localStorage.removeItem(k))
     applyAuthUi()
+  }
+
+  /* ----------------------------- 역할 선택 모달 ----------------------------- */
+  function setupRoleModal() {
+    const modal = document.getElementById('roleModal')
+    const closeBtn = document.getElementById('roleModalClose')
+    if (!modal || !closeBtn) return
+
+    closeBtn.addEventListener('click', closeRoleModal)
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeRoleModal()
+    })
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !modal.hidden) closeRoleModal()
+    })
+  }
+
+  function openRoleModal() {
+    const modal = document.getElementById('roleModal')
+    if (!modal) return
+    modal.hidden = false
+    document.body.style.overflow = 'hidden'
+    const firstCard = modal.querySelector('.role-card')
+    if (firstCard) firstCard.focus()
+  }
+
+  function closeRoleModal() {
+    const modal = document.getElementById('roleModal')
+    if (!modal) return
+    modal.hidden = true
+    document.body.style.overflow = ''
   }
 
   async function load() {
