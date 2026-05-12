@@ -2,9 +2,7 @@
  * 주문 관리 페이지 (사장)
  *
  * 사용 API
- *  - GET    /api/owner/orders                       (목록, ?storeId&status&page&size)
- *  - GET    /api/owner/orders/stats/today           (오늘 전체 주문 합계)
- *  - GET    /api/owner/orders/stats/today/stores    (가게별 카운트 = 가게 셀렉트 옵션)
+ *  - GET    /api/owner/orders                       (목록 + 상태별 합계, ?storeId&status&page&size)
  *  - GET    /api/orders/{id}                        (상세)
  *  - POST   /api/owner/orders/{id}/accept           (PENDING → COOKING)
  *  - POST   /api/owner/orders/{id}/reject           (PENDING → REJECTED, body: { rejectionReason })
@@ -37,7 +35,7 @@
     document.getElementById('storeSelect').addEventListener('change', (e) => {
       state.storeId = e.target.value || null
       state.page = 0
-      loadOrders()
+      loadAll()
     })
     document.getElementById('statusFilter').addEventListener('change', (e) => {
       state.status = e.target.value
@@ -46,16 +44,20 @@
     })
 
     document.getElementById('btnLookup').addEventListener('click', handleLookup)
-    document.getElementById('btnAccept').addEventListener('click', handleAccept)
-    document.getElementById('btnReject').addEventListener('click', handleReject)
-    document.getElementById('btnApplyStatus').addEventListener('click', handleApplyStatus)
+    document.getElementById('btnReject').addEventListener('click', handleRejectFromPanel)
+    document.getElementById('orderIdInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') handleLookup()
+    })
+    document.getElementById('orderIdInput').addEventListener('input', updateRejectButtonEnabled)
+    document.getElementById('rejectReason').addEventListener('input', updateRejectButtonEnabled)
 
+    updateRejectButtonEnabled()
     showTodayDate()
     await loadAll()
   }
 
   async function loadAll() {
-    await Promise.all([loadSummary(), loadOrders()])
+    await Promise.all([loadStatusCounts(), loadOrders()])
   }
 
   function showTodayDate() {
@@ -81,42 +83,43 @@
         .join('')
     select.value = ''
     state.storeId = null
-    applyStoreCard()
   }
 
-  function applyStoreCard() {
-    const s = state.storeList.find((x) => String(x.storeId) === String(state.storeId))
-    const nameEl = document.getElementById('storeName')
-    const countEl = document.getElementById('storeOrderCount')
-    if (!state.storeId) {
-      nameEl.textContent = '전체'
-      countEl.textContent = '모든 가게 합계'
-      return
-    }
-    nameEl.textContent = s?.storeName ?? '—'
-    countEl.textContent = `오늘 ${Number(s?.totalCount ?? 0).toLocaleString('ko-KR')}건`
-  }
+  /* ------------------ 상태별 합계 카드 ------------------ */
+  const STATUS_CARDS = [
+    { status: 'PENDING',    elId: 'cntPending' },
+    { status: 'COOKING',    elId: 'cntCooking' },
+    { status: 'DELIVERING', elId: 'cntDelivering' },
+    { status: 'DELIVERED',  elId: 'cntDelivered' },
+  ]
 
-  /* ------------------ 오늘 합계 ------------------ */
-  async function loadSummary() {
-    const totalEl = document.getElementById('todayTotal')
-    totalEl.textContent = '…'
-    try {
-      const data = await api.orders.owner.todayStats()
-      const total = Number(data?.totalCount ?? 0)
-      totalEl.textContent = total.toLocaleString('ko-KR')
-    } catch (e) {
-      totalEl.textContent = '-'
-      console.warn(OwnerShared.errorMessage(e, '요약 불러오기 실패'))
-    }
-    applyStoreCard()
+  async function loadStatusCounts() {
+    STATUS_CARDS.forEach(({ elId }) => {
+      const el = document.getElementById(elId)
+      if (el) el.textContent = '…'
+    })
+
+    const results = await Promise.all(
+      STATUS_CARDS.map(({ status }) =>
+        api.orders.owner
+          .list({ storeId: state.storeId || undefined, status, page: 0, size: 1 })
+          .catch(() => null),
+      ),
+    )
+
+    STATUS_CARDS.forEach(({ elId }, i) => {
+      const el = document.getElementById(elId)
+      if (!el) return
+      const page = results[i]
+      const cnt = page ? Number(page.totalElements ?? 0) : 0
+      el.textContent = page ? cnt.toLocaleString('ko-KR') : '-'
+    })
   }
 
   /* ------------------ 주문 목록 ------------------ */
   async function loadOrders() {
     const body = document.getElementById('orderTableBody')
     const totalLabel = document.getElementById('orderTotalLabel')
-    const listCountEl = document.getElementById('orderListCount')
     body.innerHTML = `<tr><td colspan="5" style="padding:20px;text-align:center;color:var(--color-text-muted)">불러오는 중…</td></tr>`
 
     try {
@@ -131,7 +134,6 @@
       state.totalElements = Number(page?.totalElements ?? items.length)
 
       totalLabel.textContent = `총 ${state.totalElements.toLocaleString('ko-KR')}건`
-      listCountEl.textContent = items.length.toLocaleString('ko-KR')
 
       if (items.length === 0) {
         body.innerHTML = `<tr><td colspan="5" style="padding:24px;text-align:center;color:var(--color-text-muted)">조건에 맞는 주문이 없어요.</td></tr>`
@@ -145,7 +147,6 @@
         OwnerShared.errorMessage(e, '주문 목록을 불러오지 못했습니다.'),
       )}</td></tr>`
       totalLabel.textContent = '총 0건'
-      listCountEl.textContent = '0'
       renderPagination()
     }
   }
@@ -159,18 +160,105 @@
         ).padStart(2, '0')}`
       : '-'
     const total = o.totalAmount ?? o.totalPrice ?? 0
+    const isRejected = status === 'REJECTED' || status === 'CANCELED'
+    const reason = o.rejectionReason ?? o.rejection_reason ?? ''
 
-    return `
-      <tr data-status="${status}">
+    const mainRow = `
+      <tr data-status="${status}" data-order-id="${o.id}" ${isRejected ? 'class="is-rejected" data-toggle-reason' : ''}>
         <td><span class="order-id" title="${o.id}">${o.id}</span></td>
         <td><span class="order-price">${OwnerShared.formatWon(total)}</span></td>
         <td><span class="order-time">${OwnerShared.escapeHtml(time)}</span></td>
-        <td>${statusBadge(status)}</td>
+        <td>${renderStatusCell(o.id, status)}</td>
         <td style="text-align:right">
           <button type="button" class="btn-outline-sm" data-act="pick" data-order-id="${o.id}">선택</button>
         </td>
       </tr>
     `
+
+    if (!isRejected) return mainRow
+
+    const reasonHtml = reason
+      ? `<span class="reason-label">거절 사유 ·</span> ${OwnerShared.escapeHtml(reason)}`
+      : `<span class="reason-label">거절 사유 ·</span> 등록된 사유가 없습니다.`
+
+    const reasonRow = `
+      <tr class="reason-row" data-reason-for="${o.id}" hidden>
+        <td colspan="5">
+          <div class="reason-block">
+            <i class="ti ti-alert-triangle" aria-hidden="true"></i>
+            <div>${reasonHtml}</div>
+          </div>
+        </td>
+      </tr>
+    `
+    return mainRow + reasonRow
+  }
+
+  /** 상태 칸 렌더링: 전이 가능한 상태가 있으면 select, 없으면 badge */
+  function renderStatusCell(orderId, status) {
+    const transitions = nextTransitions(status)
+    if (transitions.length === 0) {
+      return statusBadge(status)
+    }
+    const cls = statusSelectClass(status)
+    const currentLabel = statusKor(status)
+    const options = [
+      `<option value="" selected disabled>${OwnerShared.escapeHtml(currentLabel)}</option>`,
+      ...transitions.map(
+        (t) => `<option value="${t.value}">${OwnerShared.escapeHtml(t.label)}</option>`,
+      ),
+    ].join('')
+    return `
+      <select class="status-select ${cls}"
+              data-status-select
+              data-order-id="${orderId}"
+              data-current="${status}"
+              aria-label="주문 상태 변경">
+        ${options}
+      </select>
+    `
+  }
+
+  function nextTransitions(status) {
+    switch (status) {
+      case 'PENDING':
+        return [
+          { value: 'COOKING', label: '→ 수락 (조리 시작)' },
+          { value: 'REJECTED', label: '→ 거절' },
+        ]
+      case 'COOKING':
+        return [{ value: 'DELIVERING', label: '→ 배달 중' }]
+      case 'DELIVERING':
+        return [{ value: 'DELIVERED', label: '→ 배달 완료' }]
+      default:
+        return []
+    }
+  }
+
+  function statusKor(status) {
+    return (
+      {
+        PENDING: '신규',
+        COOKING: '조리 중',
+        DELIVERING: '배달 중',
+        DELIVERED: '배달 완료',
+        REJECTED: '거절됨',
+        CANCELED: '취소됨',
+      }[status] || status || '-'
+    )
+  }
+
+  function statusSelectClass(status) {
+    return (
+      {
+        PENDING: 'status-select--new',
+        COOKING: 'status-select--cooking',
+        DELIVERING: 'status-select--delivering',
+        DELIVERED: 'status-select--done',
+        REJECTED: 'status-select--cancel',
+        CANCELED: 'status-select--cancel',
+      }[status] || ''
+    )
   }
 
   function statusBadge(status) {
@@ -188,7 +276,8 @@
 
   function attachRowHandlers() {
     document.querySelectorAll('#orderTableBody [data-act="pick"]').forEach((btn) => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation()
         const id = btn.dataset.orderId || ''
         const input = document.getElementById('orderIdInput')
         input.value = id
@@ -196,6 +285,70 @@
         handleLookup()
       })
     })
+
+    document.querySelectorAll('#orderTableBody [data-status-select]').forEach((select) => {
+      select.addEventListener('change', () => handleStatusSelectChange(select))
+      select.addEventListener('click', (e) => e.stopPropagation())
+      select.addEventListener('mousedown', (e) => e.stopPropagation())
+    })
+
+    document.querySelectorAll('#orderTableBody [data-toggle-reason]').forEach((tr) => {
+      tr.addEventListener('click', () => {
+        const id = tr.dataset.orderId
+        if (!id) return
+        const reasonRow = document.querySelector(
+          `#orderTableBody tr.reason-row[data-reason-for="${id}"]`,
+        )
+        if (reasonRow) reasonRow.hidden = !reasonRow.hidden
+      })
+    })
+  }
+
+  async function handleStatusSelectChange(select) {
+    const orderId = select.dataset.orderId
+    const current = (select.dataset.current || '').toUpperCase()
+    const next = select.value
+    if (!orderId || !next) return
+
+    const confirmText = confirmMessageFor(current, next)
+    if (confirmText && !confirm(confirmText)) {
+      select.value = ''
+      return
+    }
+
+    select.disabled = true
+    try {
+      if (current === 'PENDING' && next === 'COOKING') {
+        await api.orders.owner.accept(orderId)
+      } else if (current === 'PENDING' && next === 'REJECTED') {
+        const reason = prompt('거절 사유를 입력하세요.', '')
+        if (!reason || !reason.trim()) {
+          select.value = ''
+          select.disabled = false
+          return
+        }
+        await api.orders.owner.reject(orderId, reason.trim())
+      } else {
+        await api.orders.owner.updateStatus(orderId, next)
+      }
+      await loadAll()
+      const idInput = document.getElementById('orderIdInput')
+      if (idInput && idInput.value && String(idInput.value).trim() === String(orderId)) {
+        handleLookup()
+      }
+    } catch (e) {
+      alert(OwnerShared.errorMessage(e, '상태 변경 실패'))
+      select.value = ''
+      select.disabled = false
+    }
+  }
+
+  function confirmMessageFor(current, next) {
+    if (current === 'PENDING' && next === 'COOKING') return '이 주문을 수락하고 조리를 시작할까요?'
+    if (current === 'PENDING' && next === 'REJECTED') return null
+    if (current === 'COOKING' && next === 'DELIVERING') return '배달 중 상태로 변경할까요?'
+    if (current === 'DELIVERING' && next === 'DELIVERED') return '배달 완료로 처리할까요?'
+    return null
   }
 
   function renderPagination() {
@@ -227,16 +380,31 @@
     const id = getOrderId()
     if (!id) return
     const info = document.getElementById('orderInfo')
+    const hintEl = document.getElementById('rejectHint')
     info.hidden = false
     info.style.color = ''
     info.textContent = '불러오는 중…'
     try {
       const data = await api.orders.detail(id)
       info.innerHTML = renderOrderInfo(data)
+      const status = String(data.status ?? data.orderStatus ?? '').toUpperCase()
+      if (hintEl) {
+        hintEl.style.color = ''
+        hintEl.textContent =
+          status === 'PENDING'
+            ? '신규(PENDING) 주문이에요. 사유를 입력하고 거절 버튼을 누르세요.'
+            : `현재 상태: ${OwnerShared.statusLabel(status)} — 거절은 신규(PENDING) 주문에만 가능합니다.`
+      }
     } catch (e) {
       info.textContent = OwnerShared.errorMessage(e, '주문 정보를 가져오지 못했습니다.')
       info.style.color = 'var(--color-cancel)'
+      if (hintEl) {
+        hintEl.style.color = 'var(--color-text-muted)'
+        hintEl.textContent =
+          '상세 조회는 실패했지만, 사유 입력 후 거절을 시도할 수 있어요.'
+      }
     }
+    updateRejectButtonEnabled()
   }
 
   function renderOrderInfo(o) {
@@ -254,46 +422,43 @@
     `
   }
 
-  async function handleAccept() {
-    const id = getOrderId()
-    if (!id) return
-    try {
-      await api.orders.owner.accept(id)
-      await Promise.all([handleLookup(), loadOrders()])
-    } catch (e) {
-      alert(OwnerShared.errorMessage(e, '수락 실패'))
-    }
+  function updateRejectButtonEnabled() {
+    const btn = document.getElementById('btnReject')
+    if (!btn) return
+    const id = (document.getElementById('orderIdInput')?.value || '').trim()
+    const reason = (document.getElementById('rejectReason')?.value || '').trim()
+    btn.disabled = !(id && reason)
   }
 
-  async function handleReject() {
-    const id = getOrderId()
-    if (!id) return
-    const reason = document.getElementById('rejectReason').value.trim()
+  async function handleRejectFromPanel() {
+    const id = (document.getElementById('orderIdInput').value || '').trim()
+    const textarea = document.getElementById('rejectReason')
+    const reason = (textarea.value || '').trim()
+    if (!id) {
+      alert('주문 ID를 입력하세요.')
+      return
+    }
     if (!reason) {
       alert('거절 사유를 입력해 주세요.')
+      textarea.focus()
       return
     }
+    if (!confirm(`주문 #${id}를 거절할까요? 처리 후에는 되돌릴 수 없습니다.`)) return
+
+    const btn = document.getElementById('btnReject')
+    btn.disabled = true
+    textarea.disabled = true
     try {
       await api.orders.owner.reject(id, reason)
-      await Promise.all([handleLookup(), loadOrders()])
+      textarea.value = ''
+      alert('주문이 거절되었습니다.')
+      handleLookup().catch(() => {})
+      await loadAll()
     } catch (e) {
       alert(OwnerShared.errorMessage(e, '거절 실패'))
-    }
-  }
-
-  async function handleApplyStatus() {
-    const id = getOrderId()
-    if (!id) return
-    const next = document.getElementById('nextStatusSelect').value
-    if (next === 'ACCEPTED') {
-      await handleAccept()
-      return
-    }
-    try {
-      await api.orders.owner.updateStatus(id, next)
-      await Promise.all([handleLookup(), loadOrders()])
-    } catch (e) {
-      alert(OwnerShared.errorMessage(e, '상태 변경 실패'))
+    } finally {
+      textarea.disabled = false
+      updateRejectButtonEnabled()
     }
   }
 

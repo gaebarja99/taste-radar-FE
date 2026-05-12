@@ -50,36 +50,36 @@
         </header>
 
         <div class="summary-grid" id="summaryCards" aria-label="주문 상태 요약">
-          <article class="summary-card" data-summary="total">
-            <div class="summary-card-icon summary-card-icon--cooking"><i class="ti ti-receipt"></i></div>
+          <article class="summary-card" data-summary="pending">
+            <div class="summary-card-icon summary-card-icon--new"><i class="ti ti-bell-ringing"></i></div>
             <div class="summary-card-body">
-              <p class="summary-card-label">오늘 전체 주문</p>
-              <p class="summary-card-value" id="todayTotal">—</p>
-              <p class="summary-card-hint">전체 가게 합계</p>
+              <p class="summary-card-label">신규 주문</p>
+              <p class="summary-card-value" id="cntPending">—</p>
+              <p class="summary-card-hint">PENDING · 수락 대기</p>
             </div>
           </article>
-          <article class="summary-card" data-summary="store">
-            <div class="summary-card-icon summary-card-icon--delivering"><i class="ti ti-building-store"></i></div>
+          <article class="summary-card" data-summary="cooking">
+            <div class="summary-card-icon summary-card-icon--cooking"><i class="ti ti-tools-kitchen-2"></i></div>
             <div class="summary-card-body">
-              <p class="summary-card-label">대상 가게</p>
-              <p class="summary-card-value" id="storeName">—</p>
-              <p class="summary-card-hint" id="storeOrderCount">건 처리 대기</p>
+              <p class="summary-card-label">조리중</p>
+              <p class="summary-card-value" id="cntCooking">—</p>
+              <p class="summary-card-hint">COOKING</p>
             </div>
           </article>
-          <article class="summary-card" data-summary="action">
-            <div class="summary-card-icon summary-card-icon--new"><i class="ti ti-bolt"></i></div>
+          <article class="summary-card" data-summary="delivering">
+            <div class="summary-card-icon summary-card-icon--delivering"><i class="ti ti-truck-delivery"></i></div>
             <div class="summary-card-body">
-              <p class="summary-card-label">바로 액션</p>
-              <p class="summary-card-value" style="font-size:14px">주문 ID로 조회</p>
-              <p class="summary-card-hint">아래 패널에서 사용</p>
+              <p class="summary-card-label">배달중</p>
+              <p class="summary-card-value" id="cntDelivering">—</p>
+              <p class="summary-card-hint">DELIVERING</p>
             </div>
           </article>
-          <article class="summary-card" data-summary="done">
+          <article class="summary-card" data-summary="delivered">
             <div class="summary-card-icon summary-card-icon--done"><i class="ti ti-circle-check"></i></div>
             <div class="summary-card-body">
-              <p class="summary-card-label">조회된 주문</p>
-              <p class="summary-card-value" id="orderListCount">—</p>
-              <p class="summary-card-hint">현재 페이지 기준</p>
+              <p class="summary-card-label">완료</p>
+              <p class="summary-card-value" id="cntDelivered">—</p>
+              <p class="summary-card-hint">DELIVERED</p>
             </div>
           </article>
         </div>
@@ -124,15 +124,13 @@
 
           <aside class="cancel-panel" aria-labelledby="actionTitle">
             <div>
-              <h2 id="actionTitle">주문 조회 · 처리</h2>
-              <p class="cancel-panel-lead">주문 ID로 상태를 변경하거나 취소할 수 있어요.</p>
+              <h2 id="actionTitle">주문 조회 · 거절</h2>
             </div>
             <div>
               <label class="field-label" for="orderIdInput">주문 ID</label>
               <input
                 class="field-select"
                 id="orderIdInput"
-                placeholder="예: 12 또는 UUID"
                 style="height:36px;padding:0 12px"
               />
             </div>
@@ -142,31 +140,22 @@
 
             <div id="orderInfo" class="empty-state" hidden style="text-align:left;margin:0"></div>
 
-            <div>
-              <label class="field-label" for="nextStatusSelect">상태 전이</label>
-              <select id="nextStatusSelect" class="field-select">
-                <option value="DELIVERING">조리 중 → 배달 중(DELIVERING)</option>
-                <option value="DELIVERED">배달 중 → 배달 완료(DELIVERED)</option>
-              </select>
-              <p class="card-note" style="margin:6px 0 0">신규(PENDING)는 좌측 "수락" 버튼이 곧 조리 시작입니다.</p>
-            </div>
-            <div class="btn-row">
-              <button type="button" class="btn-outline-sm" id="btnAccept">수락</button>
-              <button type="button" class="btn-outline-sm is-danger" id="btnReject">거절</button>
-              <button type="button" class="btn-outline-sm" id="btnApplyStatus">상태 변경</button>
-            </div>
-
-            <div>
-              <label class="field-label" for="rejectReason">거절 / 취소 사유</label>
+            <div id="rejectBlock">
+              <label class="field-label" for="rejectReason">거절 사유</label>
               <textarea
                 class="field-textarea"
                 id="rejectReason"
-                placeholder="거절·취소 사유를 입력하세요."
+                placeholder="예: 재료 소진, 영업 종료 시간 임박 등"
               ></textarea>
+              <div class="btn-row" style="margin-top:8px">
+                <button type="button" class="btn-outline-sm is-danger" id="btnReject" disabled>주문 거절</button>
+              </div>
+              <p class="card-note" id="rejectHint" style="margin:6px 0 0">주문 ID와 사유를 입력하면 거절할 수 있어요.</p>
             </div>
+
             <p class="cancel-warning">
               <i class="ti ti-info-circle" style="font-size:14px;flex-shrink:0"></i>
-              처리 후에는 되돌릴 수 없습니다.
+              상태 변경 후에는 되돌릴 수 없습니다.
             </p>
           </aside>
         </div>

@@ -391,6 +391,35 @@ table.order-table {
   max-width: 200px;
 }
 
+/* ---------- Expandable rejection reason row ---------- */
+.order-table tbody tr.is-rejected {
+  cursor: pointer;
+}
+.reason-row td {
+  background: var(--color-cancel-bg);
+  padding: 12px 16px 14px;
+}
+.reason-row[hidden] {
+  display: none;
+}
+.reason-row .reason-block {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--color-cancel);
+  line-height: 1.5;
+}
+.reason-row .reason-block i {
+  font-size: 14px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.reason-row .reason-label {
+  font-weight: 700;
+  margin-right: 2px;
+}
+
 .badge {
   display: inline-flex;
   align-items: center;
@@ -421,6 +450,76 @@ table.order-table {
 .badge--cancel {
   background: var(--color-cancel-bg);
   color: var(--color-cancel);
+}
+
+/* 주문 테이블 안의 상태 배지는 드롭다운과 동일한 너비로 정렬 */
+.order-table .badge {
+  display: inline-flex;
+  justify-content: center;
+  width: 96px;
+  box-sizing: border-box;
+}
+
+/* ---------- Inline status dropdown (in order table) ---------- */
+.status-select {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 96px;
+  box-sizing: border-box;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 24px 4px 12px;
+  border-radius: 20px;
+  border: 1px solid transparent;
+  background-color: var(--color-bg-cream);
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: right 10px top 50%, right 6px top 50%;
+  background-size: 4px 4px, 4px 4px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  color: var(--color-text-main);
+  transition: filter 0.12s;
+}
+.status-select:hover {
+  filter: brightness(0.97);
+}
+.status-select:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+.status-select:disabled {
+  cursor: default;
+  opacity: 0.9;
+}
+.status-select--new {
+  background-color: var(--color-new-bg);
+  color: var(--color-new);
+}
+.status-select--cooking {
+  background-color: var(--color-cooking-bg);
+  color: var(--color-cooking);
+}
+.status-select--delivering {
+  background-color: var(--color-delivering-bg);
+  color: var(--color-delivering);
+}
+.status-select--done {
+  background-color: var(--color-done-bg);
+  color: var(--color-done);
+}
+.status-select--cancel {
+  background-color: var(--color-cancel-bg);
+  color: var(--color-cancel);
+}
+.status-select option {
+  color: var(--color-text-main);
+  background: #fff;
 }
 
 /* ---------- Cancel panel ---------- */
