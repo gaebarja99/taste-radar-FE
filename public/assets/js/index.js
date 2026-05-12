@@ -1,37 +1,26 @@
 /**
- * 메인 페이지: 가게 목록 백엔드 연동
- * - GET /api/stores?q=&page=&size=
+ * 메인 페이지: 내 주변 가게 (카카오맵)
+ * - GET /api/stores/nearby?lat=&lng=&radiusKm=
  */
 ;(function () {
   'use strict'
 
-  const SIZE = 12
-
   const state = {
-    query: '',
-    page: 0,
-    totalPages: 1,
     cart: null,
-    activeTab: 'popular',
     map: null,
     userMarker: null,
     storeMarkers: [],
     userPos: null,
-    nearbyLoaded: false,
   }
 
   document.addEventListener('DOMContentLoaded', init)
 
   function init() {
     if (!window.api) {
-      setStatus('API 스크립트를 불러오지 못했습니다.', true)
+      setNearbyStatus('API 스크립트를 불러오지 못했습니다.', true)
       return
     }
 
-    const form = document.getElementById('searchForm')
-    const input = document.getElementById('searchInput')
-    const prevBtn = document.getElementById('pagePrev')
-    const nextBtn = document.getElementById('pageNext')
     const logoutBtn = document.getElementById('btnLogout')
     const loginBtn = document.getElementById('btnKakaoLogin')
     const cartBtn = document.getElementById('btnCart')
@@ -40,39 +29,16 @@
     loginBtn.addEventListener('click', openRoleModal)
     cartBtn.addEventListener('click', openCartDrawer)
     menuBtn.addEventListener('click', openMenuDrawer)
+    logoutBtn.addEventListener('click', handleLogout)
+
     setupRoleModal()
     setupDrawers()
     setupCartActions()
-
-    form.addEventListener('submit', (e) => {
-      e.preventDefault()
-      state.query = input.value.trim()
-      state.page = 0
-      load()
-    })
-
-    prevBtn.addEventListener('click', () => {
-      if (state.page > 0) {
-        state.page -= 1
-        load()
-      }
-    })
-
-    nextBtn.addEventListener('click', () => {
-      if (state.page < state.totalPages - 1) {
-        state.page += 1
-        load()
-      }
-    })
-
-    logoutBtn.addEventListener('click', handleLogout)
-
-    setupTabs()
     setupNearby()
 
     applyAuthUi()
-    load()
     refreshCartBadge()
+    initKakaoMap()
   }
 
   /* ----------------------------- 인증 UI ----------------------------- */
@@ -481,31 +447,6 @@
     )
   }
 
-  /* ----------------------------- 탭 ----------------------------- */
-  function setupTabs() {
-    document.getElementById('tabPopular').addEventListener('click', () => switchTab('popular'))
-    document.getElementById('tabNearby').addEventListener('click', () => switchTab('nearby'))
-  }
-
-  function switchTab(name) {
-    if (state.activeTab === name) return
-    state.activeTab = name
-    const tabPopular = document.getElementById('tabPopular')
-    const tabNearby = document.getElementById('tabNearby')
-    const panelPopular = document.getElementById('panelPopular')
-    const panelNearby = document.getElementById('panelNearby')
-
-    const isNearby = name === 'nearby'
-    tabPopular.classList.toggle('is-active', !isNearby)
-    tabNearby.classList.toggle('is-active', isNearby)
-    tabPopular.setAttribute('aria-selected', String(!isNearby))
-    tabNearby.setAttribute('aria-selected', String(isNearby))
-    panelPopular.hidden = isNearby
-    panelNearby.hidden = !isNearby
-
-    if (isNearby) initKakaoMap()
-  }
-
   /* ----------------------------- 카카오맵 ----------------------------- */
   function setupNearby() {
     document.getElementById('btnUseMyLocation').addEventListener('click', useMyLocation)
@@ -690,44 +631,6 @@
     el.classList.toggle('is-error', !!isError)
   }
 
-  async function load() {
-    const grid = document.getElementById('storeGrid')
-    const count = document.getElementById('storeCount')
-
-    grid.setAttribute('aria-busy', 'true')
-    grid.innerHTML = renderSkeletons(6)
-    setStatus(null)
-
-    try {
-      const result = await api.stores.search({ q: state.query, page: state.page, size: SIZE })
-      const content = Array.isArray(result?.content) ? result.content : []
-      state.totalPages = Math.max(1, Number(result?.totalPages ?? 1))
-
-      const total = Number(result?.totalElements ?? content.length)
-      count.textContent = `총 ${total.toLocaleString('ko-KR')}곳`
-
-      if (content.length === 0) {
-        grid.innerHTML = ''
-        setStatus(
-          state.query
-            ? `'${state.query}' 검색 결과가 없습니다.`
-            : '아직 등록된 가게가 없습니다.',
-        )
-      } else {
-        grid.innerHTML = content.map(renderCard).join('')
-      }
-
-      updatePagination()
-    } catch (e) {
-      grid.innerHTML = ''
-      count.textContent = ''
-      setStatus(errorMessage(e), true)
-      hidePagination()
-    } finally {
-      grid.removeAttribute('aria-busy')
-    }
-  }
-
   /* ----------------------------- 렌더링 ----------------------------- */
   function renderSkeletons(n) {
     return Array.from({ length: n })
@@ -766,44 +669,7 @@
     `
   }
 
-  /* ----------------------------- 페이지네이션 ----------------------------- */
-  function updatePagination() {
-    const nav = document.getElementById('pagination')
-    const info = document.getElementById('pageInfo')
-    const prevBtn = document.getElementById('pagePrev')
-    const nextBtn = document.getElementById('pageNext')
-
-    if (state.totalPages <= 1) {
-      hidePagination()
-      return
-    }
-
-    nav.hidden = false
-    info.textContent = `${state.page + 1} / ${state.totalPages}`
-    prevBtn.disabled = state.page <= 0
-    nextBtn.disabled = state.page >= state.totalPages - 1
-  }
-
-  function hidePagination() {
-    const nav = document.getElementById('pagination')
-    nav.hidden = true
-  }
-
   /* ----------------------------- 상태/유틸 ----------------------------- */
-  function setStatus(message, isError = false) {
-    const el = document.getElementById('storeStatus')
-    if (!el) return
-    if (!message) {
-      el.hidden = true
-      el.textContent = ''
-      el.classList.remove('is-error')
-      return
-    }
-    el.hidden = false
-    el.textContent = message
-    el.classList.toggle('is-error', !!isError)
-  }
-
   function errorMessage(e) {
     if (!e) return '가게 목록을 불러오지 못했습니다.'
     const msg = e.message || ''

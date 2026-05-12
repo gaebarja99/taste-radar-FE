@@ -27,7 +27,7 @@
       <div class="site-header-inner">
         <a class="brand" href="./index.html">Taste Radar</a>
 
-        <form id="searchForm" class="search-form" role="search">
+        <form id="searchForm" class="search-form" role="search" hidden>
           <i class="ti ti-search" aria-hidden="true"></i>
           <label for="searchInput" class="visually-hidden">가게 또는 메뉴 검색</label>
           <input
@@ -216,63 +216,7 @@
     </div>
 
     <main class="site-main">
-      <div class="tabs" role="tablist" aria-label="가게 보기 모드">
-        <button
-          id="tabPopular"
-          type="button"
-          class="tab is-active"
-          role="tab"
-          aria-selected="true"
-          aria-controls="panelPopular"
-        >
-          <i class="ti ti-flame" aria-hidden="true"></i>
-          <span>인기 가게</span>
-        </button>
-        <button
-          id="tabNearby"
-          type="button"
-          class="tab"
-          role="tab"
-          aria-selected="false"
-          aria-controls="panelNearby"
-        >
-          <i class="ti ti-map-pin" aria-hidden="true"></i>
-          <span>내 주변</span>
-        </button>
-      </div>
-
-      <section
-        id="panelPopular"
-        role="tabpanel"
-        aria-labelledby="tabPopular"
-      >
-        <div class="page-heading">
-          <h1 id="pageHeadingTitle">내 주변 인기 가게</h1>
-          <span id="storeCount" class="page-heading-count">불러오는 중…</span>
-        </div>
-        <p class="page-lead">내 입맛에 꼭 맞는 가게를 둘러보세요.</p>
-
-        <ul id="storeGrid" class="store-grid" aria-busy="true"></ul>
-        <p id="storeStatus" class="store-status-message" hidden></p>
-
-        <nav
-          id="pagination"
-          class="pagination"
-          aria-label="페이지 이동"
-          hidden
-        >
-          <button type="button" class="page-btn" id="pagePrev">이전</button>
-          <span class="page-info" id="pageInfo">1 / 1</span>
-          <button type="button" class="page-btn" id="pageNext">다음</button>
-        </nav>
-      </section>
-
-      <section
-        id="panelNearby"
-        role="tabpanel"
-        aria-labelledby="tabNearby"
-        hidden
-      >
+      <section id="panelNearby">
         <div class="page-heading">
           <h1>내 주변 가게</h1>
           <span id="nearbyCount" class="page-heading-count">위치를 알려주세요</span>
