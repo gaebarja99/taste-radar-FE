@@ -90,10 +90,21 @@
       const message =
         (data && typeof data === 'object' && (data.message || data.error)) ||
         (typeof data === 'string' ? data : null) ||
-        `${res.status} ${res.statusText}`
+        (res.status === 401
+          ? '로그인이 만료되었거나 필요합니다. 다시 로그인해 주세요.'
+          : `${res.status} ${res.statusText}`)
       const err = new Error(message)
       err.status = res.status
       err.body = data
+      // 인증된 호출에서 401을 받으면 만료된 토큰을 정리 (재로그인 유도)
+      if (res.status === 401 && auth) {
+        try {
+          tokenStore.clear()
+          ;['userId', 'email', 'nickname', 'role'].forEach((k) => localStorage.removeItem(k))
+        } catch {
+          /* noop */
+        }
+      }
       throw err
     }
     return data
@@ -164,6 +175,10 @@
     create(payload) {
       return request('POST', '/api/owner/stores', { body: payload })
     },
+    /** 사장: 가게 정보 수정 (이름/주소/시간/최소 주문 금액 등) */
+    update(storeId, payload) {
+      return request('PUT', `/api/owner/stores/${storeId}`, { body: payload })
+    },
     /** 사장: 영업 상태 변경 — status: 'PREPARING' | 'OPEN' | 'CLOSE' */
     updateStatus(storeId, status) {
       return request('PATCH', `/api/owner/stores/${storeId}/status`, { body: { status } })
@@ -227,6 +242,12 @@
       return request('POST', `/api/orders/${orderId}/cancel`)
     },
     owner: {
+      /** 사장 주문 목록 — 쿼리: storeId(선택), status(선택), page, size */
+      list({ storeId, status, page = 0, size = 20 } = {}) {
+        return request('GET', '/api/owner/orders', {
+          query: { storeId, status, page, size },
+        })
+      },
       accept(orderId) {
         return request('POST', `/api/owner/orders/${orderId}/accept`)
       },
