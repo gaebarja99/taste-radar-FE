@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>메뉴 관리 — Taste Radar</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.26.0/dist/tabler-icons.min.css"
+    />
+    <link rel="stylesheet" href="/assets/css/owner-order-manage.css" />
+    <link rel="stylesheet" href="/assets/css/owner-pages.css" />
+    <script src="/assets/js/api.js" defer></script>
+    <script src="/assets/js/owner-shared.js" defer></script>
+    <script src="/assets/js/owner-menu-manage.js" defer></script>
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar" aria-label="사이드 메뉴">
+        <div class="sidebar-group" data-collapsed="false">
+          <div class="sidebar-group-label">불러오는 중…</div>
+        </div>
+      </aside>
+
+      <div class="main">
+        <header class="page-header">
+          <h1 class="page-title">메뉴 관리</h1>
+          <div class="page-header-actions">
+            <button type="button" class="btn-icon" id="btnRefresh" title="새로고침" aria-label="새로고침">
+              <i class="ti ti-refresh" style="font-size: 18px"></i>
+            </button>
+          </div>
+        </header>
+
+        <section class="table-section" aria-labelledby="menuListTitle">
+          <div class="section-head section-action-row">
+            <h2 id="menuListTitle" class="section-head-title">메뉴 목록</h2>
+            <div class="owner-toolbar">
+              <label class="field-label" for="storeSelect" style="margin:0">대상 가게</label>
+              <select id="storeSelect" class="field-select" style="min-width:180px"></select>
+            </div>
+          </div>
+          <div id="menuList" style="padding: 0 16px 16px"></div>
+          <p id="menuEmpty" class="empty-state" hidden>등록된 메뉴가 없어요.</p>
+        </section>
+
+        <section class="table-section" aria-labelledby="newMenuTitle">
+          <div class="section-head">
+            <h2 id="newMenuTitle" class="section-head-title">새 메뉴 등록</h2>
+          </div>
+          <form id="newMenuForm" class="form-grid" style="padding: 16px" novalidate>
+            <label>
+              메뉴명
+              <input type="text" name="name" placeholder="예: 김치찌개" required />
+            </label>
+            <label>
+              가격
+              <input type="number" name="price" min="0" placeholder="8000" required />
+            </label>
+            <label class="col-span-2">
+              설명
+              <textarea name="menuDescription" placeholder="간단한 설명"></textarea>
+            </label>
+            <label class="col-span-2">
+              이미지 URL(선택)
+              <input type="url" name="imageUrl" placeholder="https://…" />
+            </label>
+            <div class="col-span-2 btn-row" style="justify-content: flex-end">
+              <button type="submit" class="btn-primary" style="width: auto; padding: 0 24px">
+                메뉴 추가
+              </button>
+            </div>
+            <p id="newMenuMsg" class="empty-state" hidden style="grid-column:1 / -1;margin:0"></p>
+          </form>
+        </section>
+      </div>
+    </div>
+  </body>
+</html>
