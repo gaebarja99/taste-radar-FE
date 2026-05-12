@@ -517,8 +517,11 @@
   function initKakaoMap() {
     if (state.map) return
     if (!window.kakao || !window.kakao.maps) {
+      showMapPlaceholderError(
+        '카카오맵 SDK를 불러오지 못했어요. index.html의 appkey와 카카오 디벨로퍼스 → 플랫폼(Web 도메인) 등록을 확인하세요.',
+      )
       setNearbyStatus(
-        '카카오맵 SDK를 불러오지 못했습니다. index.html의 appkey 설정과 카카오 디벨로퍼스 도메인 등록을 확인하세요.',
+        '카카오맵 SDK 로드 실패. 브라우저 콘솔(F12)의 에러를 확인하세요.',
         true,
       )
       return
@@ -535,6 +538,17 @@
         level: 5,
       })
     })
+  }
+
+  function showMapPlaceholderError(message) {
+    const ph = document.getElementById('mapPlaceholder')
+    if (!ph) return
+    ph.innerHTML = `
+      <i class="ti ti-alert-triangle" aria-hidden="true"
+         style="font-size:36px;color:var(--color-warn);opacity:0.85"></i>
+      <p style="color:var(--color-warn);font-weight:600;margin:0">${escapeHtml(message)}</p>
+    `
+    ph.style.display = 'flex'
   }
 
   function useMyLocation() {
