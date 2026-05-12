@@ -1,13 +1,71 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="ko">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>taste-radar-fe</title>
+    <title>Taste Radar — 입맛대로 주문하는 배달</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.26.0/dist/tabler-icons.min.css"
+    />
+    <link rel="stylesheet" href="/assets/css/index.css" />
+    <script src="/assets/js/api.js" defer></script>
+    <script src="/assets/js/index.js" defer></script>
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    <header class="site-header" aria-label="상단">
+      <div class="site-header-inner">
+        <a class="brand" href="./index.html">Taste Radar</a>
+
+        <form id="searchForm" class="search-form" role="search">
+          <i class="ti ti-search" aria-hidden="true"></i>
+          <label for="searchInput" class="visually-hidden">가게 또는 메뉴 검색</label>
+          <input
+            id="searchInput"
+            class="search-input"
+            type="search"
+            placeholder="가게 또는 메뉴를 검색해 보세요"
+            autocomplete="off"
+          />
+          <button type="submit" class="search-submit">검색</button>
+        </form>
+
+        <div class="header-actions">
+          <a
+            class="btn-kakao"
+            href="http://localhost:8080/oauth2/authorization/kakao"
+            aria-label="카카오 로그인"
+          >
+            <i class="ti ti-brand-kakao-talk" style="font-size: 18px"></i>
+            <span>카카오 로그인</span>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main class="site-main">
+      <div class="page-heading">
+        <h1 id="pageHeadingTitle">내 주변 인기 가게</h1>
+        <span id="storeCount" class="page-heading-count">불러오는 중…</span>
+      </div>
+      <p class="page-lead">내 입맛에 꼭 맞는 가게를 둘러보세요.</p>
+
+      <ul id="storeGrid" class="store-grid" aria-busy="true"></ul>
+      <p id="storeStatus" class="store-status-message" hidden></p>
+
+      <nav id="pagination" class="pagination" aria-label="페이지 이동" hidden>
+        <button type="button" class="page-btn" id="pagePrev">이전</button>
+        <span class="page-info" id="pageInfo">1 / 1</span>
+        <button type="button" class="page-btn" id="pageNext">다음</button>
+      </nav>
+    </main>
+
+    <footer class="site-footer">© Taste Radar — 개인 프로젝트</footer>
   </body>
 </html>
