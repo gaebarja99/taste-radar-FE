@@ -76,30 +76,6 @@
     closeAllDrawers()
   }
 
-  async function handleChangeNickname() {
-    const current = localStorage.getItem('nickname') || ''
-    const next = prompt('새 닉네임을 입력하세요.', current)
-    if (next == null) return
-    const trimmed = next.trim()
-    if (!trimmed) {
-      alert('닉네임을 입력해 주세요.')
-      return
-    }
-    if (trimmed === current) return
-    try {
-      await api.users.updateNickname(trimmed)
-      localStorage.setItem('nickname', trimmed)
-      applyAuthUi()
-      alert('닉네임이 변경되었습니다.')
-    } catch (e) {
-      const msg =
-        e?.status === 401
-          ? '로그인이 필요합니다.'
-          : e?.message || '닉네임을 변경하지 못했습니다.'
-      alert(msg)
-    }
-  }
-
   /* ----------------------------- 역할 선택 모달 ----------------------------- */
   function setupRoleModal() {
     const modal = document.getElementById('roleModal')
@@ -229,23 +205,6 @@
         icon: 'ti-layout-dashboard',
         label: '사장 대시보드',
         href: '/pages/owner/owner-main.html',
-      })
-      items.push({
-        icon: 'ti-user-edit',
-        label: '닉네임 변경',
-        action: () => {
-          closeDrawer(document.getElementById('menuDrawer'))
-          handleChangeNickname()
-        },
-      })
-      items.push({
-        icon: 'ti-lock',
-        label: '비밀번호 변경',
-        action: () => {
-          alert(
-            '카카오 계정으로 로그인되어 있어 비밀번호는 카카오 계정 설정에서 변경할 수 있어요.',
-          )
-        },
       })
     }
 
