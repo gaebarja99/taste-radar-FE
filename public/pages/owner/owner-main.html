@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>사장 메인 — Taste Radar</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.26.0/dist/tabler-icons.min.css"
+    />
+    <link rel="stylesheet" href="/assets/css/owner-main.css" />
+    <script src="/assets/js/api.js" defer></script>
+    <script src="/assets/js/owner-main.js" defer></script>
+  </head>
+  <body>
+    <header class="topbar" aria-label="상단 바">
+      <a class="topbar-brand" href="./owner-main.html">Taste Radar</a>
+      <button type="button" class="topbar-menu" aria-label="메뉴 열기">
+        <i class="ti ti-menu-2" style="font-size: 20px"></i>
+      </button>
+    </header>
+
+    <div class="app">
+      <aside class="sidebar" aria-label="사이드 메뉴">
+        <div class="sidebar-group" data-collapsed="false">
+          <div class="sidebar-group-label">불러오는 중…</div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <section class="card" aria-labelledby="todayOrdersTitle">
+          <header class="card-header">
+            <h1 id="todayOrdersTitle" class="card-title">오늘의 주문(전체)</h1>
+            <p id="todaySummaryTotal" class="card-subtitle">불러오는 중…</p>
+          </header>
+          <ul class="order-summary-list">
+            <li>
+              <span class="order-summary-label">
+                <span class="status-dot status-dot--new" aria-hidden="true"></span>
+                신규
+              </span>
+              <span class="order-summary-count" data-status="PENDING">—</span>
+            </li>
+            <li>
+              <span class="order-summary-label">
+                <span class="status-dot status-dot--cooking" aria-hidden="true"></span>
+                조리 중
+              </span>
+              <span class="order-summary-count" data-status="COOKING">—</span>
+            </li>
+            <li>
+              <span class="order-summary-label">
+                <span class="status-dot status-dot--delivering" aria-hidden="true"></span>
+                배달 중
+              </span>
+              <span class="order-summary-count" data-status="DELIVERING">—</span>
+            </li>
+            <li>
+              <span class="order-summary-label">
+                <span class="status-dot status-dot--done" aria-hidden="true"></span>
+                배달 완료
+              </span>
+              <span class="order-summary-count" data-status="DELIVERED">—</span>
+            </li>
+            <li>
+              <span class="order-summary-label">
+                <span class="status-dot status-dot--cancel" aria-hidden="true"></span>
+                주문 거절
+              </span>
+              <span class="order-summary-count" data-status="REJECTED">—</span>
+            </li>
+          </ul>
+          <p class="card-note">* 상태별 통계는 백엔드 미지원으로 합계만 표시됩니다.</p>
+        </section>
+
+        <aside
+          id="storeStatusCard"
+          class="card store-status-card"
+          aria-labelledby="storeStatusTitle"
+          data-store-id=""
+        >
+          <h2 id="storeStatusTitle" class="card-title">가게 정보 불러오는 중…</h2>
+          <div class="store-status-row">
+            <span class="store-status-label" id="storeStatusLabel">영업 상태</span>
+            <label class="switch">
+              <input id="storeStatusInput" type="checkbox" aria-label="영업 상태 켜기/끄기" disabled />
+              <span class="switch-slider"></span>
+            </label>
+          </div>
+        </aside>
+      </main>
+    </div>
+  </body>
+</html>

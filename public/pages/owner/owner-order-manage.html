@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>주문 관리 — Eat Now</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.26.0/dist/tabler-icons.min.css"
+    />
+    <link rel="stylesheet" href="/assets/css/owner-order-manage.css" />
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar" aria-label="사이드 메뉴">
+        <a class="sidebar-logo" href="./owner-main.html">🛵 Eat Now</a>
+
+        <div class="sidebar-group">
+          <div class="sidebar-group-label">카페인 중독</div>
+          <ul class="sidebar-nav">
+            <li><a href="./owner-main.html">대시보드</a></li>
+            <li><a href="#">가게 관리</a></li>
+            <li><a href="./owner-order-manage.html" class="is-active">주문 관리</a></li>
+            <li><a href="#">리뷰 관리</a></li>
+            <li><a href="#">메뉴 관리</a></li>
+          </ul>
+        </div>
+
+        <div class="sidebar-group">
+          <div class="sidebar-group-label">빽다방</div>
+          <ul class="sidebar-nav">
+            <li><a href="#">대시보드</a></li>
+            <li><a href="#">가게 관리</a></li>
+            <li><a href="#">주문 관리</a></li>
+            <li><a href="#">리뷰 관리</a></li>
+            <li><a href="#">메뉴 관리</a></li>
+          </ul>
+        </div>
+      </aside>
+
+      <div class="main">
+        <header class="page-header">
+          <h1 class="page-title">오늘의 주문 요약</h1>
+          <div class="page-header-actions">
+            <span class="date-pill" id="todayDate">2026년 5월 12일</span>
+            <button type="button" class="btn-icon" id="btnRefresh" title="새로고침" aria-label="새로고침">
+              <i class="ti ti-refresh" style="font-size: 18px"></i>
+            </button>
+          </div>
+        </header>
+
+        <div class="summary-grid" id="summaryCards" aria-label="주문 상태 요약">
+          <article class="summary-card" data-summary="new">
+            <div class="summary-card-icon summary-card-icon--new"><i class="ti ti-bell-ringing"></i></div>
+            <div class="summary-card-body">
+              <p class="summary-card-label">신규 주문</p>
+              <p class="summary-card-value">1</p>
+              <p class="summary-card-hint">건 접수 대기</p>
+            </div>
+          </article>
+          <article class="summary-card" data-summary="cooking">
+            <div class="summary-card-icon summary-card-icon--cooking"><i class="ti ti-flame"></i></div>
+            <div class="summary-card-body">
+              <p class="summary-card-label">조리 중</p>
+              <p class="summary-card-value">0</p>
+              <p class="summary-card-hint">건 조리 진행</p>
+            </div>
+          </article>
+          <article class="summary-card" data-summary="delivering">
+            <div class="summary-card-icon summary-card-icon--delivering"><i class="ti ti-motorbike"></i></div>
+            <div class="summary-card-body">
+              <p class="summary-card-label">배달 중</p>
+              <p class="summary-card-value">0</p>
+              <p class="summary-card-hint">건 배달 진행</p>
+            </div>
+          </article>
+          <article class="summary-card" data-summary="done">
+            <div class="summary-card-icon summary-card-icon--done"><i class="ti ti-circle-check"></i></div>
+            <div class="summary-card-body">
+              <p class="summary-card-label">완료</p>
+              <p class="summary-card-value">3</p>
+              <p class="summary-card-hint">건 배달 완료</p>
+            </div>
+          </article>
+        </div>
+
+        <div class="content-row">
+          <section class="table-section" aria-labelledby="tableSectionTitle">
+            <div class="section-head">
+              <h2 id="tableSectionTitle" class="section-head-title">주문 현황 상세 목록</h2>
+            </div>
+            <div class="table-toolbar">
+              <span class="table-total" id="orderTotalLabel">총 5건</span>
+              <label class="visually-hidden" for="statusFilter">상태 필터</label>
+              <select class="select-filter" id="statusFilter" aria-label="주문 상태 필터">
+                <option value="all">전체 상태</option>
+                <option value="신규 주문">신규 주문</option>
+                <option value="조리 중">조리 중</option>
+                <option value="배달 중">배달 중</option>
+                <option value="배달 완료">배달 완료</option>
+                <option value="주문 취소">주문 취소</option>
+              </select>
+            </div>
+            <div class="table-scroll">
+              <table class="order-table">
+                <thead>
+                  <tr>
+                    <th>주문 ID</th>
+                    <th>총 가격</th>
+                    <th>주문 시간</th>
+                    <th>취소 사유</th>
+                    <th>상태</th>
+                  </tr>
+                </thead>
+                <tbody id="orderTableBody">
+                  <tr data-status="신규 주문">
+                    <td><span class="order-id" title="e2f3a4b5-c6d7-e8f9-a0b1-c2d3e4f5a607">e2f3a4b5…</span></td>
+                    <td><span class="order-price">12,500원</span></td>
+                    <td><span class="order-time">5/12 12:05</span></td>
+                    <td><span class="order-reason">—</span></td>
+                    <td><span class="badge badge--new">신규 주문</span></td>
+                  </tr>
+                  <tr data-status="주문 취소">
+                    <td><span class="order-id" title="c3a10cc1-2920-4b2a-9f1e-8d2c4e5a6b01">c3a10cc1…</span></td>
+                    <td><span class="order-price">18,000원</span></td>
+                    <td><span class="order-time">5/12 11:32</span></td>
+                    <td><span class="order-reason">고객 요청</span></td>
+                    <td><span class="badge badge--cancel">주문 취소</span></td>
+                  </tr>
+                  <tr data-status="배달 완료">
+                    <td><span class="order-id" title="a7f2e9d1-4410-4c88-b2a1-1e3f5d7c9a02">a7f2e9d1…</span></td>
+                    <td><span class="order-price">24,000원</span></td>
+                    <td><span class="order-time">5/12 10:15</span></td>
+                    <td><span class="order-reason">—</span></td>
+                    <td><span class="badge badge--done">배달 완료</span></td>
+                  </tr>
+                  <tr data-status="배달 완료">
+                    <td><span class="order-id" title="b1c4d6e8-0a2b-4c6d-8e0f-1a3b5c7d9e03">b1c4d6e8…</span></td>
+                    <td><span class="order-price">9,200원</span></td>
+                    <td><span class="order-time">5/12 09:50</span></td>
+                    <td><span class="order-reason">—</span></td>
+                    <td><span class="badge badge--done">배달 완료</span></td>
+                  </tr>
+                  <tr data-status="배달 완료">
+                    <td><span class="order-id" title="d9e8f7a6-5b4c-3d2e-1f0a-9b8c7d6e5f04">d9e8f7a6…</span></td>
+                    <td><span class="order-price">31,000원</span></td>
+                    <td><span class="order-time">5/12 09:12</span></td>
+                    <td><span class="order-reason">—</span></td>
+                    <td><span class="badge badge--done">배달 완료</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <aside class="cancel-panel" aria-labelledby="cancelTitle">
+            <div>
+              <h2 id="cancelTitle">취소 처리</h2>
+              <p class="cancel-panel-lead">주문을 선택 후 사유를 입력하세요</p>
+            </div>
+            <div>
+              <label class="field-label" for="cancelOrderSelect">주문 ID</label>
+              <select class="field-select" id="cancelOrderSelect">
+                <option value="">주문 선택</option>
+                <option value="e2f3a4b5-c6d7-e8f9-a0b1-c2d3e4f5a607">e2f3a4b5… (12,500원)</option>
+              </select>
+            </div>
+            <div>
+              <label class="field-label" for="cancelReason">취소 사유</label>
+              <textarea
+                class="field-textarea"
+                id="cancelReason"
+                placeholder="주문 취소 이유를 작성해주세요."
+              ></textarea>
+            </div>
+            <p class="cancel-warning">
+              <i class="ti ti-info-circle" style="font-size: 14px; flex-shrink: 0"></i>
+              취소 후에는 되돌릴 수 없습니다.
+            </p>
+            <button type="button" class="btn-primary" id="btnCancelOrder">주문 취소</button>
+          </aside>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
