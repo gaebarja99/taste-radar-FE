@@ -21,6 +21,13 @@
     <script src="/assets/js/owner-order-manage.js" defer></script>
   </head>
   <body>
+    <header class="topbar" aria-label="상단 바">
+      <a class="topbar-brand" href="./owner-main.html">Taste Radar</a>
+      <a class="topbar-menu" href="/" title="메인으로" aria-label="메인으로 이동">
+        <i class="ti ti-home" style="font-size: 20px"></i>
+      </a>
+    </header>
+
     <div class="app">
       <aside class="sidebar" aria-label="사이드 메뉴">
         <div class="sidebar-group" data-collapsed="false">
@@ -67,9 +74,9 @@
           <article class="summary-card" data-summary="done">
             <div class="summary-card-icon summary-card-icon--done"><i class="ti ti-circle-check"></i></div>
             <div class="summary-card-body">
-              <p class="summary-card-label">백엔드 메모</p>
-              <p class="summary-card-value" style="font-size:14px">목록 API 미지원</p>
-              <p class="summary-card-hint">건별 처리는 ID 기준</p>
+              <p class="summary-card-label">조회된 주문</p>
+              <p class="summary-card-value" id="orderListCount">—</p>
+              <p class="summary-card-hint">현재 페이지 기준</p>
             </div>
           </article>
         </div>
@@ -77,22 +84,22 @@
         <div class="content-row">
           <section class="table-section" aria-labelledby="tableSectionTitle">
             <div class="section-head section-action-row">
-              <h2 id="tableSectionTitle" class="section-head-title">최근 주문(샘플)</h2>
+              <h2 id="tableSectionTitle" class="section-head-title">주문 목록</h2>
               <div class="owner-toolbar">
                 <label class="field-label" for="storeSelect" style="margin:0">대상 가게</label>
                 <select id="storeSelect" class="field-select" style="min-width:180px"></select>
               </div>
             </div>
             <div class="table-toolbar">
-              <span class="table-total" id="orderTotalLabel">샘플 행</span>
+              <span class="table-total" id="orderTotalLabel">총 0건</span>
               <label class="visually-hidden" for="statusFilter">상태 필터</label>
               <select class="select-filter" id="statusFilter" aria-label="주문 상태 필터">
-                <option value="all">전체 상태</option>
-                <option value="신규 주문">신규 주문</option>
-                <option value="조리 중">조리 중</option>
-                <option value="배달 중">배달 중</option>
-                <option value="배달 완료">배달 완료</option>
-                <option value="주문 취소">주문 취소</option>
+                <option value="">전체 상태</option>
+                <option value="PENDING">신규(PENDING)</option>
+                <option value="COOKING">조리 중(COOKING)</option>
+                <option value="DELIVERING">배달 중(DELIVERING)</option>
+                <option value="DELIVERED">배달 완료(DELIVERED)</option>
+                <option value="REJECTED">주문 거절(REJECTED)</option>
               </select>
             </div>
             <div class="table-scroll">
@@ -109,10 +116,7 @@
                 <tbody id="orderTableBody"></tbody>
               </table>
             </div>
-            <p class="cancel-warning" style="margin:8px 16px 16px">
-              <i class="ti ti-info-circle" style="font-size:14px;flex-shrink:0"></i>
-              현재 백엔드는 주문 목록 API를 제공하지 않습니다. 표는 데모이며 실제 데이터는 우측에서 ID로 조회·처리하세요.
-            </p>
+            <div id="pagination" class="btn-row" style="justify-content:center;padding:8px 16px 16px"></div>
           </section>
 
           <aside class="cancel-panel" aria-labelledby="actionTitle">
@@ -138,11 +142,10 @@
             <div>
               <label class="field-label" for="nextStatusSelect">상태 전이</label>
               <select id="nextStatusSelect" class="field-select">
-                <option value="ACCEPTED">신규 → 수락(ACCEPTED)</option>
-                <option value="COOKING">조리 중(COOKING)</option>
-                <option value="DELIVERING">배달 중(DELIVERING)</option>
-                <option value="DELIVERED">배달 완료(DELIVERED)</option>
+                <option value="DELIVERING">조리 중 → 배달 중(DELIVERING)</option>
+                <option value="DELIVERED">배달 중 → 배달 완료(DELIVERED)</option>
               </select>
+              <p class="card-note" style="margin:6px 0 0">신규(PENDING)는 좌측 "수락" 버튼이 곧 조리 시작입니다.</p>
             </div>
             <div class="btn-row">
               <button type="button" class="btn-outline-sm" id="btnAccept">수락</button>

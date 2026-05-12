@@ -1,32 +1,28 @@
 /**
  * 주문 관리 페이지 (사장)
  *
- * 백엔드에 사장용 주문 목록 API는 없습니다. 본 페이지는 다음 API를 사용합니다.
- *  - GET    /api/owner/orders/stats/today          (요약 카운트)
- *  - GET    /api/owner/orders/stats/today/stores   (가게별 카운트)
- *  - GET    /api/orders/{id}                       (주문 상세)
- *  - POST   /api/owner/orders/{id}/accept          (수락)
- *  - POST   /api/owner/orders/{id}/reject          (거절, body: { rejectionReason })
- *  - PATCH  /api/owner/orders/{id}/status          (COOKING|DELIVERING|DELIVERED)
- *
- * 좌측 표는 데모 행이며, 우측 패널에서 주문 ID 단위로 실제 처리합니다.
+ * 사용 API
+ *  - GET    /api/owner/orders                       (목록, ?storeId&status&page&size)
+ *  - GET    /api/owner/orders/stats/today           (오늘 전체 주문 합계)
+ *  - GET    /api/owner/orders/stats/today/stores    (가게별 카운트 = 가게 셀렉트 옵션)
+ *  - GET    /api/orders/{id}                        (상세)
+ *  - POST   /api/owner/orders/{id}/accept           (PENDING → COOKING)
+ *  - POST   /api/owner/orders/{id}/reject           (PENDING → REJECTED, body: { rejectionReason })
+ *  - PATCH  /api/owner/orders/{id}/status           (COOKING → DELIVERING → DELIVERED)
  */
 ;(function () {
   'use strict'
 
-  const state = {
-    storeId: null,
-    storeList: [],
-    lastOrder: null,
-  }
+  const PAGE_SIZE = 20
 
-  const DEMO_ROWS = [
-    { id: 'e2f3a4b5…', total: 12500, time: '12:05', status: '신규 주문' },
-    { id: 'c3a10cc1…', total: 18000, time: '11:32', status: '주문 취소' },
-    { id: 'a7f2e9d1…', total: 24000, time: '10:15', status: '배달 완료' },
-    { id: 'b1c4d6e8…', total: 9200,  time: '09:50', status: '배달 완료' },
-    { id: 'd9e8f7a6…', total: 31000, time: '09:12', status: '배달 완료' },
-  ]
+  const state = {
+    storeList: [],
+    storeId: null,   // null/"" 이면 전체
+    status: '',      // '' 이면 전체
+    page: 0,
+    totalPages: 0,
+    totalElements: 0,
+  }
 
   document.addEventListener('DOMContentLoaded', init)
 
@@ -37,21 +33,29 @@
     state.storeList = ctx.storeList || []
     populateStoreSelect()
 
-    document.getElementById('btnRefresh').addEventListener('click', loadSummary)
+    document.getElementById('btnRefresh').addEventListener('click', loadAll)
     document.getElementById('storeSelect').addEventListener('change', (e) => {
       state.storeId = e.target.value || null
-      applyStoreCard()
+      state.page = 0
+      loadOrders()
     })
-    document.getElementById('statusFilter').addEventListener('change', applyFilter)
+    document.getElementById('statusFilter').addEventListener('change', (e) => {
+      state.status = e.target.value
+      state.page = 0
+      loadOrders()
+    })
 
     document.getElementById('btnLookup').addEventListener('click', handleLookup)
     document.getElementById('btnAccept').addEventListener('click', handleAccept)
     document.getElementById('btnReject').addEventListener('click', handleReject)
     document.getElementById('btnApplyStatus').addEventListener('click', handleApplyStatus)
 
-    renderDemoTable()
     showTodayDate()
-    await loadSummary()
+    await loadAll()
+  }
+
+  async function loadAll() {
+    await Promise.all([loadSummary(), loadOrders()])
   }
 
   function showTodayDate() {
@@ -61,27 +65,39 @@
 
   function populateStoreSelect() {
     const select = document.getElementById('storeSelect')
-    if (state.storeList.length === 0) {
+    if (!state.storeList || state.storeList.length === 0) {
       select.innerHTML = '<option value="">가게 없음</option>'
       select.disabled = true
       return
     }
-    select.innerHTML = state.storeList
-      .map((s) => `<option value="${s.storeId}">${OwnerShared.escapeHtml(s.storeName ?? '가게')}</option>`)
-      .join('')
-    state.storeId = String(state.storeList[0].storeId)
-    select.value = state.storeId
+    select.disabled = false
+    select.innerHTML =
+      '<option value="">전체 가게</option>' +
+      state.storeList
+        .map(
+          (s) =>
+            `<option value="${s.storeId}">${OwnerShared.escapeHtml(s.storeName ?? '가게')}</option>`,
+        )
+        .join('')
+    select.value = ''
+    state.storeId = null
     applyStoreCard()
   }
 
   function applyStoreCard() {
     const s = state.storeList.find((x) => String(x.storeId) === String(state.storeId))
-    document.getElementById('storeName').textContent = s?.storeName ?? '—'
-    document.getElementById('storeOrderCount').textContent = `오늘 ${Number(
-      s?.totalCount ?? 0,
-    ).toLocaleString('ko-KR')}건`
+    const nameEl = document.getElementById('storeName')
+    const countEl = document.getElementById('storeOrderCount')
+    if (!state.storeId) {
+      nameEl.textContent = '전체'
+      countEl.textContent = '모든 가게 합계'
+      return
+    }
+    nameEl.textContent = s?.storeName ?? '—'
+    countEl.textContent = `오늘 ${Number(s?.totalCount ?? 0).toLocaleString('ko-KR')}건`
   }
 
+  /* ------------------ 오늘 합계 ------------------ */
   async function loadSummary() {
     const totalEl = document.getElementById('todayTotal')
     totalEl.textContent = '…'
@@ -93,66 +109,131 @@
       totalEl.textContent = '-'
       console.warn(OwnerShared.errorMessage(e, '요약 불러오기 실패'))
     }
+    applyStoreCard()
   }
 
-  /* --------------------- 데모 표 --------------------- */
-  function renderDemoTable() {
+  /* ------------------ 주문 목록 ------------------ */
+  async function loadOrders() {
     const body = document.getElementById('orderTableBody')
-    body.innerHTML = DEMO_ROWS.map(
-      (r) => `
-        <tr data-status="${r.status}">
-          <td><span class="order-id">${r.id}</span></td>
-          <td><span class="order-price">${OwnerShared.formatWon(r.total)}</span></td>
-          <td><span class="order-time">${r.time}</span></td>
-          <td>${statusBadge(r.status)}</td>
-          <td style="text-align:right">
-            <button type="button" class="btn-outline-sm" data-act="pick" data-order-id="${r.id.replace('…','')}">
-              ID 채우기
-            </button>
-          </td>
-        </tr>`,
-    ).join('')
-    body.querySelectorAll('[data-act="pick"]').forEach((btn) => {
+    const totalLabel = document.getElementById('orderTotalLabel')
+    const listCountEl = document.getElementById('orderListCount')
+    body.innerHTML = `<tr><td colspan="5" style="padding:20px;text-align:center;color:var(--color-text-muted)">불러오는 중…</td></tr>`
+
+    try {
+      const page = await api.orders.owner.list({
+        storeId: state.storeId || undefined,
+        status: state.status || undefined,
+        page: state.page,
+        size: PAGE_SIZE,
+      })
+      const items = Array.isArray(page?.content) ? page.content : []
+      state.totalPages = Number(page?.totalPages ?? 0)
+      state.totalElements = Number(page?.totalElements ?? items.length)
+
+      totalLabel.textContent = `총 ${state.totalElements.toLocaleString('ko-KR')}건`
+      listCountEl.textContent = items.length.toLocaleString('ko-KR')
+
+      if (items.length === 0) {
+        body.innerHTML = `<tr><td colspan="5" style="padding:24px;text-align:center;color:var(--color-text-muted)">조건에 맞는 주문이 없어요.</td></tr>`
+      } else {
+        body.innerHTML = items.map(renderRow).join('')
+        attachRowHandlers()
+      }
+      renderPagination()
+    } catch (e) {
+      body.innerHTML = `<tr><td colspan="5" style="padding:20px;text-align:center;color:var(--color-cancel)">${OwnerShared.escapeHtml(
+        OwnerShared.errorMessage(e, '주문 목록을 불러오지 못했습니다.'),
+      )}</td></tr>`
+      totalLabel.textContent = '총 0건'
+      listCountEl.textContent = '0'
+      renderPagination()
+    }
+  }
+
+  function renderRow(o) {
+    const status = String(o.orderStatus ?? o.status ?? '').toUpperCase()
+    const created = o.createdAt ? new Date(o.createdAt) : null
+    const time = created
+      ? `${created.getMonth() + 1}/${created.getDate()} ${String(created.getHours()).padStart(2, '0')}:${String(
+          created.getMinutes(),
+        ).padStart(2, '0')}`
+      : '-'
+    const total = o.totalAmount ?? o.totalPrice ?? 0
+
+    return `
+      <tr data-status="${status}">
+        <td><span class="order-id" title="${o.id}">${o.id}</span></td>
+        <td><span class="order-price">${OwnerShared.formatWon(total)}</span></td>
+        <td><span class="order-time">${OwnerShared.escapeHtml(time)}</span></td>
+        <td>${statusBadge(status)}</td>
+        <td style="text-align:right">
+          <button type="button" class="btn-outline-sm" data-act="pick" data-order-id="${o.id}">선택</button>
+        </td>
+      </tr>
+    `
+  }
+
+  function statusBadge(status) {
+    const map = {
+      PENDING: { cls: 'badge--new', label: '신규' },
+      COOKING: { cls: 'badge--cooking', label: '조리 중' },
+      DELIVERING: { cls: 'badge--delivering', label: '배달 중' },
+      DELIVERED: { cls: 'badge--done', label: '배달 완료' },
+      REJECTED: { cls: 'badge--cancel', label: '거절' },
+      CANCELED: { cls: 'badge--cancel', label: '취소' },
+    }
+    const m = map[status] || { cls: '', label: status || '-' }
+    return `<span class="badge ${m.cls}">${m.label}</span>`
+  }
+
+  function attachRowHandlers() {
+    document.querySelectorAll('#orderTableBody [data-act="pick"]').forEach((btn) => {
       btn.addEventListener('click', () => {
+        const id = btn.dataset.orderId || ''
         const input = document.getElementById('orderIdInput')
-        input.value = btn.dataset.orderId || ''
+        input.value = id
         input.focus()
+        handleLookup()
       })
     })
-    document.getElementById('orderTotalLabel').textContent = `샘플 ${DEMO_ROWS.length}건`
   }
 
-  function statusBadge(s) {
-    const m = {
-      '신규 주문': 'badge--new',
-      '조리 중': 'badge--cooking',
-      '배달 중': 'badge--delivering',
-      '배달 완료': 'badge--done',
-      '주문 취소': 'badge--cancel',
+  function renderPagination() {
+    const wrap = document.getElementById('pagination')
+    if (!wrap) return
+    const tp = state.totalPages
+    if (tp <= 1) {
+      wrap.innerHTML = ''
+      return
     }
-    return `<span class="badge ${m[s] || ''}">${s}</span>`
-  }
-
-  function applyFilter() {
-    const v = document.getElementById('statusFilter').value
-    document.querySelectorAll('#orderTableBody tr').forEach((tr) => {
-      tr.hidden = !(v === 'all' || tr.dataset.status === v)
+    const prevDisabled = state.page <= 0
+    const nextDisabled = state.page >= tp - 1
+    wrap.innerHTML = `
+      <button type="button" class="btn-outline-sm" ${prevDisabled ? 'disabled' : ''} data-page-act="prev">이전</button>
+      <span style="align-self:center;font-size:12px;color:var(--color-text-muted)">${state.page + 1} / ${tp}</span>
+      <button type="button" class="btn-outline-sm" ${nextDisabled ? 'disabled' : ''} data-page-act="next">다음</button>
+    `
+    wrap.querySelectorAll('[data-page-act]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (btn.dataset.pageAct === 'prev' && state.page > 0) state.page -= 1
+        else if (btn.dataset.pageAct === 'next' && state.page < state.totalPages - 1) state.page += 1
+        loadOrders()
+      })
     })
   }
 
-  /* --------------------- 단건 처리 --------------------- */
+  /* ------------------ 단건 처리 ------------------ */
   async function handleLookup() {
     const id = getOrderId()
     if (!id) return
     const info = document.getElementById('orderInfo')
     info.hidden = false
+    info.style.color = ''
     info.textContent = '불러오는 중…'
     try {
       const data = await api.orders.detail(id)
-      state.lastOrder = data
       info.innerHTML = renderOrderInfo(data)
     } catch (e) {
-      state.lastOrder = null
       info.textContent = OwnerShared.errorMessage(e, '주문 정보를 가져오지 못했습니다.')
       info.style.color = 'var(--color-cancel)'
     }
@@ -178,7 +259,7 @@
     if (!id) return
     try {
       await api.orders.owner.accept(id)
-      await handleLookup()
+      await Promise.all([handleLookup(), loadOrders()])
     } catch (e) {
       alert(OwnerShared.errorMessage(e, '수락 실패'))
     }
@@ -194,7 +275,7 @@
     }
     try {
       await api.orders.owner.reject(id, reason)
-      await handleLookup()
+      await Promise.all([handleLookup(), loadOrders()])
     } catch (e) {
       alert(OwnerShared.errorMessage(e, '거절 실패'))
     }
@@ -210,7 +291,7 @@
     }
     try {
       await api.orders.owner.updateStatus(id, next)
-      await handleLookup()
+      await Promise.all([handleLookup(), loadOrders()])
     } catch (e) {
       alert(OwnerShared.errorMessage(e, '상태 변경 실패'))
     }
