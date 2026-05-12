@@ -1,5 +1,85 @@
 /* Owner 페이지 공통 보강 — owner-order-manage.css 위에 얹어서 사용 */
 
+:root {
+  --topbar-height: 52px;
+}
+
+/* ---------- 공통 상단바 (모든 owner 페이지) ---------- */
+.topbar {
+  height: var(--topbar-height);
+  background: var(--color-bg-card);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.topbar-brand {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.topbar-menu {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.topbar-menu:hover {
+  border-color: var(--color-border);
+  color: var(--color-text-main);
+}
+
+/* 상단바가 있는 페이지에서는 .app 영역 높이를 topbar 만큼 보정 */
+.topbar + .app {
+  min-height: calc(100vh - var(--topbar-height));
+}
+
+/* ---------- 사이드바 그룹 접기/펼치기 (모든 owner 페이지 공통) ---------- */
+.sidebar-group-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sidebar-group-label[role='button'] {
+  cursor: pointer;
+  user-select: none;
+}
+
+.sidebar-group-label[role='button']:hover {
+  color: var(--color-text-main);
+}
+
+.sidebar-group-label .ti {
+  font-size: 14px;
+  color: var(--color-text-hint);
+  transition: transform 0.15s;
+}
+
+.sidebar-group:not([data-collapsed='true']) .sidebar-group-label .ti {
+  transform: rotate(90deg);
+}
+
+.sidebar-group[data-collapsed='true'] .sidebar-nav {
+  display: none;
+}
+
 .owner-toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -15,6 +95,39 @@
   display: grid;
   gap: 16px;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  align-items: start;
+}
+
+/*
+ * owner-order-manage.css 의 .table-section 은 .content-row(가로 flex) 안에서
+ * 너비를 나누기 위해 flex:1 로 정의돼 있습니다.
+ * .main(세로 flex) 아래에 단독으로 놓이는 owner-store/menu/review 등의 페이지에선
+ * 세로로 늘어나면서 카드 아래에 큰 빈 공간이 생기므로, 늘어나지 않도록 보정합니다.
+ */
+.main > .table-section {
+  flex: 0 0 auto;
+}
+
+.card-stack--compact {
+  gap: 10px;
+}
+
+.card-stack--compact .card {
+  padding: 12px 14px;
+  border-radius: 12px;
+}
+
+.card-stack--compact .card-header {
+  margin-bottom: 6px;
+}
+
+.card-stack--compact dl {
+  margin: 4px 0 8px;
+}
+
+.card-stack--compact .kv-row {
+  padding: 4px 0;
+  font-size: 12px;
 }
 
 .kv-row {
