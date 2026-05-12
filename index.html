@@ -15,6 +15,10 @@
       href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.26.0/dist/tabler-icons.min.css"
     />
     <link rel="stylesheet" href="/assets/css/index.css" />
+    <script
+      type="text/javascript"
+      src="//dapi.kakao.com/v2/maps/sdk.js?appkey=f95a234a4ebb710090cf4c0586fd558a&libraries=services&autoload=false"
+    ></script>
     <script src="/assets/js/api.js" defer></script>
     <script src="/assets/js/index.js" defer></script>
   </head>
@@ -52,9 +56,121 @@
             <span class="user-nickname" id="userNickname"></span>
             <button type="button" id="btnLogout" class="btn-ghost-sm">로그아웃</button>
           </div>
+          <button
+            id="btnCart"
+            type="button"
+            class="icon-btn"
+            aria-label="장바구니 열기"
+            aria-haspopup="dialog"
+            aria-controls="cartDrawer"
+          >
+            <i class="ti ti-shopping-cart" aria-hidden="true"></i>
+            <span id="cartBadge" class="icon-badge" hidden>0</span>
+          </button>
+          <button
+            id="btnMenu"
+            type="button"
+            class="icon-btn"
+            aria-label="메뉴 열기"
+            aria-haspopup="dialog"
+            aria-controls="menuDrawer"
+          >
+            <i class="ti ti-menu-2" aria-hidden="true"></i>
+          </button>
         </div>
       </div>
     </header>
+
+    <aside
+      id="cartDrawer"
+      class="side-drawer"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="cartDrawerTitle"
+      aria-hidden="true"
+      hidden
+    >
+      <div class="drawer-backdrop" data-drawer-close></div>
+      <div class="drawer-panel">
+        <header class="drawer-head">
+          <h2 id="cartDrawerTitle" class="drawer-title">장바구니</h2>
+          <button
+            type="button"
+            class="drawer-close"
+            data-drawer-close
+            aria-label="닫기"
+          >
+            <i class="ti ti-x" aria-hidden="true"></i>
+          </button>
+        </header>
+        <div class="drawer-subhead">
+          <span id="cartStoreName" class="cart-store-name">—</span>
+          <span id="cartItemCount" class="cart-count-pill">0개</span>
+        </div>
+        <div id="cartBody" class="drawer-body" aria-live="polite">
+          <p class="drawer-empty">불러오는 중…</p>
+        </div>
+        <footer class="drawer-foot">
+          <div class="cart-total-row">
+            <span>합계</span>
+            <strong id="cartTotal">0원</strong>
+          </div>
+          <div class="cart-actions">
+            <button
+              type="button"
+              id="btnCartClear"
+              class="btn-outline"
+              disabled
+            >
+              비우기
+            </button>
+            <button
+              type="button"
+              id="btnCartCheckout"
+              class="btn-primary"
+              disabled
+            >
+              주문하기
+            </button>
+          </div>
+        </footer>
+      </div>
+    </aside>
+
+    <aside
+      id="menuDrawer"
+      class="side-drawer"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="menuDrawerTitle"
+      aria-hidden="true"
+      hidden
+    >
+      <div class="drawer-backdrop" data-drawer-close></div>
+      <div class="drawer-panel">
+        <header class="drawer-head">
+          <h2 id="menuDrawerTitle" class="drawer-title">메뉴</h2>
+          <button
+            type="button"
+            class="drawer-close"
+            data-drawer-close
+            aria-label="닫기"
+          >
+            <i class="ti ti-x" aria-hidden="true"></i>
+          </button>
+        </header>
+        <div id="menuDrawerUser" class="drawer-user" hidden>
+          <i class="ti ti-user-circle" aria-hidden="true"></i>
+          <div>
+            <strong id="menuDrawerNickname">회원</strong>
+            <small id="menuDrawerRole" class="muted">CUSTOMER</small>
+          </div>
+        </div>
+        <nav class="drawer-body">
+          <ul id="menuDrawerList" class="drawer-list"></ul>
+        </nav>
+      </div>
+    </aside>
 
     <div
       id="roleModal"
@@ -100,20 +216,102 @@
     </div>
 
     <main class="site-main">
-      <div class="page-heading">
-        <h1 id="pageHeadingTitle">내 주변 인기 가게</h1>
-        <span id="storeCount" class="page-heading-count">불러오는 중…</span>
+      <div class="tabs" role="tablist" aria-label="가게 보기 모드">
+        <button
+          id="tabPopular"
+          type="button"
+          class="tab is-active"
+          role="tab"
+          aria-selected="true"
+          aria-controls="panelPopular"
+        >
+          <i class="ti ti-flame" aria-hidden="true"></i>
+          <span>인기 가게</span>
+        </button>
+        <button
+          id="tabNearby"
+          type="button"
+          class="tab"
+          role="tab"
+          aria-selected="false"
+          aria-controls="panelNearby"
+        >
+          <i class="ti ti-map-pin" aria-hidden="true"></i>
+          <span>내 주변</span>
+        </button>
       </div>
-      <p class="page-lead">내 입맛에 꼭 맞는 가게를 둘러보세요.</p>
 
-      <ul id="storeGrid" class="store-grid" aria-busy="true"></ul>
-      <p id="storeStatus" class="store-status-message" hidden></p>
+      <section
+        id="panelPopular"
+        role="tabpanel"
+        aria-labelledby="tabPopular"
+      >
+        <div class="page-heading">
+          <h1 id="pageHeadingTitle">내 주변 인기 가게</h1>
+          <span id="storeCount" class="page-heading-count">불러오는 중…</span>
+        </div>
+        <p class="page-lead">내 입맛에 꼭 맞는 가게를 둘러보세요.</p>
 
-      <nav id="pagination" class="pagination" aria-label="페이지 이동" hidden>
-        <button type="button" class="page-btn" id="pagePrev">이전</button>
-        <span class="page-info" id="pageInfo">1 / 1</span>
-        <button type="button" class="page-btn" id="pageNext">다음</button>
-      </nav>
+        <ul id="storeGrid" class="store-grid" aria-busy="true"></ul>
+        <p id="storeStatus" class="store-status-message" hidden></p>
+
+        <nav
+          id="pagination"
+          class="pagination"
+          aria-label="페이지 이동"
+          hidden
+        >
+          <button type="button" class="page-btn" id="pagePrev">이전</button>
+          <span class="page-info" id="pageInfo">1 / 1</span>
+          <button type="button" class="page-btn" id="pageNext">다음</button>
+        </nav>
+      </section>
+
+      <section
+        id="panelNearby"
+        role="tabpanel"
+        aria-labelledby="tabNearby"
+        hidden
+      >
+        <div class="page-heading">
+          <h1>내 주변 가게</h1>
+          <span id="nearbyCount" class="page-heading-count">위치를 알려주세요</span>
+        </div>
+        <p class="page-lead">현재 위치를 기준으로 가까운 가게를 보여드려요.</p>
+
+        <div class="nearby-toolbar">
+          <button
+            type="button"
+            id="btnUseMyLocation"
+            class="btn-primary btn-sm"
+          >
+            <i class="ti ti-current-location" aria-hidden="true"></i>
+            내 위치로 검색
+          </button>
+          <label class="nearby-radius">
+            반경
+            <select id="nearbyRadius">
+              <option value="1">1km</option>
+              <option value="3" selected>3km</option>
+              <option value="5">5km</option>
+              <option value="10">10km</option>
+            </select>
+          </label>
+          <p id="nearbyStatus" class="nearby-status">
+            "내 위치로 검색"을 눌러 주세요.
+          </p>
+        </div>
+
+        <div id="mapContainer" class="map-container" aria-label="카카오 지도">
+          <div id="mapPlaceholder" class="map-placeholder">
+            <i class="ti ti-map" aria-hidden="true"></i>
+            <p>위치 검색을 시작하면 지도가 표시됩니다.</p>
+          </div>
+        </div>
+
+        <ul id="nearbyList" class="store-grid"></ul>
+        <p id="nearbyEmpty" class="store-status-message" hidden></p>
+      </section>
     </main>
 
     <footer class="site-footer">© Taste Radar — 개인 프로젝트</footer>
