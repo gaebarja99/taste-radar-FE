@@ -11,8 +11,9 @@
 ;(function () {
   'use strict'
 
+  // 사이드바 각 가게 그룹에 표시할 메뉴
+  // (대시보드는 상단바의 "Taste Radar" 로고로 이동하므로 사이드바에선 제외)
   const PAGE_LINKS = [
-    { file: 'owner-main.html',         label: '대시보드' },
     { file: 'owner-store-manage.html', label: '가게 관리' },
     { file: 'owner-order-manage.html', label: '주문 관리' },
     { file: 'owner-review-manage.html',label: '리뷰 관리' },
