@@ -38,13 +38,19 @@
 
         <div class="header-actions">
           <a
+            id="btnKakaoLogin"
             class="btn-kakao"
             href="http://localhost:8080/oauth2/authorization/kakao"
             aria-label="카카오 로그인"
+            hidden
           >
             <i class="ti ti-brand-kakao-talk" style="font-size: 18px"></i>
             <span>카카오 로그인</span>
           </a>
+          <div id="userMenu" class="user-menu" hidden>
+            <span class="user-nickname" id="userNickname"></span>
+            <button type="button" id="btnLogout" class="btn-ghost-sm">로그아웃</button>
+          </div>
         </div>
       </div>
     </header>

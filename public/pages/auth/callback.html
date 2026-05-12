@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>로그인 처리 중… — Taste Radar</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        margin: 0;
+        font-family: 'Noto Sans KR', sans-serif;
+        background: #fafaf8;
+        color: #2c2c2c;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+      }
+      .auth-callback-card {
+        max-width: 360px;
+        padding: 32px 28px;
+        background: #fff;
+        border: 1px solid #ede8e0;
+        border-radius: 16px;
+        text-align: center;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+      }
+      .auth-callback-title {
+        margin: 0 0 8px;
+        font-size: 18px;
+        font-weight: 700;
+        color: #ff6b47;
+      }
+      .auth-callback-message {
+        margin: 0;
+        font-size: 13px;
+        color: #9e948a;
+      }
+      .auth-callback-error {
+        color: #d84040;
+      }
+    </style>
+    <script src="/assets/js/api.js"></script>
+  </head>
+  <body>
+    <main class="auth-callback-card" role="status" aria-live="polite">
+      <h1 id="callbackTitle" class="auth-callback-title">로그인 처리 중…</h1>
+      <p id="callbackMessage" class="auth-callback-message">잠시 후 메인 페이지로 이동합니다.</p>
+    </main>
+
+    <script>
+      ;(function () {
+        const titleEl = document.getElementById('callbackTitle')
+        const messageEl = document.getElementById('callbackMessage')
+
+        function fail(msg) {
+          titleEl.textContent = '로그인 실패'
+          titleEl.classList.add('auth-callback-error')
+          messageEl.textContent = msg
+        }
+
+        const raw = window.location.hash.startsWith('#')
+          ? window.location.hash.slice(1)
+          : window.location.hash
+
+        if (!raw) {
+          fail('인증 정보가 전달되지 않았습니다.')
+          return
+        }
+
+        const params = new URLSearchParams(raw)
+        const accessToken = params.get('accessToken')
+        const refreshToken = params.get('refreshToken')
+
+        if (!accessToken || !refreshToken) {
+          fail('토큰을 찾을 수 없습니다.')
+          return
+        }
+
+        if (window.api && api.auth && typeof api.auth.setTokens === 'function') {
+          api.auth.setTokens(accessToken, refreshToken)
+        } else {
+          localStorage.setItem('accessToken', accessToken)
+          localStorage.setItem('refreshToken', refreshToken)
+        }
+
+        const userId = params.get('userId')
+        const email = params.get('email')
+        const nickname = params.get('nickname')
+        const role = params.get('role')
+        if (userId) localStorage.setItem('userId', userId)
+        if (email) localStorage.setItem('email', email)
+        if (nickname) localStorage.setItem('nickname', nickname)
+        if (role) localStorage.setItem('role', role)
+
+        history.replaceState(null, '', '/pages/auth/callback.html')
+        window.location.replace('/')
+      })()
+    </script>
+  </body>
+</html>

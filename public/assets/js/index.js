@@ -25,6 +25,7 @@
     const input = document.getElementById('searchInput')
     const prevBtn = document.getElementById('pagePrev')
     const nextBtn = document.getElementById('pageNext')
+    const logoutBtn = document.getElementById('btnLogout')
 
     form.addEventListener('submit', (e) => {
       e.preventDefault()
@@ -47,7 +48,38 @@
       }
     })
 
+    logoutBtn.addEventListener('click', handleLogout)
+
+    applyAuthUi()
     load()
+  }
+
+  /* ----------------------------- 인증 UI ----------------------------- */
+  function applyAuthUi() {
+    const loggedIn = api.auth.isLoggedIn()
+    const loginBtn = document.getElementById('btnKakaoLogin')
+    const userMenu = document.getElementById('userMenu')
+    const nicknameEl = document.getElementById('userNickname')
+
+    loginBtn.hidden = loggedIn
+    userMenu.hidden = !loggedIn
+
+    if (loggedIn) {
+      const nickname = localStorage.getItem('nickname') || '회원'
+      nicknameEl.textContent = nickname
+    } else {
+      nicknameEl.textContent = ''
+    }
+  }
+
+  async function handleLogout() {
+    try {
+      await api.auth.logout()
+    } catch {
+      /* 서버 실패 여부와 무관하게 로컬은 정리 */
+    }
+    ;['userId', 'email', 'nickname', 'role'].forEach((k) => localStorage.removeItem(k))
+    applyAuthUi()
   }
 
   async function load() {
