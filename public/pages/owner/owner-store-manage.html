@@ -16,6 +16,8 @@
     />
     <link rel="stylesheet" href="/assets/css/owner-order-manage.css" />
     <link rel="stylesheet" href="/assets/css/owner-pages.css" />
+    <!-- 다음 우편번호 서비스 (인증 키 불필요) -->
+    <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
     <script src="/assets/js/api.js" defer></script>
     <script src="/assets/js/owner-shared.js" defer></script>
     <script src="/assets/js/owner-store-manage.js" defer></script>
@@ -50,63 +52,10 @@
 
         <section class="table-section" aria-labelledby="myStoresTitle">
           <div class="section-head">
-            <h2 id="myStoresTitle" class="section-head-title">내 가게 목록</h2>
+            <h2 id="myStoresTitle" class="section-head-title">내 가게 수정</h2>
           </div>
-          <div id="storeStack" class="card-stack card-stack--compact" style="padding: 10px 12px"></div>
-          <p id="storeEmpty" class="empty-state" hidden>등록된 가게가 없어요. 아래에서 새 가게를 등록해 주세요.</p>
-        </section>
-
-        <section class="table-section" aria-labelledby="newStoreTitle">
-          <div class="section-head section-action-row">
-            <h2 id="newStoreTitle" class="section-head-title">새 가게 등록</h2>
-            <button type="button" class="btn-primary" id="btnNewStoreSubmit"
-                    style="width:auto;padding:8px 18px;margin-top:0">
-              <i class="ti ti-plus" aria-hidden="true"></i> 가게 등록
-            </button>
-          </div>
-          <form id="newStoreForm" class="form-grid" style="padding: 16px" novalidate>
-            <label>
-              가게명
-              <input type="text" name="name" placeholder="예: 맛집 1호점" required />
-            </label>
-            <label>
-              최소 주문 금액
-              <input type="number" name="minOrderAmount" min="0" placeholder="10000" required />
-            </label>
-            <label class="col-span-2">
-              주소
-              <input type="text" name="address" placeholder="서울특별시 …" required />
-            </label>
-            <label class="col-span-2">
-              상세 주소
-              <input type="text" name="addressDetail" placeholder="101호" required />
-            </label>
-            <label>
-              오픈 시간
-              <input type="time" name="openTime" value="10:00" required />
-            </label>
-            <label>
-              마감 시간
-              <input type="time" name="closeTime" value="22:00" required />
-            </label>
-            <label>
-              평균 조리 시간(분)
-              <input type="number" name="requiredTimeMinutes" min="1" placeholder="30" required />
-            </label>
-            <label>
-              대표 이미지 URL
-              <input type="url" name="imgUrl" placeholder="https://…" required />
-            </label>
-            <label>
-              위도(선택)
-              <input type="number" name="latitude" step="any" placeholder="37.49" />
-            </label>
-            <label>
-              경도(선택)
-              <input type="number" name="longitude" step="any" placeholder="126.72" />
-            </label>
-            <p id="newStoreMsg" class="empty-state" hidden style="grid-column: 1 / -1; margin: 0"></p>
-          </form>
+          <div id="storeStack" class="card-stack store-detail-stack" style="padding: 12px"></div>
+          <p id="storeEmpty" class="empty-state" hidden>등록된 가게가 없어요.</p>
         </section>
       </div>
     </div>

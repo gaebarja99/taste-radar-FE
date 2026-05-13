@@ -1,15 +1,16 @@
 /**
- * 가게 관리 페이지
- * - 내 가게 목록 (todayStatsByStore + 각 가게 detail 병렬 로드)
+ * 가게 관리 페이지 (지점 단일 스코프)
+ * - 사이드바에서 선택한 가게(URL ?storeId=)만 표시
  * - 영업 상태 변경 (PATCH /api/owner/stores/{id}/status) — PREPARING/OPEN/CLOSE
  * - 가게 정보 수정 (PUT /api/owner/stores/{id})
- * - 새 가게 등록 (POST /api/owner/stores)
  */
 ;(function () {
   'use strict'
 
   const state = {
     detailsById: new Map(),
+    /** 현재 페이지가 보여줄 가게 ID (가게가 0개면 null) */
+    scopedStoreId: null,
   }
 
   document.addEventListener('DOMContentLoaded', init)
@@ -18,20 +19,18 @@
     const ctx = await OwnerShared.bootstrap()
     if (!ctx) return
 
-    document.getElementById('btnRefresh').addEventListener('click', () => loadStores())
-    document.getElementById('newStoreForm').addEventListener('submit', handleCreate)
-    // 새 가게 등록 섹션 헤더에 있는 빠른 등록 버튼 → 폼 submit 트리거
-    const headerSubmitBtn = document.getElementById('btnNewStoreSubmit')
-    if (headerSubmitBtn) {
-      headerSubmitBtn.addEventListener('click', () => {
-        const form = document.getElementById('newStoreForm')
-        if (typeof form.requestSubmit === 'function') {
-          form.requestSubmit()
-        } else {
-          form.dispatchEvent(new Event('submit', { cancelable: true }))
-        }
-      })
+    const list = ctx.storeList || []
+    if (list.length > 0) {
+      const scope = OwnerShared.ensureOwnerStoreScope(list, 'owner-store-manage.html')
+      if (!scope.success) return
+      state.scopedStoreId = String(scope.store.storeId)
+      const titleEl = document.querySelector('.page-title')
+      if (titleEl) titleEl.textContent = `가게 관리 · ${scope.store.storeName ?? '가게'}`
+    } else {
+      state.scopedStoreId = null
     }
+
+    document.getElementById('btnRefresh').addEventListener('click', () => loadStores())
     await loadStores()
   }
 
@@ -42,15 +41,27 @@
     emptyEl.hidden = true
 
     try {
-      const list = await api.orders.owner.todayStatsByStore()
-      const items = Array.isArray(list) ? list : []
+      const list = await api.stores.ownerMine()
+      let items = (Array.isArray(list) ? list : []).map((s) => ({
+        storeId: s.storeId,
+        storeName: s.storeName,
+        status: s.storeStatus ?? s.status,
+        isDeleted: !!s.isDeleted,
+        totalCount: Number(s.todayOrderCount ?? 0),
+      }))
+      if (state.scopedStoreId) {
+        items = items.filter((s) => String(s.storeId) === state.scopedStoreId)
+      }
       if (items.length === 0) {
         stackEl.innerHTML = ''
         emptyEl.hidden = false
         return
       }
+      // 폐업 가게는 ownerDetail (인증 필요) 로, 활성 가게는 기존 public detail 사용
       const details = await Promise.all(
-        items.map((s) => api.stores.detail(s.storeId).catch(() => null)),
+        items.map((s) =>
+          (s.isDeleted ? api.stores.ownerDetail(s.storeId) : api.stores.detail(s.storeId)).catch(() => null),
+        ),
       )
       state.detailsById.clear()
       items.forEach((s, i) => state.detailsById.set(String(s.storeId), details[i]))
@@ -65,81 +76,194 @@
   }
 
   function renderCard(store, detail) {
-    const status = (detail?.status || 'PREPARING').toUpperCase()
-    const pillCls =
-      status === 'OPEN' ? 'status-pill--open' :
-      status === 'PREPARING' ? 'status-pill--preparing' : 'status-pill--close'
-
     return `
-      <article class="card" data-store-id="${store.storeId}">
-        <header class="card-header">
-          <h2 class="card-title">${OwnerShared.escapeHtml(store.storeName ?? '가게')}</h2>
-          <span class="status-pill ${pillCls}">${OwnerShared.statusLabel(status)}</span>
-        </header>
-        <div data-view>
-          <dl style="margin:8px 0 14px">
-            <div class="kv-row"><dt>오픈</dt><dd>${OwnerShared.escapeHtml(detail?.openTime ?? '-')}</dd></div>
-            <div class="kv-row"><dt>마감</dt><dd>${OwnerShared.escapeHtml(detail?.closeTime ?? '-')}</dd></div>
-            <div class="kv-row"><dt>최소주문</dt><dd>${OwnerShared.formatWon(detail?.minOrderAmount)}</dd></div>
-            <div class="kv-row"><dt>평점</dt><dd>★ ${
-              detail?.averageRating != null ? Number(detail.averageRating).toFixed(1) : '-'
-            } <small style="color:var(--color-text-muted);font-weight:400">(리뷰 ${Number(
-      detail?.reviewCount ?? 0,
-    ).toLocaleString('ko-KR')})</small></dd></div>
-            <div class="kv-row"><dt>오늘 주문</dt><dd>${Number(store?.totalCount ?? 0).toLocaleString('ko-KR')}건</dd></div>
-          </dl>
-          <div class="btn-row">
-            <button type="button" class="btn-outline-sm" data-act="status" data-status="PREPARING">준비 중</button>
-            <button type="button" class="btn-outline-sm" data-act="status" data-status="OPEN">영업 시작</button>
-            <button type="button" class="btn-outline-sm is-danger" data-act="status" data-status="CLOSE">영업 종료</button>
-            <button type="button" class="btn-outline-sm" data-act="edit" style="margin-left:auto">
-              <i class="ti ti-edit" aria-hidden="true"></i> 수정
-            </button>
-          </div>
-        </div>
+      <article class="card store-detail-card${store.isDeleted ? ' is-closed' : ''}" data-store-id="${store.storeId}"${store.isDeleted ? ' data-closed="true"' : ''}>
+        <div data-view>${renderViewBody(store, detail)}</div>
       </article>
     `
   }
 
-  function renderEditForm(storeId) {
-    const detail = state.detailsById.get(String(storeId)) || {}
+  function statusPillCls(status) {
+    return status === 'OPEN' ? 'status-pill--open'
+      : status === 'PREPARING' ? 'status-pill--preparing'
+      : 'status-pill--close'
+  }
+
+  function getThumbUrl(detail) {
+    return detail?.imgUrl ?? detail?.images?.[0]?.imgUrl ?? ''
+  }
+
+  function renderViewBody(store, detail) {
+    const status = (detail?.status || 'PREPARING').toUpperCase()
+    const pillCls = statusPillCls(status)
+    const isClosed = !!store.isDeleted
+
+    const minOrder = OwnerShared.formatWon(detail?.minOrderAmount ?? 0)
+    const cookingMin = Number(detail?.requiredTimeMinutes ?? 30)
+    const addressStr = [detail?.address, detail?.addressDetail]
+      .filter(Boolean)
+      .join(' ')
+      .trim() || '주소 정보가 없습니다.'
+    const thumbUrl = getThumbUrl(detail)
+
+    const closedBanner = isClosed
+      ? `<div class="store-closed-banner">
+           <div class="store-closed-banner-text">
+             <strong><i class="ti ti-archive" aria-hidden="true"></i> 폐업한 가게입니다</strong>
+             <span>아래 정보는 참고용이며, 다시 영업하려면 「재오픈」을 눌러 주세요.</span>
+           </div>
+           <button type="button" class="btn-primary" data-act="reopen-store">
+             <i class="ti ti-refresh" aria-hidden="true"></i> 재오픈
+           </button>
+         </div>`
+      : ''
+
+    const activeControls = isClosed
+      ? ''
+      : `<div class="store-status-bar">
+           <span class="store-status-bar-label">영업 상태 변경</span>
+           <button type="button" class="btn-outline-sm ${status === 'PREPARING' ? 'is-current' : ''}"
+                   data-act="status" data-status="PREPARING">준비 중</button>
+           <button type="button" class="btn-outline-sm ${status === 'OPEN' ? 'is-current' : ''}"
+                   data-act="status" data-status="OPEN">영업 시작</button>
+           <button type="button" class="btn-outline-sm is-danger ${status === 'CLOSE' ? 'is-current' : ''}"
+                   data-act="status" data-status="CLOSE">영업 종료</button>
+           <button type="button" class="btn-text-danger store-close-link" data-act="close-store">
+             <i class="ti ti-trash" aria-hidden="true"></i> 가게 폐업
+           </button>
+         </div>`
+
+    const editBtn = isClosed
+      ? ''
+      : `<button type="button" class="btn-outline-sm" data-act="edit">
+           <i class="ti ti-edit" aria-hidden="true"></i> 가게 정보 수정
+         </button>`
+
     return `
-      <form data-edit-form class="form-grid" style="padding:8px 0 4px">
-        <label>가게명
-          <input type="text" name="name" value="${OwnerShared.escapeHtml(detail.name ?? '')}" required />
-        </label>
-        <label>최소 주문 금액
-          <input type="number" name="minOrderAmount" min="0" value="${Number(detail.minOrderAmount ?? 0)}" required />
-        </label>
-        <label class="col-span-2">주소
-          <input type="text" name="address" value="${OwnerShared.escapeHtml(detail.address ?? '')}" required />
-        </label>
-        <label class="col-span-2">상세 주소
-          <input type="text" name="addressDetail" value="${OwnerShared.escapeHtml(detail.addressDetail ?? '')}" required />
-        </label>
-        <label>오픈 시간
-          <input type="time" name="openTime" value="${OwnerShared.escapeHtml(detail.openTime ?? '10:00')}" required />
-        </label>
-        <label>마감 시간
-          <input type="time" name="closeTime" value="${OwnerShared.escapeHtml(detail.closeTime ?? '22:00')}" required />
-        </label>
-        <label>평균 조리 시간(분)
-          <input type="number" name="requiredTimeMinutes" min="1" value="${Number(detail.requiredTimeMinutes ?? 30)}" required />
-        </label>
-        <label>대표 이미지 URL
-          <input type="url" name="imgUrl" value="${OwnerShared.escapeHtml(detail.imgUrl ?? detail.images?.[0]?.imgUrl ?? '')}" />
-        </label>
-        <label>위도
-          <input type="number" name="latitude" step="any" value="${detail.latitude ?? ''}" />
-        </label>
-        <label>경도
-          <input type="number" name="longitude" step="any" value="${detail.longitude ?? ''}" />
-        </label>
-        <div class="col-span-2 btn-row" style="justify-content:flex-end">
-          <button type="button" class="btn-outline-sm" data-act="edit-cancel">취소</button>
-          <button type="submit" class="btn-primary" style="width:auto;padding:8px 18px;margin-top:0">저장</button>
+      ${closedBanner}
+      <header class="store-detail-head">
+        ${renderThumb(thumbUrl)}
+        <div class="store-detail-title">
+          <h2 class="card-title">${OwnerShared.escapeHtml(store.storeName ?? '가게')}</h2>
+          <p class="store-detail-address">
+            <i class="ti ti-map-pin" aria-hidden="true"></i>
+            ${OwnerShared.escapeHtml(addressStr)}
+          </p>
         </div>
-        <p data-edit-msg class="empty-state" hidden style="grid-column:1 / -1;margin:0"></p>
+        <div class="store-detail-meta">
+          <span class="status-pill ${pillCls}">${OwnerShared.statusLabel(status)}</span>
+          ${editBtn}
+        </div>
+      </header>
+
+      <div class="store-stat-grid">
+        <div class="store-stat">
+          <p class="store-stat-label">최소 주문</p>
+          <p class="store-stat-value">${minOrder}</p>
+        </div>
+        <div class="store-stat">
+          <p class="store-stat-label">평균 조리</p>
+          <p class="store-stat-value">${cookingMin}<span class="store-stat-unit">분</span></p>
+        </div>
+        <div class="store-stat">
+          <p class="store-stat-label">오픈 시간</p>
+          <p class="store-stat-value store-stat-value--sm">${OwnerShared.escapeHtml(detail?.openTime ?? '-')}</p>
+        </div>
+        <div class="store-stat">
+          <p class="store-stat-label">마감 시간</p>
+          <p class="store-stat-value store-stat-value--sm">${OwnerShared.escapeHtml(detail?.closeTime ?? '-')}</p>
+        </div>
+      </div>
+
+      ${activeControls}
+    `
+  }
+
+  function renderThumb(thumbUrl) {
+    return thumbUrl
+      ? `<div class="store-detail-thumb"><img src="${OwnerShared.escapeHtml(thumbUrl)}" alt="" onerror="this.parentNode.classList.add('is-broken')"/></div>`
+      : `<div class="store-detail-thumb store-detail-thumb--placeholder"><i class="ti ti-building-store" aria-hidden="true"></i></div>`
+  }
+
+  /* ---------------- 인라인 수정 모드 ---------------- */
+  function renderEditBody(store, detail) {
+    const status = (detail?.status || 'PREPARING').toUpperCase()
+    const pillCls = statusPillCls(status)
+    const thumbUrl = getThumbUrl(detail)
+
+    return `
+      <form data-edit-form class="store-detail-edit-form" novalidate>
+        <header class="store-detail-head">
+          <div class="store-detail-thumb-edit">
+            ${renderThumb(thumbUrl)}
+            <label class="field-label" for="editImgUrl">대표 이미지 URL</label>
+            <input id="editImgUrl" class="store-edit-thumb-input" type="url"
+                   name="imgUrl" value="${OwnerShared.escapeHtml(thumbUrl)}"
+                   placeholder="https://..." data-act="thumb-url" />
+          </div>
+          <div class="store-detail-title">
+            <input class="store-edit-name" type="text" name="name"
+                   value="${OwnerShared.escapeHtml(detail?.name ?? store.storeName ?? '')}"
+                   placeholder="가게명" required />
+            <div class="store-edit-address-row">
+              <div class="store-edit-address-search">
+                <input class="store-edit-input" type="text" name="address"
+                       value="${OwnerShared.escapeHtml(detail?.address ?? '')}"
+                       placeholder="주소 검색 버튼을 눌러주세요" required readonly />
+                <button type="button" class="btn-outline-sm" data-act="address-search">
+                  <i class="ti ti-search" aria-hidden="true"></i> 주소 검색
+                </button>
+              </div>
+              <input class="store-edit-input" type="text" name="addressDetail"
+                     value="${OwnerShared.escapeHtml(detail?.addressDetail ?? '')}"
+                     placeholder="상세 주소" required />
+            </div>
+          </div>
+          <div class="store-detail-meta">
+            <span class="status-pill ${pillCls}">${OwnerShared.statusLabel(status)}</span>
+          </div>
+        </header>
+
+        <div class="store-stat-grid">
+          <div class="store-stat">
+            <p class="store-stat-label">최소 주문 (원)</p>
+            <input class="store-stat-input" type="number" name="minOrderAmount" min="0"
+                   value="${Number(detail?.minOrderAmount ?? 0)}" required />
+          </div>
+          <div class="store-stat">
+            <p class="store-stat-label">평균 조리 (분)</p>
+            <input class="store-stat-input" type="number" name="requiredTimeMinutes" min="1"
+                   value="${Number(detail?.requiredTimeMinutes ?? 30)}" required />
+          </div>
+          <div class="store-stat">
+            <p class="store-stat-label">오픈 시간</p>
+            <input class="store-stat-input" type="time" name="openTime"
+                   value="${OwnerShared.escapeHtml(detail?.openTime ?? '10:00')}" required />
+          </div>
+          <div class="store-stat">
+            <p class="store-stat-label">마감 시간</p>
+            <input class="store-stat-input" type="time" name="closeTime"
+                   value="${OwnerShared.escapeHtml(detail?.closeTime ?? '22:00')}" required />
+          </div>
+          <div class="store-stat">
+            <p class="store-stat-label">위도 (선택)</p>
+            <input class="store-stat-input" type="number" step="any" name="latitude"
+                   value="${detail?.latitude ?? ''}" placeholder="37.49" />
+          </div>
+          <div class="store-stat">
+            <p class="store-stat-label">경도 (선택)</p>
+            <input class="store-stat-input" type="number" step="any" name="longitude"
+                   value="${detail?.longitude ?? ''}" placeholder="126.97" />
+          </div>
+        </div>
+
+        <div class="store-edit-bar">
+          <p data-edit-msg class="store-edit-msg" hidden></p>
+          <div class="store-edit-actions">
+            <button type="button" class="btn-outline-sm" data-act="edit-cancel">취소</button>
+            <button type="submit" class="btn-primary store-edit-save">저장</button>
+          </div>
+        </div>
       </form>
     `
   }
@@ -168,13 +292,132 @@
         const card = btn.closest('[data-store-id]')
         const storeId = card?.dataset.storeId
         if (!storeId) return
+        const detail = state.detailsById.get(String(storeId)) || {}
+        const storeStat = { storeId, storeName: detail.name ?? '가게', totalCount: 0 }
         const viewBox = card.querySelector('[data-view]')
-        viewBox.innerHTML = renderEditForm(storeId)
-        const form = viewBox.querySelector('[data-edit-form]')
-        form.addEventListener('submit', (e) => handleEdit(e, storeId, card))
-        viewBox.querySelector('[data-act="edit-cancel"]').addEventListener('click', () => loadStores())
+        viewBox.innerHTML = renderEditBody(storeStat, detail)
+        bindEditHandlers(card, storeId, storeStat, detail)
       })
     })
+
+    document.querySelectorAll('[data-act="close-store"]').forEach((btn) => {
+      btn.addEventListener('click', () => handleCloseStore(btn))
+    })
+
+    document.querySelectorAll('[data-act="reopen-store"]').forEach((btn) => {
+      btn.addEventListener('click', () => handleReopenStore(btn))
+    })
+  }
+
+  async function handleCloseStore(btn) {
+    const card = btn.closest('[data-store-id]')
+    const storeId = card?.dataset.storeId
+    if (!storeId) return
+    const detail = state.detailsById.get(String(storeId)) || {}
+    const storeName = detail?.name ?? '이 가게'
+    const expected = String(storeName).trim()
+    const typed = prompt(`계속하려면 가게명을 정확히 입력하세요:\n${expected}`)
+    if (typed == null) return
+    if (typed.trim() !== expected) {
+      alert('입력한 가게명이 일치하지 않아 취소되었습니다.')
+      return
+    }
+
+    btn.disabled = true
+    try {
+      await api.stores.close(storeId)
+      alert('가게가 폐업 처리되었습니다. 사이드바에서 「폐업」 표시로 남아 있어요.')
+      await loadStores()
+    } catch (e) {
+      alert(OwnerShared.errorMessage(e, '가게 폐업에 실패했습니다.'))
+      btn.disabled = false
+    }
+  }
+
+  async function handleReopenStore(btn) {
+    const card = btn.closest('[data-store-id]')
+    const storeId = card?.dataset.storeId
+    if (!storeId) return
+    if (!confirm('이 가게를 다시 열까요? 영업 상태는 「준비 중」으로 설정됩니다.')) return
+
+    btn.disabled = true
+    try {
+      await api.stores.reopen(storeId)
+      alert('가게가 재오픈되었습니다.')
+      await loadStores()
+    } catch (e) {
+      alert(OwnerShared.errorMessage(e, '재오픈에 실패했습니다.'))
+      btn.disabled = false
+    }
+  }
+
+  function bindEditHandlers(card, storeId, storeStat, detail) {
+    const form = card.querySelector('[data-edit-form]')
+    if (!form) return
+
+    form.addEventListener('submit', (e) => handleEdit(e, storeId, card))
+    card.querySelector('[data-act="edit-cancel"]').addEventListener('click', () => loadStores())
+
+    // 대표 이미지 URL 미리보기 갱신
+    const urlInput = card.querySelector('[data-act="thumb-url"]')
+    const thumbWrap = card.querySelector('.store-detail-thumb-edit .store-detail-thumb')
+    if (urlInput && thumbWrap) {
+      urlInput.addEventListener('input', () => {
+        const v = (urlInput.value || '').trim()
+        thumbWrap.classList.remove('is-broken')
+        if (v) {
+          thumbWrap.classList.remove('store-detail-thumb--placeholder')
+          thumbWrap.innerHTML = `<img src="${OwnerShared.escapeHtml(v)}" alt="" onerror="this.parentNode.classList.add('is-broken')"/>`
+        } else {
+          thumbWrap.classList.add('store-detail-thumb--placeholder')
+          thumbWrap.innerHTML = '<i class="ti ti-building-store" aria-hidden="true"></i>'
+        }
+      })
+    }
+
+    // 다음(카카오) 우편번호 — 주소 검색
+    const addressSearchBtn = card.querySelector('[data-act="address-search"]')
+    if (addressSearchBtn) {
+      addressSearchBtn.addEventListener('click', () => openAddressSearch(card))
+    }
+  }
+
+  function openAddressSearch(card) {
+    if (typeof daum === 'undefined' || !daum.Postcode) {
+      alert('주소 검색 스크립트를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.')
+      return
+    }
+    const addressInput = card.querySelector('input[name="address"]')
+    const detailInput = card.querySelector('input[name="addressDetail"]')
+    const latInput = card.querySelector('input[name="latitude"]')
+    const lngInput = card.querySelector('input[name="longitude"]')
+    new daum.Postcode({
+      oncomplete(data) {
+        const picked = data.roadAddress || data.jibunAddress || data.address || ''
+        if (addressInput) addressInput.value = picked
+        if (detailInput) {
+          detailInput.value = ''
+          detailInput.focus()
+        }
+        if (picked) fillCoordinates(picked, latInput, lngInput)
+      },
+    }).open()
+  }
+
+  /**
+   * 백엔드 프록시(`GET /api/owner/geocode`)로 주소→좌표 변환을 호출해서
+   * 위도/경도 input 을 자동으로 채웁니다.
+   * - 카카오 REST API 키는 서버(application.yml) 에만 보관됩니다.
+   */
+  async function fillCoordinates(address, latInput, lngInput) {
+    if (!latInput || !lngInput) return
+    try {
+      const result = await api.stores.ownerGeocode(address)
+      if (Number.isFinite(result?.latitude)) latInput.value = result.latitude
+      if (Number.isFinite(result?.longitude)) lngInput.value = result.longitude
+    } catch (e) {
+      console.warn('[geocode] failed:', OwnerShared.errorMessage(e, 'geocode 실패'))
+    }
   }
 
   async function handleEdit(e, storeId, card) {
@@ -213,47 +456,6 @@
     } catch (err) {
       showMsg(msgEl, OwnerShared.errorMessage(err, '가게 수정에 실패했습니다.'), true)
       submit.disabled = false
-    }
-  }
-
-  /* --------------------- 새 가게 등록 --------------------- */
-  async function handleCreate(e) {
-    e.preventDefault()
-    const form = e.currentTarget
-    const msgEl = document.getElementById('newStoreMsg')
-    const submit = document.getElementById('btnNewStoreSubmit')
-    msgEl.hidden = true
-
-    const data = Object.fromEntries(new FormData(form).entries())
-    const payload = {
-      name: data.name?.trim(),
-      address: data.address?.trim(),
-      addressDetail: data.addressDetail?.trim(),
-      minOrderAmount: Number(data.minOrderAmount),
-      openTime: data.openTime,
-      closeTime: data.closeTime,
-      requiredTimeMinutes: Number(data.requiredTimeMinutes),
-      latitude: data.latitude ? Number(data.latitude) : null,
-      longitude: data.longitude ? Number(data.longitude) : null,
-      images: [
-        {
-          fileName: 'thumbnail',
-          imgUrl: data.imgUrl?.trim(),
-          imgKey: `thumbnail-${Date.now()}`,
-        },
-      ],
-    }
-
-    if (submit) submit.disabled = true
-    try {
-      const res = await api.stores.create(payload)
-      showMsg(msgEl, `가게가 등록되었습니다. (id: ${res?.id ?? '-'})`, false)
-      form.reset()
-      await loadStores()
-    } catch (err) {
-      showMsg(msgEl, OwnerShared.errorMessage(err, '가게 등록에 실패했습니다.'), true)
-    } finally {
-      if (submit) submit.disabled = false
     }
   }
 
