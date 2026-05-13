@@ -88,7 +88,7 @@
     const data = await parseBody(res)
     if (!res.ok) {
       const message =
-        (data && typeof data === 'object' && (data.message || data.error)) ||
+        (data && typeof data === 'object' && (data.message || data.detail || data.error)) ||
         (typeof data === 'string' ? data : null) ||
         (res.status === 401
           ? '로그인이 만료되었거나 필요합니다. 다시 로그인해 주세요.'
@@ -200,11 +200,16 @@
       return request('GET', `/api/owner/stores/${storeId}`)
     },
     /**
-     * 사장 전용: 주소 → 좌표 변환 (BE 가 카카오 로컬 API 프록시).
+     * 사장 전용: 주소·가게명 → 좌표 변환 (BE 가 카카오 로컬 API 프록시).
+     * @param {string} [address] - 도로명/지번 주소
+     * @param {string} [placeName] - 가게명·건물명 (있으면 키워드 검색으로 더 정확한 좌표)
      * 응답: { query, roadAddress, jibunAddress, latitude, longitude }
      */
-    ownerGeocode(address) {
-      return request('GET', '/api/owner/geocode', { query: { address } })
+    ownerGeocode(address, placeName) {
+      const query = {}
+      if (address) query.address = address
+      if (placeName) query.placeName = placeName
+      return request('GET', '/api/owner/geocode', { query })
     },
     /** 추후: 내 주변 가게 조회 */
     nearby({ lat, lng, radiusKm = 3, page = 0, size = 20 } = {}) {
@@ -225,7 +230,11 @@
     image(file) {
       const form = new FormData()
       form.append('file', file)
-      return request('POST', '/api/owner/uploads/image', { body: form })
+      return request('POST', '/api/owner/uploads/image', { body: form }).then((data) => {
+        if (!data || typeof data !== 'object') return data
+        const url = data.url ?? data.imageUrl ?? ''
+        return { ...data, url }
+      })
     },
   }
 
