@@ -300,6 +300,37 @@ body {
 .status-dot--cancel {
   background: var(--color-cancel);
 }
+.status-dot--open {
+  background: var(--color-delivering);
+}
+.status-dot--closed {
+  background: var(--color-text-hint);
+}
+
+.inline-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 16px;
+  margin-left: 6px;
+  padding: 0 6px;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 999px;
+  vertical-align: 1px;
+}
+.inline-badge--closed {
+  color: var(--color-cancel);
+  background: rgba(220, 53, 69, 0.1);
+  border: 1px solid var(--color-cancel);
+}
+
+.order-summary-list li.is-closed .order-summary-label,
+.order-summary-list li.is-closed .order-summary-count {
+  color: var(--color-text-muted);
+}
+[data-store-row].is-closed .store-status-label {
+  color: var(--color-cancel);
+}
 
 .order-summary-count {
   font-size: 14px;

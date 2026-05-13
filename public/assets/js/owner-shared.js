@@ -1,7 +1,8 @@
 /**
  * Owner 페이지 공통 헬퍼
- * - 사이드바 동적 렌더링 (가게별 그룹 + 토글)
+ * - 사이드바 동적 렌더링 (가게별 그룹 + 토글, 각 링크에 `?storeId=` 포함)
  * - 로그인/권한 가드, 가게 목록 fetch, 공용 에러 메시지
+ * - `ensureOwnerStoreScope` / `bindSingleStoreSelect` 로 지점별 관리 페이지 스코프 통일
  *
  * 페이지에서 사용:
  *   const ctx = await OwnerShared.bootstrap()
@@ -22,28 +23,86 @@
 
   async function bootstrap() {
     if (!window.api) {
-      showFatal('API 스크립트를 불러오지 못했습니다.')
+      showFatalMessage('API 스크립트를 불러오지 못했습니다.')
       return null
     }
     if (!api.auth.isLoggedIn()) {
-      showFatal('로그인이 필요합니다. 메인에서 카카오 로그인 후 다시 시도해 주세요.')
+      showFatalMessage('로그인이 필요합니다. 메인에서 카카오 로그인 후 다시 시도해 주세요.')
       return null
     }
     let storeList = []
     try {
-      const data = await api.orders.owner.todayStatsByStore()
-      storeList = Array.isArray(data) ? data : []
+      const data = await api.stores.ownerMine()
+      // 응답 정규화: storeStatus → status, todayOrderCount → totalCount 등 호환 키 유지
+      storeList = (Array.isArray(data) ? data : []).map((s) => ({
+        storeId: s.storeId,
+        storeName: s.storeName,
+        status: s.storeStatus ?? s.status ?? 'PREPARING',
+        isDeleted: !!s.isDeleted,
+        totalCount: Number(s.todayOrderCount ?? s.totalCount ?? 0),
+      }))
     } catch (e) {
       const m = errorMessage(e, '가게 목록을 불러올 수 없습니다.')
       if (e?.status === 403) {
-        showFatal('사장 권한이 필요한 페이지입니다.')
+        showFatalMessage('사장 권한이 필요한 페이지입니다.')
         return null
       }
-      // 가게 목록만 실패한 경우엔 빈 사이드바로 진행 가능
       console.warn('[owner] storeList fetch failed:', m)
     }
     renderSidebar(storeList)
     return { storeList }
+  }
+
+  /** URL 쿼리 `?storeId=` (지점별 관리 페이지용) */
+  function getStoreIdFromUrl() {
+    try {
+      const v = new URLSearchParams(window.location.search).get('storeId')
+      if (v == null || String(v).trim() === '') return null
+      return String(v).trim()
+    } catch {
+      return null
+    }
+  }
+
+  /** 사장 하위 페이지 링크 — 가게가 있으면 반드시 storeId 포함 */
+  function buildOwnerPageHref(file, storeId) {
+    const sid = storeId != null && storeId !== '' ? String(storeId) : ''
+    if (!sid) return `./${file}`
+    return `./${file}?storeId=${encodeURIComponent(sid)}`
+  }
+
+  /**
+   * 가게가 1개 이상이면 URL 에 `?storeId=` 필수 (없으면 첫 가게로 리다이렉트).
+   * 잘못된 id 면 fatal. 가게 없으면 `{ success:true, store:null }`.
+   */
+  function ensureOwnerStoreScope(storeList, pageFile) {
+    if (!storeList || storeList.length === 0) {
+      return { success: true, store: null }
+    }
+    const urlId = getStoreIdFromUrl()
+    if (!urlId) {
+      window.location.replace(buildOwnerPageHref(pageFile, storeList[0].storeId))
+      return { success: false, store: null }
+    }
+    const store = storeList.find((s) => String(s.storeId) === String(urlId))
+    if (!store) {
+      showFatalMessage('해당 가게를 찾을 수 없거나 접근 권한이 없습니다.')
+      return { success: false, store: null }
+    }
+    return { success: true, store }
+  }
+
+  function bindSingleStoreSelect(selectEl, store) {
+    if (!selectEl || !store) return
+    selectEl.innerHTML = `<option value="${store.storeId}">${escapeHtml(store.storeName ?? '가게')}</option>`
+    selectEl.disabled = true
+    selectEl.value = String(store.storeId)
+  }
+
+  function bindEmptyStoreSelect(selectEl) {
+    if (!selectEl) return
+    selectEl.innerHTML = '<option value="">가게 없음</option>'
+    selectEl.disabled = true
   }
 
   /* --------------------- 사이드바 --------------------- */
@@ -57,7 +116,7 @@
           <div class="sidebar-group-label">내 가게 없음</div>
           <ul class="sidebar-nav">
             ${PAGE_LINKS.map(
-              (l) => `<li><a href="./${l.file}"${activeAttr(l.file, true)}>${l.label}</a></li>`,
+              (l) => `<li><a href="./${l.file}"${activeAttr(l.file, null, currentPageFile(), null)}>${l.label}</a></li>`,
             ).join('')}
           </ul>
         </div>
@@ -67,20 +126,31 @@
     }
 
     const currentPage = currentPageFile()
+    const urlStoreId = getStoreIdFromUrl()
     sidebar.innerHTML = `
       ${storeList
         .map((store, i) => {
-          const isFirst = i === 0
+          const expanded = urlStoreId != null ? String(store.storeId) === String(urlStoreId) : i === 0
+          const closedBadge = store.isDeleted
+            ? '<span class="sidebar-group-badge" title="폐업한 가게">폐업</span>'
+            : ''
+          const closedCls = store.isDeleted ? ' is-closed' : ''
           return `
-            <div class="sidebar-group" data-collapsed="${isFirst ? 'false' : 'true'}" data-store-id="${store.storeId}">
-              <div class="sidebar-group-label" role="button" tabindex="0" aria-expanded="${isFirst}">
+            <div class="sidebar-group${closedCls}" data-collapsed="${expanded ? 'false' : 'true'}" data-store-id="${store.storeId}"${store.isDeleted ? ' data-closed="true"' : ''}>
+              <div class="sidebar-group-label" role="button" tabindex="0" aria-expanded="${expanded}">
                 <i class="ti ti-chevron-right" aria-hidden="true"></i>
                 <span class="sidebar-group-name">${escapeHtml(store.storeName ?? '가게')}</span>
+                ${closedBadge}
               </div>
               <ul class="sidebar-nav">
                 ${PAGE_LINKS.map(
                   (l) =>
-                    `<li><a href="./${l.file}"${activeAttr(l.file, isFirst, currentPage)}>${l.label}</a></li>`,
+                    `<li><a href="${buildOwnerPageHref(l.file, store.storeId)}"${activeAttr(
+                      l.file,
+                      store.storeId,
+                      currentPage,
+                      urlStoreId,
+                    )}>${l.label}</a></li>`,
                 ).join('')}
               </ul>
             </div>
@@ -111,9 +181,16 @@
     label.setAttribute('aria-expanded', String(collapsed))
   }
 
-  function activeAttr(file, isFirstGroup, currentPage) {
+  /**
+   * @param {string|null} groupStoreId 가게 없을 때는 null
+   * @param {string|null} urlStoreId   현재 URL 의 storeId
+   */
+  function activeAttr(file, groupStoreId, currentPage, urlStoreId) {
     const cur = currentPage ?? currentPageFile()
-    return file === cur && isFirstGroup ? ' class="is-active"' : ''
+    if (groupStoreId == null) {
+      return file === cur ? ' class="is-active"' : ''
+    }
+    return file === cur && String(groupStoreId) === String(urlStoreId || '') ? ' class="is-active"' : ''
   }
 
   function currentPageFile() {
@@ -122,7 +199,7 @@
   }
 
   /* --------------------- 공용 유틸 --------------------- */
-  function showFatal(message) {
+  function showFatalMessage(message) {
     const main = document.querySelector('.main') || document.body
     main.innerHTML = `
       <section class="card" style="padding:32px;text-align:center">
@@ -178,5 +255,11 @@
     escapeHtml,
     formatWon,
     statusLabel,
+    getStoreIdFromUrl,
+    buildOwnerPageHref,
+    ensureOwnerStoreScope,
+    bindSingleStoreSelect,
+    bindEmptyStoreSelect,
+    showFatalMessage,
   }
 })()
