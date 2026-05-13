@@ -344,15 +344,29 @@
 .store-detail-thumb-edit {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   gap: 6px;
   width: 130px;
   flex-shrink: 0;
 }
 .store-detail-thumb-edit .store-detail-thumb {
+  align-self: center;
   width: 100%;
   height: 92px;
   border-radius: 12px;
+}
+.store-detail-thumb-edit:has(.upload-row) {
+  width: min(100%, 240px);
+  min-width: 200px;
+}
+.store-detail-thumb-edit .upload-row {
+  width: 100%;
+}
+.store-detail-thumb-edit .upload-row input[type="file"] {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 .store-detail-thumb-edit .field-label {
   margin: 4px 0 0;
@@ -495,14 +509,19 @@
 
 @media (max-width: 720px) {
   .store-detail-head {
-    grid-template-columns: auto 1fr;
+    grid-template-columns: 1fr;
   }
   .store-detail-meta {
     grid-column: 1 / -1;
     justify-content: flex-start;
   }
   .store-detail-thumb-edit {
+    width: 100%;
+    max-width: 320px;
+  }
+  .store-detail-thumb-edit:not(:has(.upload-row)) {
     width: 96px;
+    max-width: none;
   }
 }
 

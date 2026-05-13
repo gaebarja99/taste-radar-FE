@@ -1,0 +1,95 @@
+/* 내 주문 목록 */
+
+.my-orders-host {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.my-order-card {
+  display: grid;
+  gap: 8px;
+  padding: 16px 18px;
+  border-bottom: 1px dashed var(--color-border);
+}
+
+.my-order-card:last-child {
+  border-bottom: none;
+}
+
+.my-order-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.my-order-store-link {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.my-order-store-link:hover {
+  text-decoration: underline;
+}
+
+.my-order-status {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--color-bg-page);
+  color: var(--color-text-muted);
+}
+
+.my-order-status.is-pending {
+  background: #fff4e8;
+  color: #c45f00;
+}
+
+.my-order-status.is-cooking,
+.my-order-status.is-delivering {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+}
+
+.my-order-status.is-delivered {
+  background: #e8f7ee;
+  color: #1f7a45;
+}
+
+.my-order-status.is-rejected,
+.my-order-status.is-canceled {
+  background: #fdecec;
+  color: var(--color-cancel);
+}
+
+.my-order-menu {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-main);
+  line-height: 1.5;
+}
+
+.my-order-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.my-order-amount {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text-main);
+}
