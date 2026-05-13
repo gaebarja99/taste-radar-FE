@@ -153,6 +153,14 @@
     updateNickname(nickname) {
       return request('PATCH', '/api/users/me/nickname', { body: { nickname } })
     },
+    updateAddress({ zipCode, address, addressDetail }) {
+      return request('PUT', '/api/users/me/address', { body: { zipCode, address, addressDetail } })
+    },
+    updatePassword({ currentPassword, newPassword }) {
+      return request('PUT', '/api/users/me/password', {
+        body: { currentPassword: currentPassword || null, newPassword },
+      })
+    },
     /** body: { sweet, salty, sour, bitter, umami } (CUSTOMER 전용) */
     updateTastes(tastes) {
       return request('PUT', '/api/users/me/tastes', { body: tastes })
