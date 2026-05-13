@@ -1,6 +1,7 @@
 /**
  * 가게 관리 페이지 (지점 단일 스코프)
  * - 사이드바에서 선택한 가게(URL ?storeId=)만 표시
+ * - POST /api/owner/stores                         (가게 등록)
  * - 영업 상태 변경 (PATCH /api/owner/stores/{id}/status) — PREPARING/OPEN/CLOSE
  * - 가게 정보 수정 (PUT /api/owner/stores/{id})
  */
@@ -31,6 +32,7 @@
     }
 
     document.getElementById('btnRefresh').addEventListener('click', () => loadStores())
+    document.getElementById('btnCreateStore').addEventListener('click', showCreateForm)
     await loadStores()
   }
 
@@ -55,6 +57,7 @@
       if (items.length === 0) {
         stackEl.innerHTML = ''
         emptyEl.hidden = false
+        emptyEl.textContent = '등록된 가게가 없어요. 상단의 「가게 등록」으로 새 가게를 추가해 보세요.'
         return
       }
       // 폐업 가게는 ownerDetail (인증 필요) 로, 활성 가게는 기존 public detail 사용
@@ -179,6 +182,305 @@
     `
   }
 
+
+  /* ---------------- 새 가게 등록 ---------------- */
+
+  function mountCreateSection() {
+    let section = document.getElementById('storeCreateSection')
+    if (section) return section
+
+    const main = document.querySelector('.main')
+    const anchor = main?.querySelector('.table-section')
+    if (!main || !anchor) return null
+
+    section = document.createElement('section')
+    section.id = 'storeCreateSection'
+    section.className = 'table-section'
+    section.setAttribute('aria-labelledby', 'storeCreateTitle')
+    section.innerHTML = `
+      <div class="section-head">
+        <h2 id="storeCreateTitle" class="section-head-title">새 가게 등록</h2>
+      </div>
+      <div id="storeCreateHost" class="card-stack store-detail-stack" style="padding: 12px"></div>
+    `
+    main.insertBefore(section, anchor)
+    return section
+  }
+
+  function showCreateForm() {
+    const section = mountCreateSection()
+    const host = document.getElementById('storeCreateHost')
+    if (!section || !host) return
+    host.innerHTML = renderCreateBody()
+    bindCreateHandlers(host)
+    section.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  function hideCreateForm() {
+    const section = document.getElementById('storeCreateSection')
+    section?.remove()
+  }
+
+  function renderCreateBody() {
+    return `
+      <article class="card store-detail-card">
+        <form data-create-form class="store-detail-edit-form" novalidate>
+          <header class="store-detail-head">
+            <div class="store-detail-thumb-edit">
+              <div class="store-detail-thumb store-detail-thumb--placeholder" data-create-thumb>
+                <i class="ti ti-building-store" aria-hidden="true"></i>
+              </div>
+              <label class="field-label">대표 이미지</label>
+              <div class="upload-row">
+                <input type="file" id="createStoreImageFile" accept="image/*" data-act="create-image" />
+              </div>
+              <input
+                id="createStoreImageUrl"
+                class="store-edit-thumb-input"
+                type="text"
+                name="imgUrl"
+                placeholder="이미지 주소 (파일 업로드 시 자동 입력)"
+                data-act="thumb-url"
+                readonly
+                required
+              />
+              <small id="createStoreImageMsg" class="field-hint">
+                파일을 선택하면 서버에 업로드되고 주소가 자동으로 채워져요.
+              </small>
+            </div>
+            <div class="store-detail-title">
+              <input class="store-edit-name" type="text" name="name" placeholder="가게명" required />
+              <div class="store-edit-address-row">
+                <div class="store-edit-address-search">
+                  <input class="store-edit-input" type="text" name="address"
+                         placeholder="주소 검색 버튼을 눌러주세요" required readonly />
+                  <button type="button" class="btn-outline-sm" data-act="address-search">
+                    <i class="ti ti-search" aria-hidden="true"></i> 주소 검색
+                  </button>
+                </div>
+                <input class="store-edit-input" type="text" name="addressDetail"
+                       placeholder="상세 주소" required />
+              </div>
+            </div>
+          </header>
+
+          <div class="store-stat-grid">
+            <div class="store-stat">
+              <p class="store-stat-label">최소 주문 (원)</p>
+              <input class="store-stat-input" type="number" name="minOrderAmount" min="1" value="10000" required />
+            </div>
+            <div class="store-stat">
+              <p class="store-stat-label">평균 조리 (분)</p>
+              <input class="store-stat-input" type="number" name="requiredTimeMinutes" min="1" value="30" required />
+            </div>
+            <div class="store-stat">
+              <p class="store-stat-label">오픈 시간</p>
+              <input class="store-stat-input" type="time" name="openTime" value="10:00" required />
+            </div>
+            <div class="store-stat">
+              <p class="store-stat-label">마감 시간</p>
+              <input class="store-stat-input" type="time" name="closeTime" value="22:00" required />
+            </div>
+            <div class="store-stat">
+              <p class="store-stat-label">위도 (선택)</p>
+              <input class="store-stat-input" type="number" step="any" name="latitude" placeholder="37.49" />
+            </div>
+            <div class="store-stat">
+              <p class="store-stat-label">경도 (선택)</p>
+              <input class="store-stat-input" type="number" step="any" name="longitude" placeholder="126.97" />
+            </div>
+            <p class="field-hint store-geocode-hint" data-geocode-hint style="grid-column:1/-1;margin:0">
+              주소만으로는 대략적인 위치가 잡혀요. 가게명을 입력한 뒤 「좌표 다시 찾기」를 누르면 더 정확해집니다.
+            </p>
+            <div style="grid-column:1/-1">
+              <button type="button" class="btn-outline-sm" data-act="geocode-refresh">
+                <i class="ti ti-map-pin" aria-hidden="true"></i> 좌표 다시 찾기
+              </button>
+            </div>
+          </div>
+
+          <div class="store-edit-bar">
+            <p data-create-msg class="store-edit-msg" hidden></p>
+            <div class="store-edit-actions">
+              <button type="button" class="btn-outline-sm" data-act="create-cancel">취소</button>
+              <button type="submit" class="btn-primary store-edit-save">가게 등록</button>
+            </div>
+          </div>
+        </form>
+      </article>
+    `
+  }
+
+  function bindCreateHandlers(host) {
+    const form = host.querySelector('[data-create-form]')
+    if (!form) return
+
+    form.addEventListener('submit', handleCreate)
+    host.querySelector('[data-act="create-cancel"]')?.addEventListener('click', hideCreateForm)
+
+    const urlInput = form.querySelector('#createStoreImageUrl')
+    const thumbWrap = form.querySelector('[data-create-thumb]')
+    const hintEl = form.querySelector('#createStoreImageMsg')
+    const fileInput = form.querySelector('#createStoreImageFile')
+    const card = host.querySelector('.store-detail-card')
+
+    if (urlInput && thumbWrap) {
+      urlInput.addEventListener('input', () => {
+        const v = (urlInput.value || '').trim()
+        thumbWrap.classList.remove('is-broken')
+        if (v) {
+          thumbWrap.classList.remove('store-detail-thumb--placeholder')
+          thumbWrap.innerHTML = `<img src="${OwnerShared.escapeHtml(v)}" alt="" onerror="this.parentNode.classList.add('is-broken')"/>`
+        } else {
+          thumbWrap.classList.add('store-detail-thumb--placeholder')
+          thumbWrap.innerHTML = '<i class="ti ti-building-store" aria-hidden="true"></i>'
+        }
+      })
+    }
+
+    host.querySelector('[data-act="address-search"]')?.addEventListener('click', () => {
+      if (card) openAddressSearch(card)
+    })
+
+    bindGeocodeHelpers(host)
+
+    fileInput?.addEventListener('change', async (e) => {
+      const file = e.currentTarget.files?.[0]
+      const msgEl = form.querySelector('[data-create-msg]')
+      if (!file) return
+      if (!urlInput) {
+        if (hintEl) {
+          hintEl.textContent = '이미지 주소 입력란을 찾을 수 없어요. 페이지를 새로고침해 주세요.'
+          hintEl.style.color = 'var(--color-cancel)'
+        }
+        return
+      }
+
+      if (!file.type.startsWith('image/')) {
+        setCreateImageHint(hintEl, '이미지 파일만 업로드할 수 있어요.', true)
+        if (msgEl) showMsg(msgEl, '이미지 파일만 업로드할 수 있어요.', true)
+        e.currentTarget.value = ''
+        return
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        setCreateImageHint(hintEl, '5MB 이하 파일만 업로드할 수 있어요.', true)
+        if (msgEl) showMsg(msgEl, '5MB 이하 파일만 업로드할 수 있어요.', true)
+        e.currentTarget.value = ''
+        return
+      }
+
+      const previewUrl = URL.createObjectURL(file)
+      if (thumbWrap) {
+        thumbWrap.classList.remove('store-detail-thumb--placeholder')
+        const img = document.createElement('img')
+        img.alt = ''
+        img.src = previewUrl
+        img.onload = () => URL.revokeObjectURL(previewUrl)
+        thumbWrap.replaceChildren(img)
+      }
+
+      setCreateImageHint(hintEl, '이미지 업로드 중…', false)
+      if (msgEl) showMsg(msgEl, '이미지 업로드 중…', false)
+
+      try {
+        const res = await api.uploads.image(file)
+        const uploadedUrl = (res?.url ?? '').trim()
+        if (!uploadedUrl) {
+          throw new Error('업로드 응답에 이미지 주소가 없습니다.')
+        }
+        urlInput.value = uploadedUrl
+        urlInput.dispatchEvent(new Event('input', { bubbles: true }))
+        setCreateImageHint(hintEl, '업로드 완료. 이 주소로 가게가 등록돼요.', false)
+        if (msgEl) showMsg(msgEl, '이미지 업로드 완료.', false)
+      } catch (err) {
+        setCreateImageHint(hintEl, OwnerShared.errorMessage(err, '업로드 실패'), true)
+        if (msgEl) showMsg(msgEl, OwnerShared.errorMessage(err, '업로드 실패'), true)
+        urlInput.value = ''
+        urlInput.dispatchEvent(new Event('input', { bubbles: true }))
+        e.currentTarget.value = ''
+      }
+    })
+  }
+
+  function setCreateImageHint(el, text, isError) {
+    if (!el) return
+    el.textContent = text
+    el.style.color = isError ? 'var(--color-cancel)' : 'var(--color-text-muted)'
+    if (!isError && text.includes('완료')) {
+      el.style.color = 'var(--color-delivering)'
+    }
+  }
+
+  async function handleCreate(e) {
+    e.preventDefault()
+    const form = e.currentTarget
+    const msgEl = form.querySelector('[data-create-msg]')
+    if (msgEl) msgEl.hidden = true
+
+    const data = Object.fromEntries(new FormData(form).entries())
+    let imgUrl = data.imgUrl?.trim()
+
+    if (!imgUrl) {
+      const fileInput = form.querySelector('#createStoreImageFile')
+      const file = fileInput?.files?.[0]
+      if (file) {
+        try {
+          if (msgEl) showMsg(msgEl, '이미지 업로드 중…', false)
+          const res = await api.uploads.image(file)
+          imgUrl = (res?.url ?? '').trim()
+          const urlInput = form.querySelector('#createStoreImageUrl')
+          if (urlInput && imgUrl) {
+            urlInput.value = imgUrl
+            urlInput.dispatchEvent(new Event('input', { bubbles: true }))
+          }
+        } catch (err) {
+          if (msgEl) showMsg(msgEl, OwnerShared.errorMessage(err, '이미지 업로드 실패'), true)
+          return
+        }
+      }
+    }
+
+    if (!imgUrl) {
+      if (msgEl) showMsg(msgEl, '대표 이미지를 업로드하거나 URL을 입력해 주세요.', true)
+      return
+    }
+
+    const payload = {
+      name: data.name?.trim(),
+      address: data.address?.trim(),
+      addressDetail: data.addressDetail?.trim(),
+      minOrderAmount: Number(data.minOrderAmount),
+      openTime: data.openTime,
+      closeTime: data.closeTime,
+      requiredTimeMinutes: Number(data.requiredTimeMinutes),
+      latitude: data.latitude ? Number(data.latitude) : null,
+      longitude: data.longitude ? Number(data.longitude) : null,
+      images: [
+        {
+          fileName: 'thumbnail',
+          imgUrl,
+          imgKey: `thumbnail-${Date.now()}`,
+        },
+      ],
+    }
+
+    const submit = form.querySelector('button[type="submit"]')
+    submit.disabled = true
+    try {
+      const res = await api.stores.create(payload)
+      const newId = res?.id
+      hideCreateForm()
+      if (newId != null) {
+        window.location.href = OwnerShared.buildOwnerPageHref('owner-store-manage.html', newId)
+      } else {
+        await loadStores()
+      }
+    } catch (err) {
+      showMsg(msgEl, OwnerShared.errorMessage(err, '가게 등록에 실패했습니다.'), true)
+      submit.disabled = false
+    }
+  }
+
   function renderThumb(thumbUrl) {
     return thumbUrl
       ? `<div class="store-detail-thumb"><img src="${OwnerShared.escapeHtml(thumbUrl)}" alt="" onerror="this.parentNode.classList.add('is-broken')"/></div>`
@@ -254,6 +556,14 @@
             <p class="store-stat-label">경도 (선택)</p>
             <input class="store-stat-input" type="number" step="any" name="longitude"
                    value="${detail?.longitude ?? ''}" placeholder="126.97" />
+          </div>
+          <p class="field-hint store-geocode-hint" data-geocode-hint style="grid-column:1/-1;margin:0">
+            주소만으로는 대략적인 위치가 잡혀요. 가게명을 입력한 뒤 「좌표 다시 찾기」를 누르면 더 정확해집니다.
+          </p>
+          <div style="grid-column:1/-1">
+            <button type="button" class="btn-outline-sm" data-act="geocode-refresh">
+              <i class="ti ti-map-pin" aria-hidden="true"></i> 좌표 다시 찾기
+            </button>
           </div>
         </div>
 
@@ -380,6 +690,35 @@
     if (addressSearchBtn) {
       addressSearchBtn.addEventListener('click', () => openAddressSearch(card))
     }
+
+    bindGeocodeHelpers(card)
+  }
+
+  function resolvePlaceName(card, buildingName = '') {
+    const name = card.querySelector('input[name="name"]')?.value?.trim() ?? ''
+    const detail = card.querySelector('input[name="addressDetail"]')?.value?.trim() ?? ''
+    return [name, detail, buildingName].filter(Boolean).join(' ').trim()
+  }
+
+  function bindGeocodeHelpers(card) {
+    const refresh = () => refreshGeocodeFromCard(card)
+    card.querySelector('input[name="name"]')?.addEventListener('blur', refresh)
+    card.querySelector('input[name="addressDetail"]')?.addEventListener('blur', refresh)
+    card.querySelector('[data-act="geocode-refresh"]')?.addEventListener('click', refresh)
+  }
+
+  async function refreshGeocodeFromCard(card, buildingName = '') {
+    const address = card.querySelector('input[name="address"]')?.value?.trim() ?? ''
+    const placeName = resolvePlaceName(card, buildingName)
+    if (!address && !placeName) return
+    const latInput = card.querySelector('input[name="latitude"]')
+    const lngInput = card.querySelector('input[name="longitude"]')
+    const hintEl = card.querySelector('[data-geocode-hint]')
+    if (hintEl) {
+      hintEl.textContent = '좌표를 찾는 중…'
+      hintEl.style.color = 'var(--color-text-muted)'
+    }
+    await fillCoordinates(address, latInput, lngInput, { placeName, hintEl })
   }
 
   function openAddressSearch(card) {
@@ -394,28 +733,44 @@
     new daum.Postcode({
       oncomplete(data) {
         const picked = data.roadAddress || data.jibunAddress || data.address || ''
+        const buildingName = (data.buildingName || '').trim()
         if (addressInput) addressInput.value = picked
         if (detailInput) {
           detailInput.value = ''
           detailInput.focus()
         }
-        if (picked) fillCoordinates(picked, latInput, lngInput)
+        if (picked || buildingName) refreshGeocodeFromCard(card, buildingName)
       },
     }).open()
   }
 
   /**
-   * 백엔드 프록시(`GET /api/owner/geocode`)로 주소→좌표 변환을 호출해서
-   * 위도/경도 input 을 자동으로 채웁니다.
-   * - 카카오 REST API 키는 서버(application.yml) 에만 보관됩니다.
+   * 백엔드 프록시(`GET /api/owner/geocode`)로 주소·가게명 → 좌표 변환.
+   * 가게명이 있으면 카카오 키워드 검색(POI)을 우선 사용합니다.
    */
-  async function fillCoordinates(address, latInput, lngInput) {
+  async function fillCoordinates(address, latInput, lngInput, { placeName, hintEl } = {}) {
     if (!latInput || !lngInput) return
+    if (!address && !placeName) return
     try {
-      const result = await api.stores.ownerGeocode(address)
+      const result = await api.stores.ownerGeocode(address, placeName)
       if (Number.isFinite(result?.latitude)) latInput.value = result.latitude
       if (Number.isFinite(result?.longitude)) lngInput.value = result.longitude
+      if (hintEl) {
+        if (Number.isFinite(result?.latitude)) {
+          hintEl.textContent = placeName
+            ? '가게명 기준으로 좌표를 찾았어요. 지도에서 확인 후 필요하면 직접 수정하세요.'
+            : '주소 기준 대략 좌표예요. 가게명 입력 후 「좌표 다시 찾기」를 눌러 보세요.'
+          hintEl.style.color = 'var(--color-delivering)'
+        } else {
+          hintEl.textContent = '좌표를 찾지 못했어요. 위도·경도를 직접 입력해 주세요.'
+          hintEl.style.color = 'var(--color-cancel)'
+        }
+      }
     } catch (e) {
+      if (hintEl) {
+        hintEl.textContent = OwnerShared.errorMessage(e, '좌표 검색 실패')
+        hintEl.style.color = 'var(--color-cancel)'
+      }
       console.warn('[geocode] failed:', OwnerShared.errorMessage(e, 'geocode 실패'))
     }
   }
