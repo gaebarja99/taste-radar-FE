@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>가게 — Taste Radar</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.26.0/dist/tabler-icons.min.css"
+    />
+    <link rel="stylesheet" href="/assets/css/owner-order-manage.css" />
+    <link rel="stylesheet" href="/assets/css/owner-pages.css" />
+    <link rel="stylesheet" href="/assets/css/store-pages.css" />
+    <script src="/assets/js/api.js" defer></script>
+    <script src="/assets/js/store.js" defer></script>
+  </head>
+  <body>
+    <header class="topbar" aria-label="상단 바">
+      <a class="topbar-brand" href="/">
+        Taste Radar
+      </a>
+      <div class="store-topbar-actions">
+        <button type="button" id="btnKakaoLogin" class="btn-outline-sm" hidden>
+          <i class="ti ti-brand-kakao-talk" aria-hidden="true"></i> 로그인
+        </button>
+        <span id="userNickname" class="store-user-nickname" hidden></span>
+        <button
+          type="button"
+          id="btnCart"
+          class="icon-btn store-icon-btn"
+          aria-label="장바구니"
+        >
+          <i class="ti ti-shopping-cart" aria-hidden="true"></i>
+          <span id="cartBadge" class="icon-badge" hidden>0</span>
+        </button>
+        <a class="topbar-menu" href="/" title="홈으로" aria-label="홈으로 이동">
+          <i class="ti ti-home" style="font-size: 20px"></i>
+        </a>
+      </div>
+    </header>
+
+    <div class="store-page">
+      <main class="store-page-main">
+        <div id="storeHost" class="store-host" aria-live="polite">
+          <p class="empty-state">불러오는 중…</p>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>
