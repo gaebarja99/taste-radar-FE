@@ -67,6 +67,9 @@
 
     if (loggedIn && userBox && nick && roleEl) {
       userBox.hidden = false
+      if (userBox.tagName === 'A') {
+        userBox.href = role === 'CUSTOMER' ? '/pages/my-profile.html' : '/'
+      }
       nick.textContent = localStorage.getItem('nickname') || '회원'
       roleEl.textContent = role === 'OWNER' ? '사장' : '고객'
     } else if (userBox) {
@@ -80,6 +83,7 @@
       items.push({
         icon: 'ti-brand-kakao-talk',
         label: '카카오 로그인',
+        kakao: true,
         action: () => {
           closeDrawer(document.getElementById('menuDrawer'))
           if (typeof options.onLoginClick === 'function') options.onLoginClick()
@@ -89,6 +93,11 @@
     }
 
     if (loggedIn && role === 'CUSTOMER') {
+      items.push({
+        icon: 'ti-user-circle',
+        label: '내 프로필',
+        href: '/pages/my-profile.html',
+      })
       items.push({
         icon: 'ti-shopping-cart',
         label: '장바구니',
@@ -101,6 +110,16 @@
         icon: 'ti-receipt',
         label: '내 주문',
         href: '/pages/my-orders.html',
+      })
+      items.push({
+        icon: 'ti-message-2',
+        label: '내 리뷰',
+        href: '/pages/my-reviews.html',
+      })
+      items.push({
+        icon: 'ti-adjustments',
+        label: '입맛 설정',
+        href: '/pages/taste-onboarding.html',
       })
     }
 
@@ -123,12 +142,16 @@
 
     list.innerHTML = items
       .map((it, idx) => {
-        const cls = `${it.danger ? 'item-danger' : ''}`
+        const cls = `${it.danger ? 'item-danger' : ''} ${it.kakao ? 'item-kakao' : ''}`.trim()
+        const iconMarkup = it.kakao
+          ? (window.KakaoBrand?.iconHtml?.() ||
+              '<svg class="kakao-logo" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3c5.523 0 10 3.582 10 8 0 2.558-1.294 4.832-3.333 6.274L19 22l-5.2-2.86C14.89 19.378 13.47 19.5 12 19.5 6.477 19.5 2 15.918 2 11.5 2 7.082 6.477 3.5 12 3.5z"/></svg>')
+          : `<i class="ti ${it.icon}" aria-hidden="true"></i>`
         if (it.href) {
           return `
             <li>
               <a class="${cls}" href="${it.href}">
-                <i class="ti ${it.icon}" aria-hidden="true"></i>
+                ${iconMarkup}
                 <span>${escapeHtml(it.label)}</span>
               </a>
             </li>`
@@ -138,7 +161,7 @@
             <button type="button" class="${cls}" data-menu-idx="${idx}" ${
           it.disabled ? 'disabled' : ''
         }>
-              <i class="ti ${it.icon}" aria-hidden="true"></i>
+              ${iconMarkup}
               <span>${escapeHtml(it.label)}</span>
             </button>
           </li>`
