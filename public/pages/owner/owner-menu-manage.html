@@ -49,12 +49,8 @@
         </header>
 
         <section class="table-section" aria-labelledby="menuListTitle">
-          <div class="section-head section-action-row">
+          <div class="section-head">
             <h2 id="menuListTitle" class="section-head-title">메뉴 목록</h2>
-            <div class="owner-toolbar">
-              <label class="field-label" for="storeSelect" style="margin:0">대상 가게</label>
-              <select id="storeSelect" class="field-select" style="min-width:180px"></select>
-            </div>
           </div>
           <div id="menuList" style="padding: 0 16px 16px"></div>
           <p id="menuEmpty" class="empty-state" hidden>등록된 메뉴가 없어요.</p>
@@ -78,8 +74,21 @@
               <textarea name="menuDescription" placeholder="간단한 설명"></textarea>
             </label>
             <label class="col-span-2">
-              이미지 URL(선택)
-              <input type="url" name="imageUrl" placeholder="https://…" />
+              이미지 (선택)
+              <div class="upload-row">
+                <input type="file" id="newMenuImageFile" accept="image/*" />
+                <button type="button" class="btn-outline-sm" id="newMenuImageClear">제거</button>
+              </div>
+              <input
+                type="text"
+                name="imageUrl"
+                id="newMenuImageUrl"
+                placeholder="이미지 주소가 자동으로 채워집니다"
+                readonly
+              />
+              <small class="field-hint" id="newMenuImageMsg">
+                파일을 선택하면 서버에 업로드되고 주소가 자동으로 채워져요.
+              </small>
             </label>
             <div class="col-span-2 btn-row" style="justify-content: flex-end">
               <button type="submit" class="btn-primary" style="width: auto; padding: 0 24px">
