@@ -1,9 +1,10 @@
 /**
  * 사장 메인 대시보드
- * - GET /api/owner/orders/stats/today           : 오늘 전체 주문 합계
- * - GET /api/owner/orders/stats/today/stores    : 가게별 오늘 주문 카운트 (= 사이드바/목록 소스)
- * - GET /api/stores/{id}                        : 각 가게 상세 + 영업 상태
- * - PATCH /api/owner/stores/{id}/status         : 영업 상태 변경 (PREPARING/OPEN/CLOSE)
+ * - GET /api/owner/orders/stats/today      : 오늘 전체 주문 합계
+ * - GET /api/owner/stores/mine             : 사장 본인 가게(폐업 포함) + storeStatus + 오늘 주문 수
+ * - PATCH /api/owner/stores/{id}/status    : 영업 상태 변경 (PREPARING/OPEN/CLOSE)
+ *
+ * 폐업 가게(isDeleted=true) 는 별도 「폐업」 표시와 함께 노출되며 토글은 비활성화됩니다.
  */
 ;(function () {
   'use strict'
@@ -18,7 +19,7 @@
 
     loadTodayTotal(subtitleEl)
     renderStoreBreakdown(ctx.storeList)
-    await renderStoreStatusList(ctx.storeList)
+    renderStoreStatusList(ctx.storeList)
   }
 
   /* ------------------ 오늘 전체 합계 ------------------ */
@@ -48,25 +49,40 @@
     }
 
     listEl.innerHTML = storeList
-      .map(
-        (s) => `
-        <li>
+      .map((s) => {
+        const dotCls = s.isDeleted
+          ? 'status-dot--closed'
+          : statusDotClass(s.status)
+        const closedBadge = s.isDeleted
+          ? ' <span class="inline-badge inline-badge--closed">폐업</span>'
+          : ''
+        return `
+        <li${s.isDeleted ? ' class="is-closed"' : ''}>
           <span class="order-summary-label">
-            <span class="status-dot status-dot--new" aria-hidden="true"></span>
-            ${OwnerShared.escapeHtml(s.storeName ?? '가게')}
+            <span class="status-dot ${dotCls}" aria-hidden="true"></span>
+            ${OwnerShared.escapeHtml(s.storeName ?? '가게')}${closedBadge}
           </span>
           <span class="order-summary-count">
             ${Number(s.totalCount ?? 0).toLocaleString('ko-KR')}
             <span class="order-summary-count-unit">건</span>
           </span>
         </li>
-      `,
-      )
+      `
+      })
       .join('')
   }
 
+  function statusDotClass(status) {
+    switch ((status || '').toUpperCase()) {
+      case 'OPEN':       return 'status-dot--open'
+      case 'PREPARING':  return 'status-dot--new'
+      case 'CLOSE':      return 'status-dot--closed'
+      default:           return 'status-dot--new'
+    }
+  }
+
   /* ------------------ 각 가게 영업 상태 카드 ------------------ */
-  async function renderStoreStatusList(storeList) {
+  function renderStoreStatusList(storeList) {
     const wrap = document.getElementById('storeStatusList')
 
     if (!storeList || storeList.length === 0) {
@@ -80,37 +96,46 @@
       return
     }
 
-    const details = await Promise.all(
-      storeList.map((s) => api.stores.detail(s.storeId).catch(() => null)),
-    )
-
-    wrap.innerHTML = storeList
-      .map((s, i) => renderStoreStatusRow(s, details[i]))
-      .join('')
+    wrap.innerHTML = storeList.map(renderStoreStatusRow).join('')
 
     wrap.querySelectorAll('input[data-store-id]').forEach((input) => {
       input.addEventListener('change', () => handleToggle(input))
     })
   }
 
-  function renderStoreStatusRow(store, detail) {
-    const status = (detail?.status || '').toUpperCase()
+  function renderStoreStatusRow(store) {
+    const status = (store.status || '').toUpperCase()
     const isOpen = status === 'OPEN'
-    const label = OwnerShared.statusLabel(status || 'CLOSE')
-    const disabled = detail ? '' : 'disabled'
+    const isClosed = !!store.isDeleted
+
+    const label = isClosed
+      ? '폐업 처리됨'
+      : OwnerShared.statusLabel(status || 'PREPARING')
+    const labelCls = isClosed
+      ? ' style="color:var(--color-cancel);font-weight:700"'
+      : ''
+    const closedBadge = isClosed
+      ? ' <span class="inline-badge inline-badge--closed">폐업</span>'
+      : ''
+    const switchEl = isClosed
+      ? `<a href="./owner-store-manage.html?storeId=${encodeURIComponent(store.storeId)}"
+            class="btn-outline-sm" style="text-decoration:none">
+           <i class="ti ti-refresh" aria-hidden="true"></i> 재오픈
+         </a>`
+      : `<label class="switch">
+           <input type="checkbox" data-store-id="${store.storeId}" ${isOpen ? 'checked' : ''}
+                  aria-label="영업 상태 켜기/끄기" />
+           <span class="switch-slider"></span>
+         </label>`
 
     return `
-      <div data-store-row="${store.storeId}">
+      <div data-store-row="${store.storeId}"${isClosed ? ' class="is-closed"' : ''}>
         <div class="store-status-row">
           <div>
-            <div style="font-weight:700">${OwnerShared.escapeHtml(store.storeName ?? '가게')}</div>
-            <div class="store-status-label" data-status-label>${OwnerShared.escapeHtml(label)}</div>
+            <div style="font-weight:700">${OwnerShared.escapeHtml(store.storeName ?? '가게')}${closedBadge}</div>
+            <div class="store-status-label" data-status-label${labelCls}>${OwnerShared.escapeHtml(label)}</div>
           </div>
-          <label class="switch">
-            <input type="checkbox" data-store-id="${store.storeId}" ${isOpen ? 'checked' : ''} ${disabled}
-                   aria-label="영업 상태 켜기/끄기" />
-            <span class="switch-slider"></span>
-          </label>
+          ${switchEl}
         </div>
       </div>
     `
