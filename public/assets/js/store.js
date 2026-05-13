@@ -123,6 +123,9 @@
       document.title = `${store.name} — Taste Radar`
       host.innerHTML = renderStorePage(store)
       bindMenuActions(host, store)
+      await enhanceStoreTasteRadar(store)
+      await loadMenuRecommendations(storeId)
+      await loadStoreReviews(storeId)
     } catch (e) {
       renderError(errorMessage(e))
     }
@@ -219,6 +222,10 @@
         </div>
       </article>
 
+      ${renderTasteProfileSection(store)}
+
+      <div id="storeMenuRecoHost" class="store-menu-reco-host" aria-live="polite"></div>
+
       <section class="table-section store-menu-section" aria-labelledby="menuSectionTitle">
         <div class="section-head">
           <h2 id="menuSectionTitle" class="section-head-title">메뉴</h2>
@@ -231,7 +238,187 @@
           }
         </div>
       </section>
+
+      <section class="table-section store-review-section" aria-labelledby="reviewSectionTitle">
+        <div class="section-head">
+          <h2 id="reviewSectionTitle" class="section-head-title">리뷰</h2>
+        </div>
+        <div id="storeReviewsHost">
+          <p class="empty-state">리뷰를 불러오는 중…</p>
+        </div>
+      </section>
     `
+  }
+
+  function renderTasteProfileSection(store) {
+    if (!store.tasteProfile || !window.ReviewUi) return ''
+    const count = Number(store.tasteProfile.reviewCount ?? 0)
+    return `
+      <section class="table-section store-taste-section" aria-labelledby="tasteSectionTitle">
+        <div class="section-head">
+          <h2 id="tasteSectionTitle" class="section-head-title">맛 프로필</h2>
+        </div>
+        <div id="storeTasteRadarHost" class="store-taste-radar-host">
+          ${ReviewUi.renderTasteRadarBlock(
+            [{ taste: ReviewUi.tasteFromProfile(store.tasteProfile), className: 'taste-radar-series--store' }],
+            {
+              title: '가게 평균 맛',
+              subtitle: `리뷰 ${count.toLocaleString('ko-KR')}건 · 특화 맛 비율`,
+              legend: [{ label: '이 가게', className: 'taste-radar-series--store' }],
+            },
+          )}
+        </div>
+      </section>
+    `
+  }
+
+  async function enhanceStoreTasteRadar(store) {
+    const host = document.getElementById('storeTasteRadarHost')
+    if (!host || !store.tasteProfile || !window.ReviewUi) return
+
+    const storeTaste = ReviewUi.tasteFromProfile(store.tasteProfile)
+    const series = [{ taste: storeTaste, className: 'taste-radar-series--store' }]
+    const legend = [{ label: '이 가게', className: 'taste-radar-series--store' }]
+    const count = Number(store.tasteProfile.reviewCount ?? 0)
+
+    const loggedIn = api.auth.isLoggedIn()
+    const role = (localStorage.getItem('role') || '').toUpperCase()
+    if (loggedIn && role === 'CUSTOMER') {
+      try {
+        const me = await api.users.me()
+        if (ReviewUi.hasAnyTastePreference(me.tastePreferences)) {
+          const userTaste = ReviewUi.prefsToPentagon(me.tastePreferences)
+          series.push({ taste: userTaste, className: 'taste-radar-series--user' })
+          legend.push({ label: '내 입맛 (가입 시)', className: 'taste-radar-series--user' })
+        }
+      } catch {
+        /* 비교 데이터 없으면 가게 프로필만 표시 */
+      }
+    }
+
+    host.innerHTML = ReviewUi.renderTasteRadarBlock(series, {
+      title: series.length > 1 ? '가게 vs 내 입맛' : '가게 맛 프로필',
+      subtitle:
+        series.length > 1
+          ? `리뷰 특화 맛 비율 · 가입 시 선호 입맛과 비교`
+          : `리뷰 ${count.toLocaleString('ko-KR')}건 · 특화 맛 비율`,
+      legend,
+    })
+  }
+
+  async function loadMenuRecommendations(storeId) {
+    const host = document.getElementById('storeMenuRecoHost')
+    if (!host) return
+
+    const loggedIn = api.auth.isLoggedIn()
+    const role = (localStorage.getItem('role') || '').toUpperCase()
+    if (!loggedIn || role !== 'CUSTOMER') {
+      host.innerHTML = ''
+      return
+    }
+
+    try {
+      const data = await api.ai.storeRecommendations(storeId)
+      const menus = Array.isArray(data?.menus) ? data.menus : []
+      const message = data?.message
+      if (!message && menus.length === 0) {
+        host.innerHTML = ''
+        return
+      }
+      host.innerHTML = renderMenuRecoBlock(message, menus, data?.source)
+    } catch (e) {
+      console.error('menu recommendations failed', e)
+      host.innerHTML = renderMenuRecoBlock(
+        '추천을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.',
+        [],
+        'RULE',
+      )
+    }
+  }
+
+  function renderMenuRecoThumb(menu) {
+    const url = menu?.imageUrl
+    if (url) {
+      return `<img class="store-menu-reco-thumb" src="${escapeHtml(url)}" alt="" loading="lazy" decoding="async">`
+    }
+    return `<div class="store-menu-reco-thumb store-menu-reco-thumb--placeholder" aria-hidden="true"><i class="ti ti-bowl-spoon"></i></div>`
+  }
+
+  function renderMenuRecoBlock(message, menus, source) {
+    const items = menus.slice(0, 3)
+    const isAi = source === 'AI'
+    const sectionClass = isAi
+      ? 'store-menu-reco-section store-menu-reco-section--ai'
+      : 'store-menu-reco-section'
+
+    return `
+      <section class="${sectionClass}" aria-labelledby="menuRecoTitle">
+        <div class="store-menu-reco-card">
+          <header class="store-menu-reco-header">
+            <div class="store-menu-reco-header-icon" aria-hidden="true">
+              <i class="ti ti-sparkles"></i>
+            </div>
+            <div class="store-menu-reco-header-text">
+              <p class="store-menu-reco-eyebrow">${isAi ? 'Gemini 입맛 분석' : '맞춤 추천'}</p>
+              <h2 id="menuRecoTitle" class="store-menu-reco-title">이 가게, 이렇게 드세요</h2>
+            </div>
+            ${isAi ? '<span class="store-menu-reco-badge">AI</span>' : ''}
+          </header>
+          <div class="store-menu-reco-quote">
+            <p class="store-menu-reco-message">${escapeHtml(message || '회원님 입맛을 참고한 메뉴예요.')}</p>
+          </div>
+          <ol class="store-menu-reco-list" aria-label="추천 메뉴">
+            ${items
+              .map(
+                (m, index) => `
+              <li class="store-menu-reco-item">
+                <span class="store-menu-reco-rank" aria-hidden="true">${index + 1}</span>
+                ${renderMenuRecoThumb(m)}
+                <div class="store-menu-reco-item-main">
+                  <span class="store-menu-reco-name">${escapeHtml(m.name)}</span>
+                  <span class="store-menu-reco-price">${formatWon(m.price)}</span>
+                </div>
+              </li>`,
+              )
+              .join('')}
+          </ol>
+        </div>
+      </section>
+    `
+  }
+
+  async function loadStoreReviews(storeId) {
+    const host = document.getElementById('storeReviewsHost')
+    if (!host) return
+    try {
+      const page = await api.reviews.listByStore(storeId, { page: 0, size: 30 })
+      const items = Array.isArray(page?.content) ? page.content : []
+      if (items.length === 0) {
+        host.innerHTML = '<p class="empty-state">아직 리뷰가 없어요.</p>'
+        return
+      }
+      host.innerHTML = items
+        .map((r) => {
+          const rating = Number(r.rating) || 0
+          const stars = `${'★'.repeat(rating)}${'☆'.repeat(5 - rating)}`
+          const date = r.createdAt ? new Date(r.createdAt).toLocaleDateString('ko-KR') : ''
+          const reply = r.ownerReply
+            ? `<p class="store-review-reply">사장님: ${escapeHtml(r.ownerReply)}</p>`
+            : ''
+          return `
+            <article class="store-review-card">
+              <div class="store-review-head">
+                <span class="review-stars" aria-label="${rating}점">${stars}</span>
+                <span class="store-review-date">${escapeHtml(date)}</span>
+              </div>
+              <p class="store-review-content">${escapeHtml(r.content)}</p>
+              ${reply}
+            </article>`
+        })
+        .join('')
+    } catch {
+      host.innerHTML = '<p class="empty-state">리뷰를 불러오지 못했어요.</p>'
+    }
   }
 
   function renderMenuRow(menu, isClosed) {
