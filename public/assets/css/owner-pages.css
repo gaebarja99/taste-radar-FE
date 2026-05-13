@@ -1,31 +1,42 @@
 /* Owner 페이지 공통 보강 — owner-order-manage.css 위에 얹어서 사용 */
 
 :root {
-  --topbar-height: 52px;
+  --topbar-height: 60px;
+  --max-width: 1180px;
 }
 
-/* ---------- 공통 상단바 (모든 owner 페이지) ---------- */
+/* ---------- 공통 상단바 (고객·사장 페이지) — index .site-header 와 동일 폭 ---------- */
 .topbar {
   height: var(--topbar-height);
   background: var(--color-bg-card);
   border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  padding: 0;
+}
+
+.topbar-inner {
+  max-width: var(--max-width);
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  gap: 18px;
 }
 
 .topbar-brand {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
   color: var(--color-primary);
+  letter-spacing: -0.02em;
   text-decoration: none;
+  flex-shrink: 0;
 }
 
 .topbar-brand-tag {
@@ -43,28 +54,58 @@
 }
 
 .topbar-menu {
-  width: 36px;
-  height: 36px;
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 8px;
-  color: var(--color-text-muted);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  color: var(--color-text-main);
   text-decoration: none;
   cursor: pointer;
-  transition: border-color 0.15s, color 0.15s;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
 }
 
 .topbar-menu:hover {
-  border-color: var(--color-border);
-  color: var(--color-text-main);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-light);
+}
+
+.topbar-menu .ti {
+  font-size: 18px;
+}
+
+.header-actions,
+.store-topbar-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
 /* 상단바가 있는 페이지에서는 .app 영역 높이를 topbar 만큼 보정 */
 .topbar + .app {
   min-height: calc(100vh - var(--topbar-height));
+}
+
+@media (max-width: 720px) {
+  .topbar-inner {
+    gap: 10px;
+    padding: 0 16px;
+  }
+
+  .topbar-brand {
+    font-size: 18px;
+  }
+
+  .store-user-nickname {
+    max-width: 72px;
+  }
 }
 
 /* ---------- 사이드바 그룹 접기/펼치기 (모든 owner 페이지 공통) ---------- */

@@ -21,6 +21,7 @@
   --color-cancel-bg: #fff0ee;
   --sidebar-width: 200px;
   --cancel-panel-width: 320px;
+  --max-width: 1180px;
 }
 
 *,

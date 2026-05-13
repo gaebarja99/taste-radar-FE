@@ -15,7 +15,8 @@
   --color-done: #9e948a;
   --color-cancel: #d84040;
   --sidebar-width: 200px;
-  --topbar-height: 52px;
+  --topbar-height: 60px;
+  --max-width: 1180px;
 }
 
 *,
@@ -46,45 +47,7 @@ body {
   line-height: 1.45;
 }
 
-/* ---------- Top bar ---------- */
-.topbar {
-  height: var(--topbar-height);
-  background: var(--color-bg-card);
-  border-bottom: 1px solid var(--color-border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 20px;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-.topbar-brand {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--color-primary);
-  text-decoration: none;
-}
-
-.topbar-menu {
-  width: 36px;
-  height: 36px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 8px;
-  color: var(--color-text-muted);
-  cursor: pointer;
-}
-
-.topbar-menu:hover {
-  border-color: var(--color-border);
-  color: var(--color-text-main);
-}
-
+/* Top bar — owner-pages.css 와 동일 규칙 사용 */
 /* ---------- Layout ---------- */
 .app {
   display: flex;
