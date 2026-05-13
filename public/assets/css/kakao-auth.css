@@ -1,0 +1,95 @@
+/* 카카오 로그인 — 공식 가이드 톤 (#FEE500 / #191600) */
+
+.kakao-logo {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  display: block;
+}
+
+.kakao-logo--lg {
+  width: 22px;
+  height: 22px;
+}
+
+.btn-kakao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border: none;
+  border-radius: 10px;
+  background: #fee500;
+  color: #191600;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: filter 0.15s, transform 0.15s;
+}
+
+.btn-kakao:hover {
+  filter: brightness(0.97);
+  color: #191600;
+}
+
+.btn-kakao:active {
+  transform: scale(0.98);
+}
+
+.btn-kakao .ti {
+  font-size: 18px;
+  color: #191600;
+}
+
+.role-kakao-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: #fee500;
+  color: #191600;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.role-card:hover .role-kakao-cta {
+  filter: brightness(0.97);
+}
+
+.drawer-list a.item-kakao,
+.drawer-list button.item-kakao {
+  background: #fff9d6;
+  border: 1px solid #f2e6a2;
+  color: #191600;
+  font-weight: 700;
+}
+
+.drawer-list a.item-kakao:hover,
+.drawer-list button.item-kakao:hover {
+  background: #fee500;
+  border-color: #fee500;
+  color: #191600;
+}
+
+@media (max-width: 720px) {
+  .header-actions .btn-kakao span {
+    display: none;
+  }
+
+  .header-actions .btn-kakao {
+    padding: 9px 11px;
+  }
+
+  .header-actions .btn-kakao .kakao-logo {
+    width: 22px;
+    height: 22px;
+  }
+}
