@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>리뷰 작성 — Taste Radar</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.26.0/dist/tabler-icons.min.css" />
+    <link rel="stylesheet" href="/assets/css/owner-order-manage.css" />
+    <link rel="stylesheet" href="/assets/css/owner-pages.css" />
+    <link rel="stylesheet" href="/assets/css/store-pages.css" />
+    <link rel="stylesheet" href="/assets/css/review-pages.css" />
+    <link rel="stylesheet" href="/assets/css/customer-drawer.css" />
+    <script src="/assets/js/api.js" defer></script>
+    <script src="/assets/js/review-shared.js" defer></script>
+    <script src="/assets/js/customer-menu.js" defer></script>
+    <script src="/assets/js/write-review-page.js" defer></script>
+  </head>
+  <body>
+    <header class="topbar" aria-label="상단 바">
+      <div class="topbar-inner">
+      <a class="topbar-brand" href="/">Taste Radar</a>
+      <div class="store-topbar-actions header-actions">
+        <button type="button" id="btnMenu" class="store-icon-btn" aria-label="메뉴 열기">
+          <i class="ti ti-menu-2" aria-hidden="true"></i>
+        </button>
+      </div>
+      </div>
+    </header>
+
+    <aside id="menuDrawer" class="side-drawer" role="dialog" aria-modal="true" aria-labelledby="menuDrawerTitle" aria-hidden="true" hidden>
+      <div class="drawer-backdrop" data-drawer-close></div>
+      <div class="drawer-panel">
+        <header class="drawer-head">
+          <h2 id="menuDrawerTitle" class="drawer-title">메뉴</h2>
+          <button type="button" class="drawer-close" data-drawer-close aria-label="닫기"><i class="ti ti-x"></i></button>
+        </header>
+        <a id="menuDrawerUser" class="drawer-user drawer-user-link" href="/pages/my-profile.html" hidden>
+          <i class="ti ti-user-circle" aria-hidden="true"></i>
+          <div>
+            <strong id="menuDrawerNickname">회원</strong>
+            <small id="menuDrawerRole" class="muted">CUSTOMER</small>
+          </div>
+          <i class="ti ti-chevron-right drawer-user-chevron" aria-hidden="true"></i>
+        </a>
+        <nav class="drawer-body"><ul id="menuDrawerList" class="drawer-list"></ul></nav>
+      </div>
+    </aside>
+
+    <div class="store-page">
+      <main class="store-page-main" style="max-width:520px;margin:0 auto">
+        <header class="cart-page-head">
+          <h1 class="cart-page-title">리뷰 작성</h1>
+          <p id="writeReviewLead" class="cart-page-store muted">불러오는 중…</p>
+        </header>
+        <section class="table-section" style="padding:18px">
+          <form id="reviewForm">
+            <div class="review-form-field">
+              <label>별점</label>
+              <div id="starHost"></div>
+            </div>
+            <div class="review-form-field">
+              <label for="reviewContent">리뷰 내용</label>
+              <textarea id="reviewContent" name="content" required maxlength="2000" placeholder="음식은 어떠셨나요?"></textarea>
+            </div>
+            <div id="tasteHost"></div>
+            <div class="review-form-actions">
+              <button type="submit" class="btn-primary" style="flex:1">리뷰 등록</button>
+              <a href="/pages/my-orders.html" class="btn-outline-sm" style="display:inline-flex;align-items:center;text-decoration:none">취소</a>
+            </div>
+          </form>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

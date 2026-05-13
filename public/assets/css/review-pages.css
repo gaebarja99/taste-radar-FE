@@ -1,0 +1,578 @@
+/* 리뷰 · 입맛 공통 */
+
+.review-stars {
+  color: #f5a623;
+  letter-spacing: 1px;
+  font-size: 15px;
+}
+
+.review-stars-input {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.review-star-btn {
+  border: none;
+  background: none;
+  padding: 0;
+  font-size: 28px;
+  line-height: 1;
+  color: #ddd;
+  cursor: pointer;
+}
+
+.review-star-btn.is-on {
+  color: #f5a623;
+}
+
+.review-taste-fieldset {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.review-taste-legend {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-main);
+}
+
+.review-taste-row {
+  display: grid;
+  grid-template-columns: 52px 1fr 28px;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.review-taste-label {
+  color: var(--color-text-muted);
+}
+
+.review-taste-value {
+  text-align: right;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.review-pentagon {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.review-pentagon-row {
+  display: grid;
+  grid-template-columns: 52px 1fr 36px;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.review-pentagon-label {
+  color: var(--color-text-muted);
+}
+
+.review-pentagon-bar {
+  display: block;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--color-bg-page);
+  overflow: hidden;
+}
+
+.review-pentagon-bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-primary);
+}
+
+.review-pentagon-score {
+  text-align: right;
+  font-weight: 700;
+}
+
+.store-review-card,
+.my-review-card {
+  padding: 14px 18px;
+  border-bottom: 1px dashed var(--color-border);
+}
+
+.store-review-card:last-child,
+.my-review-card:last-child {
+  border-bottom: none;
+}
+
+.store-review-head,
+.my-review-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.store-review-content,
+.my-review-content {
+  margin: 0 0 8px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--color-text-main);
+}
+
+.store-review-reply,
+.my-review-reply {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--color-bg-page);
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.store-review-date,
+.my-review-date {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.my-review-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.taste-pick-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.taste-pick-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  cursor: pointer;
+  background: #fff;
+  font-size: 14px;
+}
+
+.taste-pick-item:has(input:checked) {
+  border-color: var(--color-primary);
+  background: var(--color-primary-light);
+}
+
+.taste-pick-item input {
+  accent-color: var(--color-primary);
+}
+
+.review-form-field {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.review-form-field label {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.review-form-field textarea {
+  min-height: 100px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  font: inherit;
+  resize: vertical;
+}
+
+.review-form-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.my-review-edit-form {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--color-border);
+}
+
+/* 맛 레이더 차트 */
+.taste-radar-block {
+  padding: 4px 0 0;
+}
+
+.taste-radar-title {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.taste-radar-subtitle {
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.taste-radar-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.taste-radar-svg {
+  width: min(100%, 240px);
+  height: auto;
+  display: block;
+}
+
+.taste-radar-grid {
+  fill: none;
+  stroke: var(--color-border);
+  stroke-width: 1;
+}
+
+.taste-radar-axis {
+  stroke: var(--color-border);
+  stroke-width: 1;
+}
+
+.taste-radar-label {
+  font-size: 11px;
+  fill: var(--color-text-muted);
+  font-family: inherit;
+}
+
+.taste-radar-series--store {
+  fill: rgba(255, 107, 71, 0.22);
+  stroke: var(--color-primary);
+  stroke-width: 2;
+}
+
+.taste-radar-series--user {
+  fill: rgba(52, 152, 219, 0.18);
+  stroke: #3498db;
+  stroke-width: 2;
+}
+
+.taste-radar-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--color-text-main);
+}
+
+.taste-radar-legend li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.taste-radar-legend-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: 2px solid transparent;
+}
+
+.taste-radar-legend-swatch.taste-radar-series--store {
+  background: rgba(255, 107, 71, 0.22);
+  border-color: var(--color-primary);
+}
+
+.taste-radar-legend-swatch.taste-radar-series--user {
+  background: rgba(52, 152, 219, 0.18);
+  border-color: #3498db;
+}
+
+.store-taste-section .table-section,
+.store-taste-section {
+  margin: 0;
+}
+
+.store-taste-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+}
+
+.store-taste-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.store-taste-tag strong {
+  font-size: 10px;
+  line-height: 1;
+}
+
+.review-taste-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 8px;
+}
+
+.store-menu-reco-host {
+  margin: 0;
+}
+
+/* AI 맞춤 추천 카드 */
+.store-menu-reco-section {
+  margin: 0;
+}
+
+.store-menu-reco-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-card);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.store-menu-reco-section--ai .store-menu-reco-card {
+  border-color: rgba(99, 102, 241, 0.28);
+  background:
+    radial-gradient(120% 80% at 100% 0%, rgba(139, 92, 246, 0.12), transparent 55%),
+    radial-gradient(90% 70% at 0% 100%, rgba(66, 133, 244, 0.1), transparent 50%),
+    var(--color-bg-card);
+  box-shadow:
+    0 10px 30px rgba(99, 102, 241, 0.1),
+    0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+.store-menu-reco-section--ai .store-menu-reco-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.45), rgba(168, 85, 247, 0.2), rgba(66, 133, 244, 0.35));
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.store-menu-reco-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px 12px;
+}
+
+.store-menu-reco-header-icon {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6d28d9;
+  background: linear-gradient(145deg, rgba(139, 92, 246, 0.18), rgba(66, 133, 244, 0.14));
+  border: 1px solid rgba(139, 92, 246, 0.22);
+}
+
+.store-menu-reco-section--ai .store-menu-reco-header-icon .ti {
+  font-size: 22px;
+  animation: store-reco-sparkle 2.4s ease-in-out infinite;
+}
+
+@keyframes store-reco-sparkle {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.08) rotate(6deg);
+    opacity: 0.85;
+  }
+}
+
+.store-menu-reco-header-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.store-menu-reco-eyebrow {
+  margin: 0 0 2px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #7c3aed;
+}
+
+.store-menu-reco-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.3;
+  color: var(--color-text-main);
+}
+
+.store-menu-reco-badge {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #fff;
+  background: linear-gradient(135deg, #6366f1, #a855f7 55%, #4285f4);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+}
+
+.store-menu-reco-quote {
+  margin: 0 16px 14px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(139, 92, 246, 0.14);
+  border-left: 3px solid #8b5cf6;
+}
+
+.store-menu-reco-section:not(.store-menu-reco-section--ai) .store-menu-reco-quote {
+  background: var(--color-bg-page);
+  border-left-color: var(--color-primary);
+}
+
+.store-menu-reco-message {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--color-text-main);
+}
+
+.store-menu-reco-list {
+  list-style: none;
+  margin: 0;
+  padding: 0 14px 14px;
+  display: grid;
+  gap: 8px;
+}
+
+.store-menu-reco-item {
+  display: grid;
+  grid-template-columns: 28px 48px 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(255, 255, 255, 0.65);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.store-menu-reco-section--ai .store-menu-reco-item {
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.store-menu-reco-item:hover {
+  transform: translateY(-1px);
+  border-color: rgba(139, 92, 246, 0.35);
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.1);
+}
+
+.store-menu-reco-rank {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 800;
+  color: #6d28d9;
+  background: linear-gradient(145deg, rgba(139, 92, 246, 0.16), rgba(66, 133, 244, 0.1));
+}
+
+.store-menu-reco-item:first-child .store-menu-reco-rank {
+  color: #fff;
+  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+}
+
+.store-menu-reco-thumb {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-page);
+}
+
+.store-menu-reco-thumb--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  background: var(--color-bg-page);
+}
+
+.store-menu-reco-thumb--placeholder .ti {
+  font-size: 22px;
+}
+
+.store-menu-reco-item-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.store-menu-reco-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text-main);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.store-menu-reco-price {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--color-primary);
+}
+
+.store-menu-reco-empty {
+  margin: 0;
+  padding: 0 18px 16px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
