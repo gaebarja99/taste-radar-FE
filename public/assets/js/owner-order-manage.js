@@ -29,14 +29,17 @@
     if (!ctx) return
 
     state.storeList = ctx.storeList || []
-    populateStoreSelect()
+    const scope = OwnerShared.ensureOwnerStoreScope(state.storeList, 'owner-order-manage.html')
+    if (!scope.success) return
+    if (scope.store) {
+      state.storeId = String(scope.store.storeId)
+      const titleEl = document.querySelector('.page-title')
+      if (titleEl) titleEl.textContent = `오늘의 주문 요약 · ${scope.store.storeName ?? '가게'}`
+    } else {
+      state.storeId = null
+    }
 
     document.getElementById('btnRefresh').addEventListener('click', loadAll)
-    document.getElementById('storeSelect').addEventListener('change', (e) => {
-      state.storeId = e.target.value || null
-      state.page = 0
-      loadAll()
-    })
     document.getElementById('statusFilter').addEventListener('change', (e) => {
       state.status = e.target.value
       state.page = 0
@@ -63,26 +66,6 @@
   function showTodayDate() {
     const d = new Date()
     document.getElementById('todayDate').textContent = `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`
-  }
-
-  function populateStoreSelect() {
-    const select = document.getElementById('storeSelect')
-    if (!state.storeList || state.storeList.length === 0) {
-      select.innerHTML = '<option value="">가게 없음</option>'
-      select.disabled = true
-      return
-    }
-    select.disabled = false
-    select.innerHTML =
-      '<option value="">전체 가게</option>' +
-      state.storeList
-        .map(
-          (s) =>
-            `<option value="${s.storeId}">${OwnerShared.escapeHtml(s.storeName ?? '가게')}</option>`,
-        )
-        .join('')
-    select.value = ''
-    state.storeId = null
   }
 
   /* ------------------ 상태별 합계 카드 ------------------ */
