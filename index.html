@@ -15,8 +15,12 @@
       href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.26.0/dist/tabler-icons.min.css"
     />
     <link rel="stylesheet" href="/assets/css/index.css" />
+    <link rel="stylesheet" href="/assets/css/kakao-auth.css" />
+    <link rel="stylesheet" href="/assets/css/review-pages.css" />
     <script type="module" src="/src/load-kakao-map.js"></script>
+    <script src="/assets/js/kakao-brand.js" defer></script>
     <script src="/assets/js/api.js" defer></script>
+    <script src="/assets/js/review-shared.js" defer></script>
     <script src="/assets/js/index.js" defer></script>
   </head>
   <body>
@@ -46,7 +50,9 @@
             aria-haspopup="dialog"
             hidden
           >
-            <i class="ti ti-brand-kakao-talk" style="font-size: 18px"></i>
+            <svg class="kakao-logo" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path fill="currentColor" d="M12 3c5.523 0 10 3.582 10 8 0 2.558-1.294 4.832-3.333 6.274L19 22l-5.2-2.86C14.89 19.378 13.47 19.5 12 19.5 6.477 19.5 2 15.918 2 11.5 2 7.082 6.477 3.5 12 3.5z"/>
+            </svg>
             <span>카카오 로그인</span>
           </button>
           <div id="userMenu" class="user-menu" hidden>
@@ -156,13 +162,14 @@
             <i class="ti ti-x" aria-hidden="true"></i>
           </button>
         </header>
-        <div id="menuDrawerUser" class="drawer-user" hidden>
+        <a id="menuDrawerUser" class="drawer-user drawer-user-link" href="/pages/my-profile.html" hidden>
           <i class="ti ti-user-circle" aria-hidden="true"></i>
           <div>
             <strong id="menuDrawerNickname">회원</strong>
             <small id="menuDrawerRole" class="muted">CUSTOMER</small>
           </div>
-        </div>
+          <i class="ti ti-chevron-right drawer-user-chevron" aria-hidden="true"></i>
+        </a>
         <nav class="drawer-body">
           <ul id="menuDrawerList" class="drawer-list"></ul>
         </nav>
@@ -199,6 +206,10 @@
             <i class="ti ti-shopping-bag role-icon" aria-hidden="true"></i>
             <strong class="role-title">고객으로 시작</strong>
             <span class="role-desc">입맛에 맞는 가게를 찾아 주문해요</span>
+            <span class="role-kakao-cta">
+              <svg class="kakao-logo" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3c5.523 0 10 3.582 10 8 0 2.558-1.294 4.832-3.333 6.274L19 22l-5.2-2.86C14.89 19.378 13.47 19.5 12 19.5 6.477 19.5 2 15.918 2 11.5 2 7.082 6.477 3.5 12 3.5z"/></svg>
+              카카오로 계속
+            </span>
           </a>
           <a
             class="role-card"
@@ -207,6 +218,10 @@
             <i class="ti ti-building-store role-icon" aria-hidden="true"></i>
             <strong class="role-title">사장으로 시작</strong>
             <span class="role-desc">가게·메뉴·주문을 관리해요</span>
+            <span class="role-kakao-cta">
+              <svg class="kakao-logo" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3c5.523 0 10 3.582 10 8 0 2.558-1.294 4.832-3.333 6.274L19 22l-5.2-2.86C14.89 19.378 13.47 19.5 12 19.5 6.477 19.5 2 15.918 2 11.5 2 7.082 6.477 3.5 12 3.5z"/></svg>
+              카카오로 계속
+            </span>
           </a>
         </div>
       </div>
