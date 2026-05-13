@@ -183,12 +183,49 @@
     updateStatus(storeId, status) {
       return request('PATCH', `/api/owner/stores/${storeId}/status`, { body: { status } })
     },
+    /** 사장: 가게 폐업(소프트 삭제) */
+    close(storeId) {
+      return request('DELETE', `/api/owner/stores/${storeId}`)
+    },
+    /** 사장: 폐업한 가게 재오픈 */
+    reopen(storeId) {
+      return request('POST', `/api/owner/stores/${storeId}/reopen`)
+    },
+    /** 사장: 본인 가게 전체 목록 (폐업 포함) — 사이드바/관리화면용 */
+    ownerMine() {
+      return request('GET', '/api/owner/stores/mine')
+    },
+    /** 사장: 본인 가게 상세 (폐업한 가게도 조회됨) */
+    ownerDetail(storeId) {
+      return request('GET', `/api/owner/stores/${storeId}`)
+    },
+    /**
+     * 사장 전용: 주소 → 좌표 변환 (BE 가 카카오 로컬 API 프록시).
+     * 응답: { query, roadAddress, jibunAddress, latitude, longitude }
+     */
+    ownerGeocode(address) {
+      return request('GET', '/api/owner/geocode', { query: { address } })
+    },
     /** 추후: 내 주변 가게 조회 */
     nearby({ lat, lng, radiusKm = 3, page = 0, size = 20 } = {}) {
       return request('GET', '/api/stores/nearby', {
         query: { lat, lng, radiusKm, page, size },
         auth: false,
       })
+    },
+  }
+
+  /* ============================ 2-1. Uploads ========================= */
+  const uploads = {
+    /**
+     * 사장 전용: 이미지 업로드.
+     * @param {File} file - 사용자가 선택한 이미지 파일
+     * @returns {Promise<{url: string, filename: string}>}
+     */
+    image(file) {
+      const form = new FormData()
+      form.append('file', file)
+      return request('POST', '/api/owner/uploads/image', { body: form })
     },
   }
 
@@ -296,6 +333,10 @@
     ownerReply(reviewId, ownerReply) {
       return request('POST', `/api/owner/reviews/${reviewId}/reply`, { body: { ownerReply } })
     },
+    /** 사장: 자기 가게 리뷰 삭제(소프트) */
+    ownerRemove(reviewId) {
+      return request('DELETE', `/api/owner/reviews/${reviewId}`)
+    },
   }
 
   /* ============================== 7. AI ============================= */
@@ -346,6 +387,7 @@
     auth,
     users,
     stores,
+    uploads,
     menus,
     cart,
     orders,
