@@ -1,6 +1,7 @@
 /**
- * 메인 페이지: 내 주변 가게 (카카오맵)
+ * 메인 페이지: 내 주변 가게 + 가게/메뉴 검색 (카카오맵)
  * - GET /api/stores/nearby?lat=&lng=&radiusKm=
+ * - GET /api/stores?q=
  */
 ;(function () {
   'use strict'
@@ -11,11 +12,15 @@
     userMarker: null,
     storeMarkers: [],
     userPos: null,
+    /** null = 주변 검색 모드, 문자열 = 키워드 검색 모드 */
+    searchQuery: null,
   }
+
+  const NEARBY_SESSION_KEY = 'tasteRadar.nearbySession'
 
   document.addEventListener('DOMContentLoaded', init)
 
-  function init() {
+  async function init() {
     if (!window.api) {
       setNearbyStatus('API 스크립트를 불러오지 못했습니다.', true)
       return
@@ -27,7 +32,7 @@
     const menuBtn = document.getElementById('btnMenu')
 
     loginBtn.addEventListener('click', openRoleModal)
-    cartBtn.addEventListener('click', openCartDrawer)
+    cartBtn.addEventListener('click', goToCartPage)
     menuBtn.addEventListener('click', openMenuDrawer)
     logoutBtn.addEventListener('click', handleLogout)
 
@@ -35,10 +40,15 @@
     setupDrawers()
     setupCartActions()
     setupNearby()
+    setupSearch()
 
     applyAuthUi()
     refreshCartBadge()
-    initKakaoMap()
+    if (new URLSearchParams(window.location.search).get('openCart') === '1') {
+      window.location.replace('/pages/cart.html')
+      return
+    }
+    await initKakaoMap()
   }
 
   /* ----------------------------- 인증 UI ----------------------------- */
@@ -190,13 +200,13 @@
         label: '장바구니',
         action: () => {
           closeDrawer(document.getElementById('menuDrawer'))
-          openCartDrawer()
+          goToCartPage()
         },
       })
       items.push({
         icon: 'ti-receipt',
-        label: '내 주문 (준비 중)',
-        disabled: true,
+        label: '내 주문',
+        href: '/pages/my-orders.html',
       })
     }
 
@@ -256,6 +266,19 @@
     document.getElementById('btnCartCheckout').addEventListener('click', () => {
       alert('주문하기 화면은 아직 준비 중입니다.')
     })
+  }
+
+  function goToCartPage() {
+    if (!api.auth.isLoggedIn()) {
+      openRoleModal()
+      return
+    }
+    const role = (localStorage.getItem('role') || '').toUpperCase()
+    if (role !== 'CUSTOMER') {
+      alert('장바구니는 고객 계정에서만 사용할 수 있어요.')
+      return
+    }
+    window.location.href = '/pages/cart.html'
   }
 
   async function openCartDrawer() {
@@ -442,6 +465,84 @@
     )
   }
 
+  /* ----------------------------- 가게/메뉴 검색 ----------------------------- */
+  function setupSearch() {
+    const form = document.getElementById('searchForm')
+    const input = document.getElementById('searchInput')
+    if (!form || !input) return
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault()
+      const q = input.value.trim()
+      if (!q) {
+        clearSearchMode()
+        if (state.userPos) loadNearbyStores()
+        else resetNearbyPanel()
+        return
+      }
+      loadSearchStores(q)
+    })
+  }
+
+  function clearSearchMode() {
+    state.searchQuery = null
+    const titleEl = document.getElementById('panelTitle')
+    const leadEl = document.getElementById('pageLead')
+    if (titleEl) titleEl.textContent = '내 주변 가게'
+    if (leadEl) leadEl.textContent = '현재 위치를 기준으로 가까운 가게를 보여드려요.'
+  }
+
+  function resetNearbyPanel() {
+    clearSearchMode()
+    document.getElementById('nearbyCount').textContent = '위치를 알려주세요'
+    document.getElementById('nearbyList').innerHTML = ''
+    document.getElementById('nearbyEmpty').hidden = true
+    clearStoreMarkers()
+    setNearbyStatus('"내 위치로 검색"을 눌러 주세요.')
+  }
+
+  async function loadSearchStores(q) {
+    state.searchQuery = q
+    const countEl = document.getElementById('nearbyCount')
+    const listEl = document.getElementById('nearbyList')
+    const emptyEl = document.getElementById('nearbyEmpty')
+    const titleEl = document.getElementById('panelTitle')
+    const leadEl = document.getElementById('pageLead')
+
+    if (titleEl) titleEl.textContent = '검색 결과'
+    if (leadEl) leadEl.textContent = '가게명·메뉴명으로 찾은 가게예요.'
+
+    setNearbyStatus(`「${q}」 검색 중…`)
+    listEl.setAttribute('aria-busy', 'true')
+    listEl.innerHTML = renderSkeletons(4)
+    emptyEl.hidden = true
+    clearStoreMarkers()
+
+    try {
+      const page = await api.stores.search({ q, page: 0, size: 20 })
+      const content = Array.isArray(page?.content) ? page.content : []
+      const total = Number(page?.totalElements ?? content.length)
+      countEl.textContent = `「${q}」 · ${total.toLocaleString('ko-KR')}곳`
+
+      if (content.length === 0) {
+        listEl.innerHTML = ''
+        emptyEl.hidden = false
+        emptyEl.textContent = `「${q}」에 맞는 가게가 없어요.`
+        setNearbyStatus('검색을 완료했어요.')
+      } else {
+        listEl.innerHTML = content.map(renderCard).join('')
+        plotStoreMarkers(content)
+        setNearbyStatus(`「${q}」 검색 결과 ${content.length}곳을 찾았어요.`)
+      }
+    } catch (e) {
+      listEl.innerHTML = ''
+      countEl.textContent = ''
+      setNearbyStatus(errorMessage(e), true)
+    } finally {
+      listEl.removeAttribute('aria-busy')
+    }
+  }
+
   /* ----------------------------- 카카오맵 ----------------------------- */
   function setupNearby() {
     document.getElementById('btnUseMyLocation').addEventListener('click', useMyLocation)
@@ -450,16 +551,35 @@
     })
   }
 
-  function initKakaoMap() {
+  async function initKakaoMap() {
     if (state.map) return
+
+    if (window.__kakaoMapLoadError === 'missing-key') {
+      showMapPlaceholderError(
+        '카카오맵 키가 없어요. 프로젝트 루트에 .env 파일을 만들고 VITE_KAKAO_JS_KEY=JavaScript키 를 넣은 뒤 npm run dev 를 다시 실행하세요.',
+      )
+      setNearbyStatus('VITE_KAKAO_JS_KEY 가 설정되지 않았습니다.', true)
+      tryRestoreNearbySession()
+      return
+    }
+
+    if (window.__kakaoMapReady) {
+      try {
+        await window.__kakaoMapReady
+      } catch {
+        /* handled below */
+      }
+    }
+
     if (!window.kakao || !window.kakao.maps) {
       showMapPlaceholderError(
-        '카카오맵 SDK를 불러오지 못했어요. index.html의 appkey와 카카오 디벨로퍼스 → 플랫폼(Web 도메인) 등록을 확인하세요.',
+        '카카오맵 SDK를 불러오지 못했어요. .env 의 VITE_KAKAO_JS_KEY 와 카카오 디벨로퍼스 → 플랫폼(Web 도메인: http://localhost:5173) 등록을 확인하세요.',
       )
       setNearbyStatus(
         '카카오맵 SDK 로드 실패. 브라우저 콘솔(F12)의 에러를 확인하세요.',
         true,
       )
+      tryRestoreNearbySession()
       return
     }
     kakao.maps.load(() => {
@@ -473,7 +593,51 @@
         center: defaultCenter,
         level: 5,
       })
+      tryRestoreNearbySession()
     })
+  }
+
+  function saveNearbySession() {
+    if (!state.userPos) return
+    const radiusKm = Number(document.getElementById('nearbyRadius')?.value) || 3
+    try {
+      sessionStorage.setItem(
+        NEARBY_SESSION_KEY,
+        JSON.stringify({
+          lat: state.userPos.lat,
+          lng: state.userPos.lng,
+          radiusKm,
+          savedAt: Date.now(),
+        }),
+      )
+    } catch {
+      /* quota / private mode */
+    }
+  }
+
+  function readNearbySession() {
+    try {
+      const raw = sessionStorage.getItem(NEARBY_SESSION_KEY)
+      if (!raw) return null
+      const data = JSON.parse(raw)
+      const lat = Number(data.lat)
+      const lng = Number(data.lng)
+      const radiusKm = Number(data.radiusKm) || 3
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null
+      return { lat, lng, radiusKm }
+    } catch {
+      return null
+    }
+  }
+
+  function tryRestoreNearbySession() {
+    const saved = readNearbySession()
+    if (!saved) return
+    state.userPos = { lat: saved.lat, lng: saved.lng }
+    const radiusEl = document.getElementById('nearbyRadius')
+    if (radiusEl) radiusEl.value = String(saved.radiusKm)
+    applyUserLocationToMap()
+    loadNearbyStores({ restored: true })
   }
 
   function showMapPlaceholderError(message) {
@@ -540,14 +704,24 @@
     )
   }
 
-  async function loadNearbyStores() {
+  async function loadNearbyStores(options = {}) {
     if (!state.userPos) return
+    state.searchQuery = null
+    const input = document.getElementById('searchInput')
+    if (input) input.value = ''
+    clearSearchMode()
+
     const radiusKm = Number(document.getElementById('nearbyRadius').value) || 3
+    saveNearbySession()
     const countEl = document.getElementById('nearbyCount')
     const listEl = document.getElementById('nearbyList')
     const emptyEl = document.getElementById('nearbyEmpty')
 
-    setNearbyStatus('내 주변 가게를 검색하는 중…')
+    setNearbyStatus(
+      options.restored
+        ? '이전에 검색한 위치 기준으로 주변 가게를 불러오는 중…'
+        : '내 주변 가게를 검색하는 중…',
+    )
     listEl.setAttribute('aria-busy', 'true')
     listEl.innerHTML = renderSkeletons(4)
     emptyEl.hidden = true
@@ -574,7 +748,11 @@
       } else {
         listEl.innerHTML = content.map(renderCard).join('')
         plotStoreMarkers(content)
-        setNearbyStatus(`내 위치 기준 ${radiusKm}km 내 가게 ${content.length}곳을 찾았어요.`)
+        setNearbyStatus(
+          options.restored
+            ? `이전 위치 기준 ${radiusKm}km 내 가게 ${content.length}곳을 찾았어요.`
+            : `내 위치 기준 ${radiusKm}km 내 가게 ${content.length}곳을 찾았어요.`,
+        )
       }
     } catch (e) {
       listEl.innerHTML = ''
@@ -644,7 +822,7 @@
 
     return `
       <li>
-        <a class="store-card" href="#" data-store-id="${store.id}">
+        <a class="store-card" href="/pages/store.html?storeId=${store.id}">
           <div class="store-thumb">
             ${thumb}
             <span class="store-thumb-status store-thumb-status--${statusMod}">

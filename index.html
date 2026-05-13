@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Taste Radar — 입맛대로 주문하는 배달</title>
+    <title>Taste Radar</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -15,10 +15,7 @@
       href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.26.0/dist/tabler-icons.min.css"
     />
     <link rel="stylesheet" href="/assets/css/index.css" />
-    <script
-      type="text/javascript"
-      src="//dapi.kakao.com/v2/maps/sdk.js?appkey=%VITE_KAKAO_JS_KEY%&libraries=services&autoload=false"
-    ></script>
+    <script type="module" src="/src/load-kakao-map.js"></script>
     <script src="/assets/js/api.js" defer></script>
     <script src="/assets/js/index.js" defer></script>
   </head>
@@ -27,7 +24,7 @@
       <div class="site-header-inner">
         <a class="brand" href="./index.html">Taste Radar</a>
 
-        <form id="searchForm" class="search-form" role="search" hidden>
+        <form id="searchForm" class="search-form" role="search">
           <i class="ti ti-search" aria-hidden="true"></i>
           <label for="searchInput" class="visually-hidden">가게 또는 메뉴 검색</label>
           <input
@@ -218,10 +215,10 @@
     <main class="site-main">
       <section id="panelNearby">
         <div class="page-heading">
-          <h1>내 주변 가게</h1>
+          <h1 id="panelTitle">내 주변 가게</h1>
           <span id="nearbyCount" class="page-heading-count">위치를 알려주세요</span>
         </div>
-        <p class="page-lead">현재 위치를 기준으로 가까운 가게를 보여드려요.</p>
+        <p id="pageLead" class="page-lead">현재 위치를 기준으로 가까운 가게를 보여드려요.</p>
 
         <div class="nearby-toolbar">
           <button
