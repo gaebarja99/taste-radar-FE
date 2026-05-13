@@ -108,9 +108,40 @@
           </div>
         </section>
       `
+
+      host.querySelectorAll('[data-order-cancel]').forEach((btn) => {
+        btn.addEventListener('click', () => handleOrderCancel(Number(btn.dataset.orderCancel)))
+      })
     } catch (e) {
       renderError(errorMessage(e))
     }
+  }
+
+  async function handleOrderCancel(orderId) {
+    if (!Number.isFinite(orderId)) return
+    if (!confirm('주문을 취소하고 결제를 환불할까요?\n(주문 접수 상태에서만 가능합니다)')) return
+
+    const btn = document.querySelector(`[data-order-cancel="${orderId}"]`)
+    if (btn) btn.disabled = true
+
+    try {
+      await api.orders.cancel(orderId)
+      await loadOrders()
+    } catch (e) {
+      alert(cancelErrorMessage(e))
+      if (btn) btn.disabled = false
+    }
+  }
+
+  function cancelErrorMessage(e) {
+    const msg = String(e?.message || e?.body?.detail || '')
+    if (e?.status === 409 && msg.toLowerCase().includes('pending')) {
+      return '주문 접수 상태에서만 취소할 수 있어요.'
+    }
+    if (msg.includes('KakaoPay')) {
+      return msg.replace(/^KakaoPay API error(?:\s*\([^)]+\))?:\s*/i, '카카오페이: ')
+    }
+    return msg || '주문 취소에 실패했어요.'
   }
 
   function renderOrderCard(order) {
@@ -126,6 +157,16 @@
         ? `<a class="my-order-store-link" href="/pages/store.html?storeId=${storeId}">${escapeHtml(storeName)}</a>`
         : `<p class="my-order-store-link" style="color:var(--color-text-main)">${escapeHtml(storeName)}</p>`
 
+    const cancelBtn =
+      status === 'PENDING'
+        ? `<button type="button" class="my-order-cancel-btn" data-order-cancel="${Number(order.id)}">결제 취소</button>`
+        : ''
+
+    const reviewBtn =
+      status === 'DELIVERED' && !order.hasReview
+        ? `<a href="/pages/write-review.html?orderId=${Number(order.id)}" class="btn-outline-sm" style="display:inline-flex;text-decoration:none;margin-top:8px">리뷰 작성</a>`
+        : ''
+
     return `
       <article class="my-order-card">
         <div class="my-order-top">
@@ -137,6 +178,8 @@
           <span>${escapeHtml(createdAt)}</span>
           <span class="my-order-amount">${formatWon(amount)}</span>
         </div>
+        ${cancelBtn}
+        ${reviewBtn}
       </article>
     `
   }

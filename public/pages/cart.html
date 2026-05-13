@@ -16,19 +16,23 @@
     />
     <link rel="stylesheet" href="/assets/css/owner-order-manage.css" />
     <link rel="stylesheet" href="/assets/css/owner-pages.css" />
+    <link rel="stylesheet" href="/assets/css/kakao-auth.css" />
     <link rel="stylesheet" href="/assets/css/store-pages.css" />
     <link rel="stylesheet" href="/assets/css/cart-pages.css" />
     <link rel="stylesheet" href="/assets/css/customer-drawer.css" />
     <script src="/assets/js/api.js" defer></script>
+    <script src="/assets/js/kakao-brand.js" defer></script>
     <script src="/assets/js/customer-menu.js" defer></script>
     <script src="/assets/js/cart-page.js" defer></script>
   </head>
   <body>
     <header class="topbar" aria-label="상단 바">
+      <div class="topbar-inner">
       <a class="topbar-brand" href="/">Taste Radar</a>
-      <div class="store-topbar-actions">
-        <button type="button" id="btnKakaoLogin" class="btn-outline-sm" hidden>
-          <i class="ti ti-brand-kakao-talk" aria-hidden="true"></i> 로그인
+      <div class="store-topbar-actions header-actions">
+        <button type="button" id="btnKakaoLogin" class="btn-kakao" hidden>
+          <svg class="kakao-logo" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3c5.523 0 10 3.582 10 8 0 2.558-1.294 4.832-3.333 6.274L19 22l-5.2-2.86C14.89 19.378 13.47 19.5 12 19.5 6.477 19.5 2 15.918 2 11.5 2 7.082 6.477 3.5 12 3.5z"/></svg>
+          <span>카카오 로그인</span>
         </button>
         <span id="userNickname" class="store-user-nickname" hidden></span>
         <a
@@ -50,6 +54,7 @@
         >
           <i class="ti ti-menu-2" aria-hidden="true"></i>
         </button>
+      </div>
       </div>
     </header>
 
@@ -75,13 +80,14 @@
             <i class="ti ti-x" aria-hidden="true"></i>
           </button>
         </header>
-        <div id="menuDrawerUser" class="drawer-user" hidden>
+        <a id="menuDrawerUser" class="drawer-user drawer-user-link" href="/pages/my-profile.html" hidden>
           <i class="ti ti-user-circle" aria-hidden="true"></i>
           <div>
             <strong id="menuDrawerNickname">회원</strong>
             <small id="menuDrawerRole" class="muted">CUSTOMER</small>
           </div>
-        </div>
+          <i class="ti ti-chevron-right drawer-user-chevron" aria-hidden="true"></i>
+        </a>
         <nav class="drawer-body">
           <ul id="menuDrawerList" class="drawer-list"></ul>
         </nav>

@@ -93,3 +93,25 @@
   font-weight: 700;
   color: var(--color-text-main);
 }
+
+.my-order-cancel-btn {
+  justify-self: end;
+  margin-top: 4px;
+  padding: 8px 14px;
+  border: 1px solid var(--color-cancel);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--color-cancel);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.my-order-cancel-btn:hover:not(:disabled) {
+  background: #fdecec;
+}
+
+.my-order-cancel-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
