@@ -14,34 +14,26 @@
     const ctx = await OwnerShared.bootstrap()
     if (!ctx) return
 
-    const select = document.getElementById('storeSelect')
-    populateStoreSelect(select, ctx.storeList)
-    select.addEventListener('change', () => {
-      state.storeId = select.value || null
-      if (state.storeId) loadReviews()
-    })
+    const list = ctx.storeList || []
+    const scope = OwnerShared.ensureOwnerStoreScope(list, 'owner-review-manage.html')
+    if (!scope.success) return
+
+    if (scope.store) {
+      state.storeId = String(scope.store.storeId)
+      const titleEl = document.querySelector('.page-title')
+      if (titleEl) titleEl.textContent = `리뷰 관리 · ${scope.store.storeName ?? '가게'}`
+    } else {
+      state.storeId = null
+    }
+
     document.getElementById('btnRefresh').addEventListener('click', () => state.storeId && loadReviews())
 
-    if (ctx.storeList.length > 0) {
-      state.storeId = String(ctx.storeList[0].storeId)
-      select.value = state.storeId
+    if (state.storeId) {
       await loadReviews()
     } else {
       document.getElementById('reviewEmpty').hidden = false
       document.getElementById('reviewEmpty').textContent = '먼저 가게를 등록해 주세요.'
     }
-  }
-
-  function populateStoreSelect(select, list) {
-    if (!list || list.length === 0) {
-      select.innerHTML = '<option value="">가게 없음</option>'
-      select.disabled = true
-      return
-    }
-    select.disabled = false
-    select.innerHTML = list
-      .map((s) => `<option value="${s.storeId}">${OwnerShared.escapeHtml(s.storeName ?? '가게')}</option>`)
-      .join('')
   }
 
   async function loadReviews() {
@@ -51,7 +43,10 @@
     emptyEl.hidden = true
 
     try {
-      const page = await api.reviews.listByStore(state.storeId, { page: 0, size: 30 })
+      // 리뷰 목록은 비로그인 API 라 폐업 가게면 404 가능 — 그 경우 빈 목록으로 처리
+      const page = await api.reviews
+        .listByStore(state.storeId, { page: 0, size: 30 })
+        .catch((err) => (err?.status === 404 ? { content: [] } : Promise.reject(err)))
       const items = Array.isArray(page?.content) ? page.content : []
       if (items.length === 0) {
         listEl.innerHTML = ''
@@ -80,7 +75,10 @@
         <div class="review-card-head">
           <strong>${OwnerShared.escapeHtml(writer)}</strong>
           <span class="review-card-rating">${stars} ${rating ? rating.toFixed(1) : ''}</span>
-          <span>${OwnerShared.escapeHtml(dateText)}</span>
+          <span class="review-card-date">${OwnerShared.escapeHtml(dateText)}</span>
+          <button type="button" class="btn-outline-sm is-danger review-card-remove" data-act="remove">
+            <i class="ti ti-trash" aria-hidden="true"></i> 리뷰 삭제
+          </button>
         </div>
         <p class="review-card-body">${OwnerShared.escapeHtml(r.content ?? r.review ?? '')}</p>
         ${
@@ -113,6 +111,23 @@
         } catch (e) {
           alert(OwnerShared.errorMessage(e, '답글 등록 실패'))
         } finally {
+          btn.disabled = false
+        }
+      })
+    })
+
+    document.querySelectorAll('[data-act="remove"]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const card = btn.closest('.review-card')
+        const reviewId = card?.dataset.reviewId
+        if (!reviewId) return
+        if (!confirm('이 리뷰를 삭제할까요? 한 번 삭제하면 복구할 수 없어요.')) return
+        btn.disabled = true
+        try {
+          await api.reviews.ownerRemove(reviewId)
+          await loadReviews()
+        } catch (e) {
+          alert(OwnerShared.errorMessage(e, '리뷰 삭제 실패'))
           btn.disabled = false
         }
       })
