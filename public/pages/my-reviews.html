@@ -23,6 +23,7 @@
     <script src="/assets/js/api.js" defer></script>
     <script src="/assets/js/review-shared.js" defer></script>
     <script src="/assets/js/kakao-brand.js" defer></script>
+    <script src="/assets/js/customer-notifications.js" defer></script>
     <script src="/assets/js/customer-menu.js" defer></script>
     <script src="/assets/js/my-reviews-page.js" defer></script>
   </head>
@@ -71,25 +72,21 @@
             <i class="ti ti-x" aria-hidden="true"></i>
           </button>
         </header>
-        <a id="menuDrawerUser" class="drawer-user drawer-user-link" href="/pages/my-profile.html" hidden>
-          <i class="ti ti-user-circle" aria-hidden="true"></i>
-          <div>
-            <strong id="menuDrawerNickname">회원</strong>
-            <small id="menuDrawerRole" class="muted">CUSTOMER</small>
-          </div>
-          <i class="ti ti-chevron-right drawer-user-chevron" aria-hidden="true"></i>
-        </a>
         <nav class="drawer-body">
           <ul id="menuDrawerList" class="drawer-list"></ul>
         </nav>
+        <footer id="menuDrawerFoot" class="drawer-foot" hidden></footer>
       </div>
     </aside>
 
     <div class="store-page my-reviews-page">
       <main class="store-page-main">
-        <header class="cart-page-head">
-          <h1 class="cart-page-title">내 리뷰</h1>
-          <p class="cart-page-store muted">작성한 리뷰를 확인·수정할 수 있어요.</p>
+        <header class="cart-page-head my-reviews-head">
+          <div class="my-reviews-title-row">
+            <h1 class="cart-page-title">내 리뷰</h1>
+            <span id="reviewsCount" class="my-reviews-count" hidden>총 0건</span>
+          </div>
+          <p class="my-reviews-subtitle">작성한 리뷰를 확인·수정할 수 있어요.</p>
         </header>
         <div id="reviewsHost" class="my-orders-host" aria-live="polite">
           <p class="empty-state">불러오는 중…</p>

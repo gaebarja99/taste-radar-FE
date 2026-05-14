@@ -63,6 +63,14 @@
     }
   }
 
+  function setReviewsCount(count) {
+    const el = document.getElementById('reviewsCount')
+    if (!el) return
+    const n = Number(count) || 0
+    el.hidden = false
+    el.textContent = `총 ${n}건`
+  }
+
   async function loadReviews() {
     const host = document.getElementById('reviewsHost')
     host.innerHTML = '<p class="empty-state">불러오는 중…</p>'
@@ -70,6 +78,7 @@
       const reviews = await api.reviews.myList()
       const list = Array.isArray(reviews) ? reviews : []
       if (list.length === 0) {
+        setReviewsCount(0)
         host.innerHTML = `
           <section class="table-section">
             <p class="empty-state">작성한 리뷰가 없어요.</p>
@@ -79,7 +88,8 @@
           </section>`
         return
       }
-      host.innerHTML = `<section class="table-section">${list.map(renderCard).join('')}</section>`
+      setReviewsCount(list.length)
+      host.innerHTML = `<div class="my-review-list">${list.map(renderCard).join('')}</div>`
       host.querySelectorAll('[data-edit-review]').forEach((btn) => {
         btn.addEventListener('click', () => toggleEdit(Number(btn.dataset.editReview)))
       })
@@ -88,7 +98,6 @@
       })
       host.querySelectorAll('form[data-review-form]').forEach((form) => {
         ReviewUi.bindStarInputs(form)
-        ReviewUi.bindTasteInputs(form)
         form.addEventListener('submit', (e) => saveReview(e, Number(form.dataset.reviewForm)))
       })
     } catch (e) {
@@ -105,19 +114,29 @@
         ? `<a class="my-order-store-link" href="/pages/store.html?storeId=${storeId}">${ReviewUi.escapeHtml(storeName)}</a>`
         : ReviewUi.escapeHtml(storeName)
 
+    const ratingNum = Number(r.rating)
+    const ratingLabel = Number.isFinite(ratingNum) ? ratingNum.toFixed(1) : '0.0'
+
     return `
       <article class="my-review-card" id="review-card-${id}">
-        <div class="my-review-head">
-          ${storeLink}
-          ${ReviewUi.renderStars(r.rating)}
+        <div class="my-review-top">
+          <div class="my-review-top-left">
+            ${storeLink}
+            <div class="my-review-rating-row">
+              ${ReviewUi.renderStars(r.rating)}
+              <span class="my-review-rating-num">${ratingLabel}</span>
+            </div>
+          </div>
+          <div class="my-review-actions">
+            <button type="button" class="my-review-btn-edit" data-edit-review="${id}">수정</button>
+            <button type="button" class="my-review-btn-delete" data-delete-review="${id}">삭제</button>
+          </div>
         </div>
         <p class="my-review-content">${ReviewUi.escapeHtml(r.content)}</p>
-        ${ReviewUi.renderTasteSpecialtyTags(r.taste)}
-        <p class="my-review-date">${formatDate(r.createdAt)}</p>
         ${r.ownerReply ? `<p class="my-review-reply">사장님: ${ReviewUi.escapeHtml(r.ownerReply)}</p>` : ''}
-        <div class="my-review-actions">
-          <button type="button" class="btn-outline-sm" data-edit-review="${id}">수정</button>
-          <button type="button" class="my-order-cancel-btn" data-delete-review="${id}">삭제</button>
+        <div class="my-review-footer">
+          ${ReviewUi.renderMenuTasteSummary(r.menuTastes, r.taste)}
+          <time class="my-review-date" datetime="${ReviewUi.escapeHtml(r.createdAt ?? '')}">${formatDate(r.createdAt)}</time>
         </div>
         <div id="review-edit-${id}" class="my-review-edit-form" hidden>
           <form data-review-form="${id}">
@@ -126,7 +145,10 @@
               <label>내용</label>
               <textarea name="content" required maxlength="2000">${ReviewUi.escapeHtml(r.content)}</textarea>
             </div>
-            ${ReviewUi.renderTasteInputs(r.taste)}
+            ${ReviewUi.renderMenuTastePickers(
+              (r.menuTastes || []).map((mt) => ({ menuId: mt.menuId, menuName: mt.menuName })),
+              r.menuTastes,
+            )}
             <div class="review-form-actions">
               <button type="submit" class="btn-primary" style="flex:1">저장</button>
               <button type="button" class="btn-outline-sm" data-edit-review="${id}">닫기</button>
@@ -144,7 +166,6 @@
     if (open) {
       const form = el.querySelector('form')
       ReviewUi.bindStarInputs(form)
-      ReviewUi.bindTasteInputs(form)
     }
   }
 
@@ -153,19 +174,22 @@
     const form = e.target
     const rating = ReviewUi.readRatingFromRoot(form)
     const content = form.content.value.trim()
-    const taste = ReviewUi.readTasteFromRoot(form)
+    const menuTastes = ReviewUi.readMenuTastesFromRoot(form)
+    const menus = [...form.querySelectorAll('.menu-taste-row[data-menu-id]')].map((row) => ({
+      menuId: Number(row.dataset.menuId),
+    }))
     if (!rating || !content) {
       alert('별점과 내용을 입력해 주세요.')
       return
     }
-    if (!ReviewUi.hasAnyTasteSpecialty(taste)) {
-      alert('특화된 맛을 한 가지 이상 선택해 주세요.')
+    if (!ReviewUi.validateMenuTastes(menus, menuTastes)) {
+      alert('모든 메뉴에 대해 특화 맛을 하나씩 선택해 주세요.')
       return
     }
     const btn = form.querySelector('button[type="submit"]')
     btn.disabled = true
     try {
-      await api.reviews.update(reviewId, { rating, content, taste })
+      await api.reviews.update(reviewId, { rating, content, menuTastes })
       await loadReviews()
     } catch (err) {
       alert(err?.message || '수정에 실패했어요.')
@@ -186,7 +210,15 @@
   function formatDate(v) {
     if (!v) return '-'
     const d = new Date(v)
-    return Number.isNaN(d.getTime()) ? '-' : d.toLocaleString('ko-KR')
+    if (Number.isNaN(d.getTime())) return '-'
+    return d.toLocaleString('ko-KR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    })
   }
 
   function renderGuest() {
