@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>알림 — Taste Radar</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.26.0/dist/tabler-icons.min.css"
+    />
+    <link rel="stylesheet" href="/assets/css/owner-order-manage.css" />
+    <link rel="stylesheet" href="/assets/css/owner-pages.css" />
+    <link rel="stylesheet" href="/assets/css/kakao-auth.css" />
+    <link rel="stylesheet" href="/assets/css/store-pages.css" />
+    <link rel="stylesheet" href="/assets/css/notifications-pages.css" />
+    <link rel="stylesheet" href="/assets/css/customer-drawer.css" />
+    <script src="/assets/js/api.js" defer></script>
+    <script src="/assets/js/kakao-brand.js" defer></script>
+    <script src="/assets/js/customer-notifications.js" defer></script>
+    <script src="/assets/js/customer-menu.js" defer></script>
+    <script src="/assets/js/notifications-page.js" defer></script>
+  </head>
+  <body>
+    <header class="topbar" aria-label="상단 바">
+      <div class="topbar-inner">
+      <a class="topbar-brand" href="/">Taste Radar</a>
+      <div class="store-topbar-actions header-actions">
+        <button type="button" id="btnKakaoLogin" class="btn-kakao" hidden>
+          <svg class="kakao-logo" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3c5.523 0 10 3.582 10 8 0 2.558-1.294 4.832-3.333 6.274L19 22l-5.2-2.86C14.89 19.378 13.47 19.5 12 19.5 6.477 19.5 2 15.918 2 11.5 2 7.082 6.477 3.5 12 3.5z"/></svg>
+          <span>카카오 로그인</span>
+        </button>
+        <span id="userNickname" class="store-user-nickname" hidden></span>
+        <a class="store-icon-btn" href="/pages/cart.html" aria-label="장바구니">
+          <i class="ti ti-shopping-cart" aria-hidden="true"></i>
+          <span id="cartBadge" class="icon-badge" hidden>0</span>
+        </a>
+        <button
+          type="button"
+          id="btnMenu"
+          class="store-icon-btn"
+          aria-label="메뉴 열기"
+          aria-haspopup="dialog"
+          aria-controls="menuDrawer"
+        >
+          <i class="ti ti-menu-2" aria-hidden="true"></i>
+        </button>
+      </div>
+      </div>
+    </header>
+
+    <aside
+      id="menuDrawer"
+      class="side-drawer"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="menuDrawerTitle"
+      aria-hidden="true"
+      hidden
+    >
+      <div class="drawer-backdrop" data-drawer-close></div>
+      <div class="drawer-panel">
+        <header class="drawer-head">
+          <h2 id="menuDrawerTitle" class="drawer-title">메뉴</h2>
+          <button type="button" class="drawer-close" data-drawer-close aria-label="닫기">
+            <i class="ti ti-x" aria-hidden="true"></i>
+          </button>
+        </header>
+        <nav class="drawer-body">
+          <ul id="menuDrawerList" class="drawer-list"></ul>
+        </nav>
+        <footer id="menuDrawerFoot" class="drawer-foot" hidden></footer>
+      </div>
+    </aside>
+
+    <div class="store-page notifications-page">
+      <main class="store-page-main">
+        <header class="cart-page-head notifications-head">
+          <div class="notifications-title-row">
+            <h1 class="cart-page-title">알림</h1>
+            <div class="notifications-head-actions">
+              <button type="button" id="btnMarkAllRead" class="notifications-mark-all" disabled>
+                전체 읽음
+              </button>
+              <span id="notificationsUnread" class="notifications-unread">읽지 않음 0</span>
+            </div>
+          </div>
+          <p class="notifications-subtitle muted">주문 상태가 바뀔 때 카카오톡·앱 알림을 받아요.</p>
+        </header>
+        <div id="notificationsHost" class="notifications-host" aria-live="polite">
+          <p class="empty-state">불러오는 중…</p>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>
