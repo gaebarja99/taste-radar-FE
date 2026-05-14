@@ -32,6 +32,19 @@
       window.location.href = '/'
     })
 
+    window.CustomerMenu?.init({
+      onLoginClick: () => (window.location.href = '/'),
+      onLogout: async () => {
+        try {
+          await api.auth.logout()
+        } catch {
+          /* ignore */
+        }
+        ;['userId', 'email', 'nickname', 'role'].forEach((k) => localStorage.removeItem(k))
+        window.location.href = '/'
+      },
+    })
+
     await loadStore(storeId)
   }
 
@@ -194,17 +207,25 @@
 
     return `
       <article class="card store-hero">
-        ${isClosed ? '<p class="store-closed-banner">현재 영업 종료된 가게예요.</p>' : ''}
-        <div class="store-hero-head">
-          <div class="store-hero-thumb">
-            ${
-              thumbUrl
-                ? `<img src="${escapeAttr(thumbUrl)}" alt="" onerror="this.parentElement.innerHTML='<i class=\\'ti ti-building-store\\'></i>'" />`
-                : '<i class="ti ti-building-store" aria-hidden="true"></i>'
-            }
-          </div>
-          <div class="store-hero-body">
-            <div class="store-hero-title-row">
+        <div class="store-hero-cover" aria-hidden="true">
+          ${
+            thumbUrl
+              ? `<img class="store-hero-cover-img" src="${escapeAttr(thumbUrl)}" alt="" onerror="this.remove()" />`
+              : ''
+          }
+        </div>
+        <div class="store-hero-content">
+          ${isClosed ? '<p class="store-closed-banner">현재 영업 종료된 가게예요.</p>' : ''}
+          <div class="store-hero-head">
+            <div class="store-hero-thumb">
+              ${
+                thumbUrl
+                  ? `<img src="${escapeAttr(thumbUrl)}" alt="" onerror="this.parentElement.innerHTML='<i class=\\'ti ti-building-store\\'></i>'" />`
+                  : '<i class="ti ti-building-store" aria-hidden="true"></i>'
+              }
+            </div>
+            <div class="store-hero-body">
+              <div class="store-hero-title-row">
               <h1 class="store-hero-title">${escapeHtml(store.name)}</h1>
               <span class="status-pill ${statusCls}">${statusLabel}</span>
             </div>
@@ -213,10 +234,11 @@
               <span>${escapeHtml(addressLine || '주소 정보 없음')}</span>
             </p>
             <div class="store-hero-meta">
-              <span>★ <strong>${formatRating(store.averageRating)}</strong> (${Number(store.reviewCount ?? 0).toLocaleString('ko-KR')})</span>
-              <span>최소 주문 <strong>${formatWon(store.minOrderAmount)}</strong></span>
-              <span>예상 <strong>${Number(store.requiredTimeMinutes ?? 0)}분</strong></span>
-              <span>${escapeHtml(store.openTime ?? '')} ~ ${escapeHtml(store.closeTime ?? '')}</span>
+              <span class="store-meta-pill"><i class="ti ti-star-filled" aria-hidden="true"></i><span>${formatRating(store.averageRating)} (${Number(store.reviewCount ?? 0).toLocaleString('ko-KR')})</span></span>
+              <span class="store-meta-pill"><i class="ti ti-coin" aria-hidden="true"></i><span>최소 ${formatWon(store.minOrderAmount)}</span></span>
+              <span class="store-meta-pill"><i class="ti ti-clock" aria-hidden="true"></i><span>예상 ${Number(store.requiredTimeMinutes ?? 0)}분</span></span>
+              <span class="store-meta-pill"><i class="ti ti-clock-hour-4" aria-hidden="true"></i><span>${escapeHtml(store.openTime ?? '')} ~ ${escapeHtml(store.closeTime ?? '')}</span></span>
+            </div>
             </div>
           </div>
         </div>
@@ -255,15 +277,16 @@
     const count = Number(store.tasteProfile.reviewCount ?? 0)
     return `
       <section class="table-section store-taste-section" aria-labelledby="tasteSectionTitle">
-        <div class="section-head">
-          <h2 id="tasteSectionTitle" class="section-head-title">맛 프로필</h2>
+        <div class="store-taste-card-head">
+          <h2 id="tasteSectionTitle" class="store-taste-card-title">맛 프로필</h2>
+          <span class="store-taste-card-note">리뷰 기반 분석</span>
         </div>
         <div id="storeTasteRadarHost" class="store-taste-radar-host">
           ${ReviewUi.renderTasteRadarBlock(
             [{ taste: ReviewUi.tasteFromProfile(store.tasteProfile), className: 'taste-radar-series--store' }],
             {
-              title: '가게 평균 맛',
-              subtitle: `리뷰 ${count.toLocaleString('ko-KR')}건 · 특화 맛 비율`,
+              title: '가게 vs 내 입맛',
+              subtitle: '리뷰에서 자주 언급된 맛 · 내 선호 입맛과 비교',
               legend: [{ label: '이 가게', className: 'taste-radar-series--store' }],
             },
           )}
@@ -289,7 +312,7 @@
         if (ReviewUi.hasAnyTastePreference(me.tastePreferences)) {
           const userTaste = ReviewUi.prefsToPentagon(me.tastePreferences)
           series.push({ taste: userTaste, className: 'taste-radar-series--user' })
-          legend.push({ label: '내 입맛 (가입 시)', className: 'taste-radar-series--user' })
+          legend.push({ label: '내 입맛', className: 'taste-radar-series--user' })
         }
       } catch {
         /* 비교 데이터 없으면 가게 프로필만 표시 */
@@ -297,11 +320,11 @@
     }
 
     host.innerHTML = ReviewUi.renderTasteRadarBlock(series, {
-      title: series.length > 1 ? '가게 vs 내 입맛' : '가게 맛 프로필',
+      title: series.length > 1 ? '가게 vs 내 입맛' : '가게 vs 내 입맛',
       subtitle:
         series.length > 1
-          ? `리뷰 특화 맛 비율 · 가입 시 선호 입맛과 비교`
-          : `리뷰 ${count.toLocaleString('ko-KR')}건 · 특화 맛 비율`,
+          ? '리뷰에서 자주 언급된 맛 · 내 선호 입맛과 비교'
+          : '리뷰에서 자주 언급된 맛 · 내 선호 입맛과 비교',
       legend,
     })
   }

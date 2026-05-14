@@ -83,31 +83,51 @@ a.store-icon-btn {
 }
 
 .store-hero.card {
-  padding: 22px 24px 20px;
+  padding: 0;
   border-radius: 16px;
   border: 1px solid var(--color-border);
   background: var(--color-bg-card);
+  overflow: hidden;
+}
+
+.store-hero-cover {
+  height: 120px;
+  background: #e5e7eb;
+  overflow: hidden;
+}
+
+.store-hero-cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.store-hero-content {
+  padding: 0 16px 16px;
 }
 
 .store-hero-head {
   display: flex;
-  gap: 16px;
+  gap: 12px;
   align-items: flex-start;
 }
 
 .store-hero-thumb {
-  width: 88px;
-  height: 88px;
-  border-radius: 14px;
+  width: 64px;
+  height: 64px;
+  margin-top: -32px;
+  border-radius: 10px;
   overflow: hidden;
   flex-shrink: 0;
-  border: 1px solid var(--color-border);
+  border: 2px solid #fff;
   background: var(--color-bg-cream);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-primary);
-  font-size: 32px;
+  color: #e8642a;
+  font-size: 24px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
 }
 
 .store-hero-thumb img {
@@ -119,50 +139,177 @@ a.store-icon-btn {
 .store-hero-body {
   flex: 1;
   min-width: 0;
+  padding-top: 4px;
 }
 
 .store-hero-title-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
   margin-bottom: 6px;
 }
 
 .store-hero-title {
   margin: 0;
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
   color: var(--color-text-main);
+}
+
+.store-page .store-hero .status-pill {
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 8px;
+}
+
+.store-page .store-hero .status-pill--open {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.store-page .store-hero .status-pill--close {
+  background: #f3f4f6;
+  color: #6b7280;
 }
 
 .store-hero-address {
   display: inline-flex;
   align-items: flex-start;
-  gap: 6px;
+  gap: 4px;
   margin: 0 0 10px;
-  font-size: 13px;
-  color: var(--color-text-muted);
+  font-size: 12px;
+  color: #9ca3af;
   line-height: 1.45;
 }
 
 .store-hero-address i {
-  color: var(--color-primary);
-  font-size: 15px;
-  margin-top: 2px;
+  color: #e8642a;
+  font-size: 14px;
+  margin-top: 1px;
+  flex-shrink: 0;
 }
 
 .store-hero-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 14px;
-  font-size: 12px;
-  color: var(--color-text-muted);
+  gap: 6px;
 }
 
-.store-hero-meta strong {
+.store-meta-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #f3f4f6;
+  font-size: 11px;
+  color: #6b7280;
+  line-height: 1.2;
+}
+
+.store-meta-pill i {
+  font-size: 12px;
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+
+.store-meta-pill span {
+  color: #6b7280;
+}
+
+/* 맛 프로필 카드 */
+.store-page .store-taste-section.table-section {
+  padding: 0;
+  overflow: hidden;
+}
+
+.store-page .store-taste-section .section-head {
+  display: none;
+}
+
+.store-taste-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 0.5px solid #e5e7eb;
+}
+
+.store-taste-card-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
   color: var(--color-text-main);
-  font-weight: 700;
+}
+
+.store-taste-card-note {
+  font-size: 11px;
+  color: #9ca3af;
+  white-space: nowrap;
+}
+
+.store-taste-radar-host {
+  padding: 14px 16px 16px;
+}
+
+.store-page .store-taste-section .taste-radar-title {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.store-page .store-taste-section .taste-radar-subtitle {
+  margin: 0 0 12px;
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+.store-page .store-taste-section .taste-radar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  width: 100%;
+  justify-content: center;
+}
+
+.store-page .store-taste-section .taste-radar-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+.store-page .store-taste-section .taste-radar-legend-swatch {
+  width: 12px;
+  height: 4px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.store-page .store-taste-section .taste-radar-legend-swatch.taste-radar-series--store {
+  background: #e8642a;
+}
+
+.store-page .store-taste-section .taste-radar-legend-swatch.taste-radar-series--user {
+  background: #60a5fa;
+}
+
+.store-closed-banner {
+  margin: 12px 0 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--color-cancel-bg);
+  border: 1px solid #f0c8c4;
+  color: var(--color-cancel);
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .store-menu-section.table-section {
@@ -255,29 +402,19 @@ a.store-icon-btn {
   height: 32px;
 }
 
-.store-closed-banner {
-  margin: 0 0 12px;
-  padding: 10px 14px;
-  border-radius: 10px;
-  background: var(--color-cancel-bg);
-  border: 1px solid #f0c8c4;
-  color: var(--color-cancel);
-  font-size: 13px;
-  font-weight: 600;
-}
-
 @media (max-width: 520px) {
   .store-page-main {
     padding: 14px;
   }
 
   .store-hero-head {
-    flex-direction: column;
+    gap: 10px;
   }
 
   .store-hero-thumb {
-    width: 100%;
-    height: 160px;
+    width: 56px;
+    height: 56px;
+    margin-top: -28px;
   }
 
   .customer-menu-row {
