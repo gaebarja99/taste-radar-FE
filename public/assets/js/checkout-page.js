@@ -62,6 +62,19 @@
     }
   }
 
+  async function abandonPendingOrder() {
+    const pendingRaw = sessionStorage.getItem('tasteRadar.pendingOrderId')
+    const orderId = pendingRaw ? Number(pendingRaw) : NaN
+    if (!Number.isFinite(orderId) || !api.auth.isLoggedIn()) return
+    try {
+      await api.orders.cancel(orderId)
+    } catch {
+      /* 이미 취소됐거나 결제 완료된 주문이면 무시 */
+    } finally {
+      sessionStorage.removeItem('tasteRadar.pendingOrderId')
+    }
+  }
+
   function showQueryBanner() {
     const banner = document.getElementById('checkoutBanner')
     if (!banner) return
@@ -70,6 +83,7 @@
       banner.hidden = false
       banner.className = 'checkout-banner is-warn'
       banner.textContent = '결제가 취소되었어요. 다시 시도할 수 있어요.'
+      abandonPendingOrder()
     } else if (params.get('failed') === '1') {
       banner.hidden = false
       banner.className = 'checkout-banner is-error'
@@ -297,8 +311,8 @@
     if (!e) return '결제를 시작하지 못했습니다.'
     const msg = String(e.message || e.body?.detail || '')
     if (e.status === 503 || msg.includes('admin key') || msg.includes('Secret Key')) {
-      if (msg.includes('40-character') || msg.includes('REST API key')) {
-        return '카카오페이 Secret Key(40자)가 필요해요. 개발자 콘솔 → 카카오페이 → Admin 키를 .env 의 KAKAO_PAY_ADMIN_KEY 에 넣어 주세요. (REST API 키는 사용할 수 없습니다)'
+      if (msg.includes('40-character') || msg.includes('developers.kakaopay')) {
+        return '카카오페이 Secret Key(40자)가 필요해요. developers.kakaopay.com 에서 앱 등록 후 Secret Key(dev) 를 demo/.env 의 KAKAO_PAY_ADMIN_KEY 에 넣어 주세요. (developers.kakao.com REST 키는 사용 불가)'
       }
       return '카카오페이가 아직 설정되지 않았어요. demo/.env 에 KAKAO_PAY_ADMIN_KEY 를 등록해 주세요.'
     }
