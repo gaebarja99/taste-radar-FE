@@ -22,6 +22,7 @@
     <link rel="stylesheet" href="/assets/css/customer-drawer.css" />
     <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
     <script src="/assets/js/api.js" defer></script>
+    <script src="/assets/js/customer-notifications.js" defer></script>
     <script src="/assets/js/customer-menu.js" defer></script>
     <script src="/assets/js/my-profile-page.js" defer></script>
   </head>
@@ -70,17 +71,10 @@
             <i class="ti ti-x" aria-hidden="true"></i>
           </button>
         </header>
-        <a id="menuDrawerUser" class="drawer-user drawer-user-link" href="/pages/my-profile.html" hidden>
-          <i class="ti ti-user-circle" aria-hidden="true"></i>
-          <div>
-            <strong id="menuDrawerNickname">회원</strong>
-            <small id="menuDrawerRole" class="muted">CUSTOMER</small>
-          </div>
-          <i class="ti ti-chevron-right drawer-user-chevron" aria-hidden="true"></i>
-        </a>
         <nav class="drawer-body">
           <ul id="menuDrawerList" class="drawer-list"></ul>
         </nav>
+        <footer id="menuDrawerFoot" class="drawer-foot" hidden></footer>
       </div>
     </aside>
 
