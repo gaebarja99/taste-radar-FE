@@ -5,6 +5,7 @@
   'use strict'
 
   let orderId = null
+  let orderMenus = []
 
   document.addEventListener('DOMContentLoaded', init)
 
@@ -40,13 +41,13 @@
     }
 
     document.getElementById('starHost').innerHTML = ReviewUi.renderStars(5, { interactive: true })
-    document.getElementById('tasteHost').innerHTML = ReviewUi.renderTasteInputs()
     const form = document.getElementById('reviewForm')
     ReviewUi.bindStarInputs(form)
-    ReviewUi.bindTasteInputs(form)
 
     try {
       const order = await api.orders.detail(orderId)
+      orderMenus = ReviewUi.distinctOrderMenus(order.items)
+      document.getElementById('tasteHost').innerHTML = ReviewUi.renderMenuTastePickers(orderMenus)
       document.getElementById('writeReviewLead').textContent =
         `${order.storeName ?? '가게'} · 배달 완료 주문`
       if (String(order.orderStatus).toUpperCase() !== 'DELIVERED') {
@@ -55,6 +56,7 @@
       }
     } catch (e) {
       document.getElementById('writeReviewLead').textContent = e?.message || '주문을 불러오지 못했어요.'
+      document.getElementById('tasteHost').innerHTML = ReviewUi.renderMenuTastePickers([])
     }
 
     form.addEventListener('submit', onSubmit)
@@ -65,7 +67,7 @@
     const form = document.getElementById('reviewForm')
     const rating = ReviewUi.readRatingFromRoot(form)
     const content = form.content.value.trim()
-    const taste = ReviewUi.readTasteFromRoot(form)
+    const menuTastes = ReviewUi.readMenuTastesFromRoot(form)
     if (!rating || rating < 1) {
       alert('별점을 선택해 주세요.')
       return
@@ -74,14 +76,14 @@
       alert('리뷰 내용을 입력해 주세요.')
       return
     }
-    if (!ReviewUi.hasAnyTasteSpecialty(taste)) {
-      alert('특화된 맛을 한 가지 이상 선택해 주세요.')
+    if (!ReviewUi.validateMenuTastes(orderMenus, menuTastes)) {
+      alert('주문한 모든 메뉴에 대해 특화 맛을 하나씩 선택해 주세요.')
       return
     }
     const btn = form.querySelector('button[type="submit"]')
     btn.disabled = true
     try {
-      await api.reviews.createForOrder(orderId, { rating, content, taste })
+      await api.reviews.createForOrder(orderId, { rating, content, menuTastes })
       window.location.href = '/pages/my-reviews.html'
     } catch (err) {
       alert(err?.message || '리뷰 등록에 실패했어요.')
