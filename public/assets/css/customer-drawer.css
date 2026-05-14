@@ -36,18 +36,23 @@
   animation: customerDrawerSlide 0.2s ease-out;
 }
 
+#menuDrawer .drawer-panel {
+  border-left: 1px solid #dbeafe;
+}
+
 .drawer-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 16px 18px;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .drawer-title {
   margin: 0;
   font-size: 16px;
   font-weight: 700;
+  color: var(--color-text-main);
 }
 
 .drawer-close {
@@ -56,7 +61,7 @@
   border: none;
   border-radius: 50%;
   background: transparent;
-  color: var(--color-text-muted);
+  color: #9ca3af;
   font-size: 18px;
   cursor: pointer;
   display: inline-flex;
@@ -65,55 +70,76 @@
 }
 
 .drawer-close:hover {
-  background: var(--color-bg-cream);
+  background: #f9fafb;
   color: var(--color-text-main);
+}
+
+.drawer-profile-host[hidden] {
+  display: none !important;
+}
+
+#menuDrawer .drawer-user,
+.drawer-profile-host .drawer-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  padding: 14px 18px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #fdfaf5;
+  text-decoration: none;
+  color: inherit;
+}
+
+#menuDrawer .drawer-user-avatar,
+.drawer-profile-host .drawer-user-avatar {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #e8642a;
+  color: #fff;
+  font-size: 20px;
+}
+
+#menuDrawer .drawer-user-text,
+.drawer-profile-host .drawer-user-text {
+  flex: 1;
+  min-width: 0;
+}
+
+#menuDrawer .drawer-user strong,
+.drawer-profile-host .drawer-user strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text-main);
+  line-height: 1.3;
+}
+
+#menuDrawer .drawer-user small,
+.drawer-profile-host .drawer-user small {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: #9ca3af;
+  line-height: 1.3;
+}
+
+#menuDrawer .drawer-user-chevron,
+.drawer-profile-host .drawer-user-chevron {
+  flex-shrink: 0;
+  font-size: 18px;
+  color: #e8642a;
 }
 
 .drawer-body {
   flex: 1;
   overflow: auto;
-  padding: 14px 18px;
-}
-
-.drawer-user {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 18px;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.drawer-user-link {
-  text-decoration: none;
-  color: inherit;
-  transition: background 0.15s;
-}
-
-.drawer-user-link:hover {
-  background: var(--color-bg-page);
-}
-
-.drawer-user-chevron {
-  margin-left: auto;
-  color: var(--color-text-muted);
-  font-size: 18px;
-}
-
-.drawer-user .ti {
-  font-size: 36px;
-  color: var(--color-primary);
-}
-
-.drawer-user strong {
-  display: block;
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.drawer-user .muted {
-  font-size: 11px;
-  color: var(--color-text-muted);
-  letter-spacing: 0.04em;
+  padding: 8px 12px 12px;
 }
 
 .drawer-list {
@@ -122,7 +148,7 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .drawer-list li > a,
@@ -131,13 +157,14 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 12px;
-  border-radius: 10px;
+  padding: 13px 12px;
+  border-radius: 8px;
   border: none;
   background: transparent;
-  color: var(--color-text-main);
+  color: #374151;
   font: inherit;
   font-size: 14px;
+  font-weight: 500;
   text-align: left;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
@@ -146,8 +173,8 @@
 
 .drawer-list li > a:hover,
 .drawer-list li > button:hover:not(:disabled) {
-  background: var(--color-primary-light);
-  color: var(--color-primary);
+  background: #f9fafb;
+  color: #111827;
 }
 
 .drawer-list li > button:disabled {
@@ -156,14 +183,54 @@
 }
 
 .drawer-list .ti {
-  font-size: 18px;
+  font-size: 20px;
   width: 22px;
   text-align: center;
+  color: #6b7280;
 }
 
-.drawer-list .item-danger:hover {
-  background: #fdecec;
-  color: var(--color-warn);
+.drawer-list .item-kakao .kakao-logo {
+  width: 22px;
+  height: 22px;
+}
+
+.drawer-foot {
+  flex-shrink: 0;
+  padding: 10px 12px 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.drawer-foot[hidden] {
+  display: none !important;
+}
+
+.drawer-logout-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 12px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #8b4513;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.drawer-logout-btn:hover {
+  background: #fdf6f0;
+}
+
+.drawer-logout-btn .ti {
+  font-size: 20px;
+  width: 22px;
+  text-align: center;
+  color: #8b4513;
 }
 
 @media (max-width: 480px) {

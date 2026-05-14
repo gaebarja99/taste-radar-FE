@@ -55,26 +55,57 @@
     openDrawer(drawer)
   }
 
+  function ensureProfileHost() {
+    const drawer = document.getElementById('menuDrawer')
+    if (!drawer) return null
+    let host = document.getElementById('menuDrawerProfile')
+    if (host) return host
+    const body = drawer.querySelector('.drawer-body')
+    if (!body) return null
+    host = document.createElement('div')
+    host.id = 'menuDrawerProfile'
+    host.className = 'drawer-profile-host'
+    body.parentNode.insertBefore(host, body)
+    return host
+  }
+
+  function renderProfileSection(loggedIn, role) {
+    const host = ensureProfileHost()
+    if (!host) return
+
+    if (!loggedIn) {
+      host.hidden = true
+      host.innerHTML = ''
+      return
+    }
+
+    const nickname = localStorage.getItem('nickname') || '회원'
+    const roleLabel = role === 'OWNER' ? '사장' : '고객'
+    const profileHref = role === 'CUSTOMER' ? '/pages/my-profile.html' : '/'
+
+    host.hidden = false
+    host.innerHTML = `
+      <a class="drawer-user drawer-user-link" href="${profileHref}">
+        <span class="drawer-user-avatar" aria-hidden="true">
+          <i class="ti ti-user"></i>
+        </span>
+        <div class="drawer-user-text">
+          <strong>${escapeHtml(nickname)}</strong>
+          <small>${escapeHtml(roleLabel)}</small>
+        </div>
+        <i class="ti ti-chevron-right drawer-user-chevron" aria-hidden="true"></i>
+      </a>`
+  }
+
   function renderMenuDrawer() {
-    const userBox = document.getElementById('menuDrawerUser')
-    const nick = document.getElementById('menuDrawerNickname')
-    const roleEl = document.getElementById('menuDrawerRole')
     const list = document.getElementById('menuDrawerList')
+    const foot = document.getElementById('menuDrawerFoot')
     if (!list) return
 
     const loggedIn = window.api?.auth?.isLoggedIn?.() ?? false
     const role = (localStorage.getItem('role') || '').toUpperCase()
 
-    if (loggedIn && userBox && nick && roleEl) {
-      userBox.hidden = false
-      if (userBox.tagName === 'A') {
-        userBox.href = role === 'CUSTOMER' ? '/pages/my-profile.html' : '/'
-      }
-      nick.textContent = localStorage.getItem('nickname') || '회원'
-      roleEl.textContent = role === 'OWNER' ? '사장' : '고객'
-    } else if (userBox) {
-      userBox.hidden = true
-    }
+    renderProfileSection(loggedIn, role)
 
     const items = []
     items.push({ icon: 'ti-home', label: '홈', href: '/' })
@@ -94,7 +125,7 @@
 
     if (loggedIn && role === 'CUSTOMER') {
       items.push({
-        icon: 'ti-user-circle',
+        icon: 'ti-user',
         label: '내 프로필',
         href: '/pages/my-profile.html',
       })
@@ -107,7 +138,7 @@
         },
       })
       items.push({
-        icon: 'ti-receipt',
+        icon: 'ti-clipboard-list',
         label: '내 주문',
         href: '/pages/my-orders.html',
       })
@@ -131,18 +162,9 @@
       })
     }
 
-    if (loggedIn) {
-      items.push({
-        icon: 'ti-logout',
-        label: '로그아웃',
-        action: handleLogout,
-        danger: true,
-      })
-    }
-
     list.innerHTML = items
       .map((it, idx) => {
-        const cls = `${it.danger ? 'item-danger' : ''} ${it.kakao ? 'item-kakao' : ''}`.trim()
+        const cls = `${it.kakao ? 'item-kakao' : ''}`.trim()
         const iconMarkup = it.kakao
           ? (window.KakaoBrand?.iconHtml?.() ||
               '<svg class="kakao-logo" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3c5.523 0 10 3.582 10 8 0 2.558-1.294 4.832-3.333 6.274L19 22l-5.2-2.86C14.89 19.378 13.47 19.5 12 19.5 6.477 19.5 2 15.918 2 11.5 2 7.082 6.477 3.5 12 3.5z"/></svg>')
@@ -175,6 +197,21 @@
         btn.addEventListener('click', item.action)
       }
     })
+
+    if (foot) {
+      if (loggedIn) {
+        foot.hidden = false
+        foot.innerHTML = `
+          <button type="button" class="drawer-logout-btn" id="menuDrawerLogout">
+            <i class="ti ti-logout" aria-hidden="true"></i>
+            <span>로그아웃</span>
+          </button>`
+        foot.querySelector('#menuDrawerLogout')?.addEventListener('click', handleLogout)
+      } else {
+        foot.hidden = true
+        foot.innerHTML = ''
+      }
+    }
   }
 
   function goToCartPage() {
