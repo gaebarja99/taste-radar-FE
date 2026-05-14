@@ -292,8 +292,10 @@
       return request('GET', `/api/orders/${orderId}`)
     },
     /** 고객: PENDING 일 때만 가능 */
-    cancel(orderId) {
-      return request('POST', `/api/orders/${orderId}/cancel`)
+    cancel(orderId, reason) {
+      return request('POST', `/api/orders/${orderId}/cancel`, {
+        body: reason ? { reason } : undefined,
+      })
     },
     owner: {
       /** 사장 주문 목록 — 쿼리: storeId(선택), status(선택), page, size */
@@ -391,8 +393,14 @@
     list(query) {
       return request('GET', '/api/notifications', { query })
     },
+    unreadCount() {
+      return request('GET', '/api/notifications/unread-count')
+    },
     markRead(notificationId) {
       return request('PATCH', `/api/notifications/${notificationId}/read`)
+    },
+    markAllRead() {
+      return request('PATCH', '/api/notifications/read-all')
     },
   }
 
