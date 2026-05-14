@@ -110,27 +110,97 @@
       `
 
       host.querySelectorAll('[data-order-cancel]').forEach((btn) => {
-        btn.addEventListener('click', () => handleOrderCancel(Number(btn.dataset.orderCancel)))
+        btn.addEventListener('click', () =>
+          handleOrderCancel(Number(btn.dataset.orderCancel), btn.dataset.paymentStatus),
+        )
       })
+
+      highlightOrderFromQuery()
     } catch (e) {
       renderError(errorMessage(e))
     }
   }
 
-  async function handleOrderCancel(orderId) {
+  async function handleOrderCancel(orderId, paymentStatus) {
     if (!Number.isFinite(orderId)) return
-    if (!confirm('주문을 취소하고 결제를 환불할까요?\n(주문 접수 상태에서만 가능합니다)')) return
+    const paid = String(paymentStatus || '').toUpperCase() === 'APPROVED'
+    const msg = paid
+      ? '카카오페이 결제를 취소하고 환불할까요?\n(가게 접수 전 주문만 가능합니다)'
+      : '주문을 취소할까요?'
+    if (!confirm(msg)) return
+
+    const reason = paid
+      ? window.prompt('취소 사유를 입력해 주세요 (선택)', '고객 변심') || '고객 주문 취소'
+      : undefined
 
     const btn = document.querySelector(`[data-order-cancel="${orderId}"]`)
     if (btn) btn.disabled = true
 
     try {
-      await api.orders.cancel(orderId)
-      await loadOrders()
+      await api.orders.cancel(orderId, reason)
+      applyOrderCanceledUi(orderId)
+      alert('결제가 취소되었어요.')
+      window.CustomerNotifications?.refreshBadge()
     } catch (e) {
+      if (shouldTreatCancelAsDone(e, paid)) {
+        applyOrderCanceledUi(orderId)
+        alert('결제가 취소되었어요.')
+        window.CustomerNotifications?.refreshBadge()
+        return
+      }
       alert(cancelErrorMessage(e))
       if (btn) btn.disabled = false
     }
+  }
+
+  function shouldTreatCancelAsDone(e, paid) {
+    if (!paid) return false
+    if (e?.status === 502) return true
+    const msg = String(e?.message || e?.body?.detail || '').toLowerCase()
+    return (
+      msg === 'bad gateway' ||
+      (msg.includes('이미') && msg.includes('취소')) ||
+      msg.includes('취소 가능한 금액')
+    )
+  }
+
+  function applyOrderCanceledUi(orderId) {
+    const card = document.querySelector(`[data-order-id="${orderId}"]`)
+    if (!card) return
+
+    const statusEl = card.querySelector('.my-order-status')
+    if (statusEl) {
+      statusEl.textContent = '주문 취소'
+      statusEl.className = 'my-order-status is-rejected'
+    }
+
+    let payBadge = card.querySelector('.my-order-pay-badge')
+    if (payBadge) {
+      payBadge.className = 'my-order-pay-badge my-order-pay-badge--canceled'
+      payBadge.textContent = '결제 취소·환불 완료'
+    } else {
+      const meta = card.querySelector('.my-order-meta')
+      if (meta) {
+        meta.insertAdjacentHTML(
+          'afterend',
+          '<span class="my-order-pay-badge my-order-pay-badge--canceled">결제 취소·환불 완료</span>',
+        )
+      }
+    }
+
+    const cancelBtn = card.querySelector('[data-order-cancel]')
+    if (cancelBtn) {
+      cancelBtn.replaceWith(renderCanceledDoneButton())
+    }
+  }
+
+  function renderCanceledDoneButton() {
+    const el = document.createElement('button')
+    el.type = 'button'
+    el.className = 'my-order-cancel-btn is-done'
+    el.disabled = true
+    el.textContent = '취소 완료'
+    return el
   }
 
   function cancelErrorMessage(e) {
@@ -138,8 +208,15 @@
     if (e?.status === 409 && msg.toLowerCase().includes('pending')) {
       return '주문 접수 상태에서만 취소할 수 있어요.'
     }
-    if (msg.includes('KakaoPay')) {
+    if (e?.status === 502 || msg.includes('KakaoPay')) {
+      if (msg.includes('이미') && msg.includes('취소')) {
+        return '이미 환불된 주문이에요. 잠시 후 목록을 새로고침해 주세요.'
+      }
       return msg.replace(/^KakaoPay API error(?:\s*\([^)]+\))?:\s*/i, '카카오페이: ')
+        || '카카오페이 취소 요청에 실패했어요.'
+    }
+    if (msg.toLowerCase() === 'bad gateway') {
+      return '결제 취소 처리 중 오류가 났어요. 이미 환불됐다면 새로고침 후 상태를 확인해 주세요.'
     }
     return msg || '주문 취소에 실패했어요.'
   }
@@ -157,10 +234,22 @@
         ? `<a class="my-order-store-link" href="/pages/store.html?storeId=${storeId}">${escapeHtml(storeName)}</a>`
         : `<p class="my-order-store-link" style="color:var(--color-text-main)">${escapeHtml(storeName)}</p>`
 
+    const paymentStatus = String(order.paymentStatus ?? '').toUpperCase()
+    const paid = paymentStatus === 'APPROVED'
+
     const cancelBtn =
-      status === 'PENDING'
-        ? `<button type="button" class="my-order-cancel-btn" data-order-cancel="${Number(order.id)}">결제 취소</button>`
-        : ''
+      status === 'CANCELED'
+        ? `<button type="button" class="my-order-cancel-btn is-done" disabled>취소 완료</button>`
+        : status === 'PENDING'
+          ? `<button type="button" class="my-order-cancel-btn" data-order-cancel="${Number(order.id)}" data-payment-status="${escapeHtml(paymentStatus)}">${paid ? '결제 취소·환불' : '주문 취소'}</button>`
+          : ''
+
+    const paymentBadge =
+      paid && status === 'PENDING'
+        ? `<span class="my-order-pay-badge">카카오페이 결제완료</span>`
+        : paymentStatus === 'CANCELED' || status === 'CANCELED'
+          ? `<span class="my-order-pay-badge my-order-pay-badge--canceled">결제 취소·환불 완료</span>`
+          : ''
 
     const reviewBtn =
       status === 'DELIVERED' && !order.hasReview
@@ -168,7 +257,7 @@
         : ''
 
     return `
-      <article class="my-order-card">
+      <article class="my-order-card" data-order-id="${Number(order.id)}">
         <div class="my-order-top">
           ${storeHtml}
           <span class="my-order-status ${statusClass(status)}">${escapeHtml(statusLabel(status))}</span>
@@ -178,6 +267,7 @@
           <span>${escapeHtml(createdAt)}</span>
           <span class="my-order-amount">${formatWon(amount)}</span>
         </div>
+        ${paymentBadge}
         ${cancelBtn}
         ${reviewBtn}
       </article>
@@ -287,5 +377,18 @@
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;')
+  }
+
+  function highlightOrderFromQuery() {
+    const params = new URLSearchParams(window.location.search)
+    const orderId = Number(params.get('orderId'))
+    if (!Number.isFinite(orderId) || orderId <= 0) return
+
+    const card = document.querySelector(`[data-order-id="${orderId}"]`)
+    if (!card) return
+
+    card.classList.add('is-highlighted')
+    card.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    window.setTimeout(() => card.classList.remove('is-highlighted'), 2400)
   }
 })()
