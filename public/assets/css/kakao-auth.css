@@ -32,6 +32,10 @@
   transition: filter 0.15s, transform 0.15s;
 }
 
+.btn-kakao[hidden] {
+  display: none !important;
+}
+
 .btn-kakao:hover {
   filter: brightness(0.97);
   color: #191600;
@@ -39,6 +43,30 @@
 
 .btn-kakao:active {
   transform: scale(0.98);
+}
+
+.btn-kakao--subtle {
+  padding: 8px 12px;
+  border: 1px solid #e8e2c8;
+  border-radius: 999px;
+  background: #faf8f2;
+  color: #5c5340;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: none;
+}
+
+.btn-kakao--subtle:hover {
+  filter: none;
+  background: #f3efe4;
+  color: #3d3829;
+  border-color: #ddd4b8;
+}
+
+.btn-kakao--subtle .kakao-logo {
+  width: 16px;
+  height: 16px;
+  color: #9a8f3c;
 }
 
 .btn-kakao .ti {
