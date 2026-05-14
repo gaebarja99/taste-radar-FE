@@ -22,6 +22,7 @@
     <link rel="stylesheet" href="/assets/css/customer-drawer.css" />
     <script src="/assets/js/api.js" defer></script>
     <script src="/assets/js/kakao-brand.js" defer></script>
+    <script src="/assets/js/customer-notifications.js" defer></script>
     <script src="/assets/js/customer-menu.js" defer></script>
     <script src="/assets/js/cart-page.js" defer></script>
   </head>
@@ -80,17 +81,10 @@
             <i class="ti ti-x" aria-hidden="true"></i>
           </button>
         </header>
-        <a id="menuDrawerUser" class="drawer-user drawer-user-link" href="/pages/my-profile.html" hidden>
-          <i class="ti ti-user-circle" aria-hidden="true"></i>
-          <div>
-            <strong id="menuDrawerNickname">회원</strong>
-            <small id="menuDrawerRole" class="muted">CUSTOMER</small>
-          </div>
-          <i class="ti ti-chevron-right drawer-user-chevron" aria-hidden="true"></i>
-        </a>
         <nav class="drawer-body">
           <ul id="menuDrawerList" class="drawer-list"></ul>
         </nav>
+        <footer id="menuDrawerFoot" class="drawer-foot" hidden></footer>
       </div>
     </aside>
 
@@ -98,7 +92,10 @@
       <main class="store-page-main">
         <header class="cart-page-head">
           <h1 class="cart-page-title">장바구니</h1>
-          <p id="cartStoreLink" class="cart-page-store muted"></p>
+          <div class="cart-store-bar">
+            <i class="ti ti-building-store cart-store-bar-icon" aria-hidden="true"></i>
+            <p id="cartStoreLink" class="cart-page-store muted"></p>
+          </div>
         </header>
         <div id="cartHost" class="cart-host" aria-live="polite">
           <p class="empty-state">불러오는 중…</p>

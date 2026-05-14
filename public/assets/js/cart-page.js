@@ -83,7 +83,8 @@
     const el = document.getElementById('cartStoreLink')
     if (!el) return
     if (data?.storeId && data?.storeName) {
-      el.innerHTML = `<a href="/pages/store.html?storeId=${data.storeId}">${escapeHtml(data.storeName)}</a> · 메뉴 더 담기`
+      const storeUrl = `/pages/store.html?storeId=${data.storeId}`
+      el.innerHTML = `<a class="cart-store-name-link" href="${storeUrl}">${escapeHtml(data.storeName)}</a><span class="cart-store-sep" aria-hidden="true">|</span><a class="cart-store-more-link" href="${storeUrl}">메뉴 더 담기</a>`
     } else {
       el.textContent = '담긴 가게가 없어요.'
     }
@@ -160,7 +161,7 @@
       <article class="cart-item-card">
         <div class="cart-item-main">
           <p class="cart-item-name">${escapeHtml(item.menuName ?? '메뉴')}</p>
-          <p class="cart-item-unit">단가 ${formatWon(unit)}</p>
+          <p class="cart-item-unit">개당 ${formatWon(unit)}</p>
         </div>
         <p class="cart-item-line-total">${formatWon(line)}</p>
         <div class="cart-item-controls">
