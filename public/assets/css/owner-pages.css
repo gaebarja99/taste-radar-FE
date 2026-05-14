@@ -5,6 +5,10 @@
   --max-width: 1180px;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 /* ---------- 공통 상단바 (고객·사장 페이지) — index .site-header 와 동일 폭 ---------- */
 .topbar {
   height: var(--topbar-height);
