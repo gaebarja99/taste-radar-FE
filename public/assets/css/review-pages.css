@@ -174,6 +174,46 @@
   accent-color: var(--color-primary);
 }
 
+.menu-taste-list {
+  display: grid;
+  gap: 16px;
+}
+
+.menu-taste-row {
+  padding: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: #fafafa;
+}
+
+.menu-taste-name {
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.review-menu-taste-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0 0;
+}
+
+.review-menu-taste-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--color-primary-light);
+  font-size: 12px;
+  color: var(--color-text);
+}
+
+.review-menu-taste-chip strong {
+  font-weight: 700;
+}
+
 .review-form-field {
   display: grid;
   gap: 6px;
@@ -575,4 +615,170 @@
   padding: 0 18px 16px;
   font-size: 13px;
   color: var(--color-text-muted);
+}
+
+/* 내 리뷰 페이지 */
+.my-reviews-page .my-reviews-head {
+  margin-bottom: 4px;
+}
+
+.my-reviews-page .my-reviews-title-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.my-reviews-page .my-reviews-count {
+  font-size: 13px;
+  font-weight: 500;
+  color: #9ca3af;
+  white-space: nowrap;
+}
+
+.my-reviews-page .my-reviews-subtitle {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+.my-reviews-page .my-review-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.my-reviews-page .my-review-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 18px 20px;
+  border-bottom: none;
+}
+
+.my-reviews-page .my-review-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.my-reviews-page .my-review-top-left {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.my-reviews-page .my-order-store-link {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.my-reviews-page .my-order-store-link:hover {
+  text-decoration: underline;
+}
+
+.my-reviews-page .my-review-rating-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.my-reviews-page .my-review-rating-num {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.my-reviews-page .my-review-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  margin-top: 0;
+}
+
+.my-reviews-page .my-review-btn-edit,
+.my-reviews-page .my-review-btn-delete {
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  cursor: pointer;
+  background: transparent;
+}
+
+.my-reviews-page .my-review-btn-edit {
+  border: 1px solid #d1d5db;
+  color: #6b7280;
+}
+
+.my-reviews-page .my-review-btn-delete {
+  border: 1px solid #fca5a5;
+  color: #ef4444;
+}
+
+.my-reviews-page .my-review-content {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-text-main);
+}
+
+.my-reviews-page .my-review-reply {
+  margin: 10px 0 0;
+}
+
+.my-reviews-page .my-review-footer {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.my-reviews-page .my-review-footer .review-menu-taste-summary,
+.my-reviews-page .my-review-footer .review-taste-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1;
+  margin: 0;
+  min-width: 0;
+}
+
+.my-reviews-page .my-review-footer .review-menu-taste-chip,
+.my-reviews-page .my-review-footer .store-taste-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: #fff0ec;
+  color: #993c1d;
+  font-size: 12px;
+  font-weight: 500;
+  border: none;
+}
+
+.my-reviews-page .my-review-footer .review-menu-taste-chip strong {
+  font-weight: 600;
+}
+
+.my-reviews-page .my-review-date {
+  margin-left: auto;
+  font-size: 12px;
+  color: #9ca3af;
+  white-space: nowrap;
+}
+
+.my-reviews-page .my-review-edit-form {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
 }

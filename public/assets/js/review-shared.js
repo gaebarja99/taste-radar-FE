@@ -94,6 +94,107 @@
     return TASTE_SPECIALTY_KEYS.some(({ key }) => !!taste[key])
   }
 
+  function distinctOrderMenus(items) {
+    const seen = new Map()
+    for (const item of items || []) {
+      const menuId = Number(item.menuId)
+      if (!Number.isFinite(menuId)) continue
+      if (!seen.has(menuId)) {
+        seen.set(menuId, { menuId, menuName: item.menuName || '메뉴' })
+      }
+    }
+    return [...seen.values()]
+  }
+
+  function menuTasteSelectionMap(menuTastes) {
+    const map = {}
+    for (const mt of menuTastes || []) {
+      const menuId = Number(mt.menuId)
+      if (Number.isFinite(menuId) && mt.taste) map[menuId] = mt.taste
+    }
+    return map
+  }
+
+  function renderMenuTastePickers(menus, menuTastes = []) {
+    const selected = menuTasteSelectionMap(menuTastes)
+    const list = Array.isArray(menus) ? menus : []
+    if (!list.length) {
+      return '<p class="review-taste-empty muted">주문 메뉴를 불러오지 못했어요.</p>'
+    }
+    return `
+      <fieldset class="review-taste-fieldset">
+        <legend class="review-taste-legend">주문 메뉴별 특화 맛 (메뉴당 1개 필수)</legend>
+        <div class="menu-taste-list">
+          ${list
+            .map(({ menuId, menuName }) => {
+              const name = `menu-taste-${menuId}`
+              return `
+                <section class="menu-taste-row" data-menu-id="${menuId}">
+                  <p class="menu-taste-name">${escapeHtml(menuName)}</p>
+                  <div class="taste-pick-grid" role="radiogroup" aria-label="${escapeHtml(menuName)} 맛 선택">
+                    ${TASTE_SPECIALTY_KEYS.map(({ key, label }) => {
+                      const checked = selected[menuId] === key
+                      return `
+                        <label class="taste-pick-item">
+                          <input type="radio" name="${name}" value="${key}" ${checked ? 'checked' : ''} required />
+                          <span>${label}</span>
+                        </label>`
+                    }).join('')}
+                  </div>
+                </section>`
+            })
+            .join('')}
+        </div>
+      </fieldset>
+    `
+  }
+
+  function readMenuTastesFromRoot(root) {
+    const result = []
+    root.querySelectorAll('.menu-taste-row[data-menu-id]').forEach((row) => {
+      const menuId = Number(row.dataset.menuId)
+      const checked = row.querySelector('input[type="radio"]:checked')
+      if (Number.isFinite(menuId) && checked?.value) {
+        result.push({ menuId, taste: checked.value })
+      }
+    })
+    return result
+  }
+
+  function validateMenuTastes(menus, menuTastes) {
+    const list = Array.isArray(menus) ? menus : []
+    if (!list.length) return false
+    if (!Array.isArray(menuTastes) || menuTastes.length !== list.length) return false
+    const expected = new Set(list.map((m) => Number(m.menuId)))
+    const seen = new Set()
+    for (const mt of menuTastes) {
+      const menuId = Number(mt.menuId)
+      if (!expected.has(menuId) || seen.has(menuId) || !mt.taste) return false
+      seen.add(menuId)
+    }
+    return seen.size === expected.size
+  }
+
+  function tasteLabel(key) {
+    return TASTE_SPECIALTY_KEYS.find((t) => t.key === key)?.label ?? key
+  }
+
+  function renderMenuTasteSummary(menuTastes, fallbackTaste) {
+    if (Array.isArray(menuTastes) && menuTastes.length) {
+      return `
+        <p class="review-menu-taste-summary" aria-label="메뉴별 특화 맛">
+          ${menuTastes
+            .map(
+              (mt) =>
+                `<span class="review-menu-taste-chip"><strong>${escapeHtml(mt.menuName ?? '메뉴')}</strong> ${escapeHtml(tasteLabel(mt.taste))}</span>`,
+            )
+            .join('')}
+        </p>
+      `
+    }
+    return renderTasteSpecialtyTags(fallbackTaste)
+  }
+
   function renderTasteSpecialtyTags(taste) {
     if (!taste || !hasAnyTasteSpecialty(taste)) return ''
     const labels = TASTE_SPECIALTY_KEYS.filter(({ key }) => taste[key]).map(({ label }) => label)
@@ -253,6 +354,21 @@
     ].join('')
   }
 
+  function tasteBadgeClass(key) {
+    const map = {
+      sweetness: 'store-taste-tag--sweet',
+      saltiness: 'store-taste-tag--salty',
+      sourness: 'store-taste-tag--sour',
+      bitterness: 'store-taste-tag--bitter',
+      umami: 'store-taste-tag--umami',
+      sweet: 'store-taste-tag--sweet',
+      salty: 'store-taste-tag--salty',
+      sour: 'store-taste-tag--sour',
+      bitter: 'store-taste-tag--bitter',
+    }
+    return map[String(key)] || 'store-taste-tag--default'
+  }
+
   function renderTasteMiniTags(highlights) {
     const items = Array.isArray(highlights) ? highlights : []
     if (!items.length) return ''
@@ -261,7 +377,7 @@
         ${items
           .map(
             (h) =>
-              `<span class="store-taste-tag">${escapeHtml(h.label)}<strong>↑</strong></span>`,
+              `<span class="store-taste-tag ${tasteBadgeClass(h.key)}">${escapeHtml(h.label)}<strong>↑</strong></span>`,
           )
           .join('')}
       </p>
@@ -281,6 +397,12 @@
     readTasteSpecialtyFromRoot,
     renderTastePentagon,
     renderTasteSpecialtyTags,
+    distinctOrderMenus,
+    renderMenuTastePickers,
+    readMenuTastesFromRoot,
+    validateMenuTastes,
+    renderMenuTasteSummary,
+    tasteLabel,
     readRatingFromRoot,
     hasAnyTastePreference,
     hasAnyTasteSpecialty,
