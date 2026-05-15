@@ -17,8 +17,29 @@
       return
     }
 
+    window.CustomerMenu?.init({
+      onLoginClick: () => (window.location.href = '/'),
+      onLogout: async () => {
+        try {
+          await api.auth.logout()
+        } catch {
+          /* ignore */
+        }
+        ;['userId', 'email', 'nickname', 'role'].forEach((k) => localStorage.removeItem(k))
+        window.location.href = '/'
+      },
+    })
+
+    setupAuthUi()
+    refreshCartBadge()
+    window.CustomerNotifications?.refreshBadge()
+
     try {
       const me = await api.users.me()
+      if (me?.nickname) {
+        localStorage.setItem('nickname', me.nickname)
+        setupAuthUi()
+      }
       const prefs = me?.tastePreferences
       if (ReviewUi.hasAnyTastePreference(prefs)) {
         fillForm(prefs)
@@ -57,6 +78,45 @@
       if (el) el.checked = !!prefs[k]
     })
     updateTastePickCount()
+  }
+
+  function setupAuthUi() {
+    const loggedIn = api.auth.isLoggedIn()
+    const loginBtn = document.getElementById('btnKakaoLogin')
+    const nickEl = document.getElementById('userNickname')
+    if (!loginBtn || !nickEl) return
+    loginBtn.hidden = loggedIn
+    nickEl.hidden = !loggedIn
+    if (loggedIn) {
+      nickEl.textContent = localStorage.getItem('nickname') || '회원'
+    }
+  }
+
+  async function refreshCartBadge() {
+    try {
+      const data = await api.cart.get()
+      setCartBadge(itemTotalQuantity(data))
+    } catch {
+      setCartBadge(0)
+    }
+  }
+
+  function setCartBadge(count) {
+    const badge = document.getElementById('cartBadge')
+    if (!badge) return
+    const n = Number(count) || 0
+    if (n <= 0) {
+      badge.hidden = true
+      badge.textContent = '0'
+    } else {
+      badge.hidden = false
+      badge.textContent = n > 99 ? '99+' : String(n)
+    }
+  }
+
+  function itemTotalQuantity(cart) {
+    const items = Array.isArray(cart?.items) ? cart.items : []
+    return items.reduce((sum, it) => sum + Number(it.quantity ?? 0), 0)
   }
 
   async function saveTastes() {
