@@ -197,9 +197,4 @@
   color: var(--color-text-muted);
 }
 
-.btn-primary.cart-checkout-btn {
-  border: none;
-  background: var(--color-primary);
-  color: #fff;
-  font-weight: 700;
-}
+/* 색상은 customer-buttons.css */

@@ -1,0 +1,149 @@
+/**
+ * 고객 영역 공통 버튼 — 내 프로필(.profile-save-btn)과 동일한 아웃라인 주황 스타일
+ * 사장(owner) 페이지·카카오·아이콘·위험(빨강) 버튼은 제외
+ */
+
+.store-page .btn-primary,
+.store-page .profile-save-btn,
+.store-page .taste-onboarding-btn-save,
+body:has(.site-header) .btn-primary,
+body:has(.site-header) .btn-primary.btn-sm,
+body:has(.site-header) .btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border: 0.5px solid #e8642a;
+  border-radius: 8px;
+  background: transparent;
+  color: #e8642a;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.store-page .btn-primary:hover:not(:disabled),
+.store-page .profile-save-btn:hover:not(:disabled),
+.store-page .taste-onboarding-btn-save:hover:not(:disabled),
+body:has(.site-header) .btn-primary:hover:not(:disabled),
+body:has(.site-header) .btn-primary.btn-sm:hover:not(:disabled),
+body:has(.site-header) .btn-outline:hover:not(:disabled) {
+  background: rgba(232, 100, 42, 0.08);
+  border-color: #e8642a;
+  color: #e8642a;
+}
+
+.store-page .btn-primary:disabled,
+.store-page .profile-save-btn:disabled,
+.store-page .taste-onboarding-btn-save:disabled,
+body:has(.site-header) .btn-primary:disabled,
+body:has(.site-header) .btn-primary.btn-sm:disabled,
+body:has(.site-header) .btn-outline:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 소형 · 인라인 (담기, 검색, 링크형 보조) */
+.store-page .btn-outline-sm,
+.store-page .profile-address-search-btn,
+.store-page a.btn-outline-sm,
+.store-page button.btn-outline-sm,
+.store-page .store-menu-reco-add,
+.store-page .my-order-review-btn,
+.store-page .customer-menu-actions .btn-outline-sm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  box-sizing: border-box;
+  border: 0.5px solid #e8642a;
+  border-radius: 6px;
+  background: transparent;
+  color: #e8642a;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.store-page .btn-outline-sm:hover:not(:disabled),
+.store-page .profile-address-search-btn:hover,
+.store-page a.btn-outline-sm:hover,
+.store-page button.btn-outline-sm:hover:not(:disabled),
+.store-page .store-menu-reco-add:hover:not(:disabled),
+.store-page .my-order-review-btn:hover,
+.store-page .customer-menu-actions .btn-outline-sm:hover:not(:disabled) {
+  background: rgba(232, 100, 42, 0.08);
+  border-color: #e8642a;
+  color: #e8642a;
+}
+
+.store-page .btn-outline-sm:disabled,
+.store-page button.btn-outline-sm:disabled,
+.store-page .store-menu-reco-add:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.store-page .profile-address-search-btn .ti,
+.store-page .btn-outline-sm .ti {
+  font-size: 14px;
+}
+
+/* 메인 검색 제출 — 고객 헤더 */
+body:has(.site-header) .search-submit {
+  border: 0.5px solid #e8642a;
+  background: transparent;
+  color: #e8642a;
+  font-weight: 500;
+  box-shadow: none;
+}
+
+body:has(.site-header) .search-submit:hover {
+  background: rgba(232, 100, 42, 0.08);
+  border-color: #e8642a;
+  color: #e8642a;
+}
+
+body:has(.site-header) .btn-primary.btn-sm {
+  width: auto;
+  height: auto;
+  padding: 8px 14px;
+  border-radius: 8px;
+  gap: 6px;
+}
+
+/* 장바구니 주문하기 — 레이아웃은 cart-pages.css, 색만 통일 */
+.store-page.cart-page .cart-checkout-btn.btn-primary {
+  border: 0.5px solid #e8642a;
+  background: transparent;
+  color: #e8642a;
+  font-weight: 500;
+  box-shadow: none;
+}
+
+.store-page.cart-page .cart-checkout-btn.btn-primary:hover:not(:disabled) {
+  background: rgba(232, 100, 42, 0.08);
+  border-color: #e8642a;
+  color: #e8642a;
+}
+
+/* 결제 완료 등 checkout 전용 채움 버튼 덮어쓰기 */
+.store-page.checkout-page .btn-primary.cart-checkout-btn {
+  border: 0.5px solid #e8642a;
+  background: transparent;
+  color: #e8642a;
+  font-weight: 500;
+}
+
+.store-page.checkout-page .btn-primary.cart-checkout-btn:hover:not(:disabled) {
+  background: rgba(232, 100, 42, 0.08);
+}
