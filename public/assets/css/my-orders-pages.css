@@ -17,6 +17,10 @@
   border-bottom: none;
 }
 
+.my-order-card--canceled {
+  opacity: 0.75;
+}
+
 .my-order-card.is-highlighted {
   background: color-mix(in srgb, var(--color-primary, #e85d2a) 8%, #fff);
   box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--color-primary, #e85d2a) 45%, transparent);
@@ -31,11 +35,19 @@
   gap: 10px;
 }
 
+/* 가게명: 링크만 주황, 일반 텍스트는 기본색 */
+.my-order-store-name {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-main, #1a1a1a);
+}
+
 .my-order-store-link {
   margin: 0;
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--color-primary);
+  font-size: 13px;
+  font-weight: 500;
+  color: #e8642a;
   text-decoration: none;
 }
 
@@ -43,39 +55,42 @@
   text-decoration: underline;
 }
 
+/* 상태 뱃지 */
 .my-order-status {
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
-  height: 24px;
-  padding: 0 10px;
-  border-radius: 999px;
+  padding: 3px 8px;
+  border-radius: 20px;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 500;
   background: var(--color-bg-page);
   color: var(--color-text-muted);
 }
 
-.my-order-status.is-pending {
-  background: #fff4e8;
-  color: #c45f00;
-}
-
-.my-order-status.is-cooking,
-.my-order-status.is-delivering {
-  background: var(--color-primary-light);
-  color: var(--color-primary);
-}
-
 .my-order-status.is-delivered {
-  background: #e8f7ee;
-  color: #1f7a45;
+  background: #dcfce7;
+  color: #166534;
 }
 
-.my-order-status.is-rejected,
-.my-order-status.is-canceled {
-  background: #fdecec;
-  color: var(--color-cancel);
+.my-order-status.is-rejected {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.my-order-status.is-pending {
+  background: #fef9c3;
+  color: #854d0e;
+}
+
+.my-order-status.is-delivering {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.my-order-status.is-cooking {
+  background: #fef3c7;
+  color: #92400e;
 }
 
 .my-order-menu {
@@ -90,49 +105,77 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  font-size: 12px;
-  color: var(--color-text-muted);
+}
+
+.my-order-meta-left {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0;
+  min-width: 0;
+  font-size: 11px;
+  color: var(--color-text-tertiary, #9ca3af);
+}
+
+.my-order-date {
+  color: var(--color-text-tertiary, #9ca3af);
+}
+
+.my-order-pay-note {
+  color: var(--color-text-tertiary, #9ca3af);
+  font-size: 11px;
+  font-weight: 400;
 }
 
 .my-order-amount {
   margin: 0;
+  flex-shrink: 0;
   font-size: 14px;
-  font-weight: 700;
-  color: var(--color-text-main);
+  font-weight: 500;
+  color: var(--color-text-main, #1a1a1a);
 }
 
-.my-order-pay-badge {
-  display: inline-flex;
+.my-order-amount--canceled {
+  color: var(--color-text-tertiary, #9ca3af);
+  text-decoration: line-through;
+}
+
+/* 하단 액션 */
+.my-order-actions {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  margin-top: 6px;
-  padding: 3px 8px;
-  border-radius: 6px;
-  background: #fff8e6;
-  color: #92400e;
-  font-size: 11px;
-  font-weight: 600;
+  gap: 10px;
+  margin-top: 4px;
 }
 
-.my-order-pay-badge--canceled {
-  background: #fef2f2;
-  color: #b91c1c;
+.my-order-actions > .my-order-act-b:only-child {
+  margin-left: auto;
+}
+
+.my-order-review-btn {
+  padding: 5px 12px;
+  font-size: 12px;
 }
 
 .my-order-cancel-btn {
-  justify-self: end;
-  margin-top: 4px;
-  padding: 8px 14px;
-  border: 1px solid var(--color-cancel);
-  border-radius: 8px;
-  background: #fff;
-  color: var(--color-cancel);
-  font-size: 13px;
-  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 0.5px solid #ef4444;
+  background: transparent;
+  color: #ef4444;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
   cursor: pointer;
+  transition: background 0.15s ease;
 }
 
 .my-order-cancel-btn:hover:not(:disabled) {
-  background: #fdecec;
+  background: rgba(239, 68, 68, 0.08);
 }
 
 .my-order-cancel-btn:disabled {
@@ -140,9 +183,8 @@
   cursor: not-allowed;
 }
 
-.my-order-cancel-btn.is-done {
-  border-color: #d1d5db;
-  background: #f3f4f6;
-  color: #6b7280;
-  opacity: 1;
+.my-order-muted-action {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--color-text-tertiary, #9ca3af);
 }

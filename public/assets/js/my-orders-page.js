@@ -174,31 +174,32 @@
       statusEl.className = 'my-order-status is-rejected'
     }
 
-    let payBadge = card.querySelector('.my-order-pay-badge')
-    if (payBadge) {
-      payBadge.className = 'my-order-pay-badge my-order-pay-badge--canceled'
-      payBadge.textContent = '결제 취소·환불 완료'
+    const payNote = card.querySelector('.my-order-pay-note')
+    if (payNote) {
+      payNote.textContent = ' · 결제 취소·환불 완료'
     } else {
-      const meta = card.querySelector('.my-order-meta')
-      if (meta) {
-        meta.insertAdjacentHTML(
-          'afterend',
-          '<span class="my-order-pay-badge my-order-pay-badge--canceled">결제 취소·환불 완료</span>',
-        )
+      const dateEl = card.querySelector('.my-order-date')
+      if (dateEl) {
+        const span = document.createElement('span')
+        span.className = 'my-order-pay-note'
+        span.textContent = ' · 결제 취소·환불 완료'
+        dateEl.after(span)
       }
     }
 
     const cancelBtn = card.querySelector('[data-order-cancel]')
     if (cancelBtn) {
-      cancelBtn.replaceWith(renderCanceledDoneButton())
+      cancelBtn.replaceWith(renderCanceledDoneLabel())
     }
+
+    card.classList.add('my-order-card--canceled')
+    const amountEl = card.querySelector('.my-order-amount')
+    if (amountEl) amountEl.classList.add('my-order-amount--canceled')
   }
 
-  function renderCanceledDoneButton() {
-    const el = document.createElement('button')
-    el.type = 'button'
-    el.className = 'my-order-cancel-btn is-done'
-    el.disabled = true
+  function renderCanceledDoneLabel() {
+    const el = document.createElement('span')
+    el.className = 'my-order-muted-action'
     el.textContent = '취소 완료'
     return el
   }
@@ -232,44 +233,52 @@
     const storeHtml =
       Number.isFinite(storeId) && storeId > 0
         ? `<a class="my-order-store-link" href="/pages/store.html?storeId=${storeId}">${escapeHtml(storeName)}</a>`
-        : `<p class="my-order-store-link" style="color:var(--color-text-main)">${escapeHtml(storeName)}</p>`
+        : `<p class="my-order-store-name">${escapeHtml(storeName)}</p>`
 
     const paymentStatus = String(order.paymentStatus ?? '').toUpperCase()
     const paid = paymentStatus === 'APPROVED'
 
-    const cancelBtn =
+    const isCanceledOrder = status === 'CANCELED' || status === 'REJECTED'
+
+    let payNoteHtml = ''
+    if (paid && status === 'PENDING') {
+      payNoteHtml = '<span class="my-order-pay-note"> · 카카오페이</span>'
+    } else if (paymentStatus === 'CANCELED' || status === 'CANCELED') {
+      payNoteHtml = '<span class="my-order-pay-note"> · 결제 취소·환불 완료</span>'
+    }
+
+    const cancelBlock =
       status === 'CANCELED'
-        ? `<button type="button" class="my-order-cancel-btn is-done" disabled>취소 완료</button>`
+        ? '<span class="my-order-muted-action">취소 완료</span>'
         : status === 'PENDING'
           ? `<button type="button" class="my-order-cancel-btn" data-order-cancel="${Number(order.id)}" data-payment-status="${escapeHtml(paymentStatus)}">${paid ? '결제 취소·환불' : '주문 취소'}</button>`
           : ''
 
-    const paymentBadge =
-      paid && status === 'PENDING'
-        ? `<span class="my-order-pay-badge">카카오페이 결제완료</span>`
-        : paymentStatus === 'CANCELED' || status === 'CANCELED'
-          ? `<span class="my-order-pay-badge my-order-pay-badge--canceled">결제 취소·환불 완료</span>`
-          : ''
-
-    const reviewBtn =
+    const reviewBlock =
       status === 'DELIVERED' && !order.hasReview
-        ? `<a href="/pages/write-review.html?orderId=${Number(order.id)}" class="btn-outline-sm" style="display:inline-flex;text-decoration:none;margin-top:8px">리뷰 작성</a>`
+        ? `<a href="/pages/write-review.html?orderId=${Number(order.id)}" class="my-order-review-btn">리뷰 작성</a>`
         : ''
 
+    const actA = reviewBlock ? `<div class="my-order-act-a">${reviewBlock}</div>` : ''
+    const actB = cancelBlock ? `<div class="my-order-act-b">${cancelBlock}</div>` : ''
+    const actionsRow = actA || actB ? `<div class="my-order-actions">${actA}${actB}</div>` : ''
+
+    const cardExtraClass = isCanceledOrder ? ' my-order-card--canceled' : ''
+
     return `
-      <article class="my-order-card" data-order-id="${Number(order.id)}">
+      <article class="my-order-card${cardExtraClass}" data-order-id="${Number(order.id)}">
         <div class="my-order-top">
           ${storeHtml}
           <span class="my-order-status ${statusClass(status)}">${escapeHtml(statusLabel(status))}</span>
         </div>
         <p class="my-order-menu">${escapeHtml(menuSummary)}</p>
         <div class="my-order-meta">
-          <span>${escapeHtml(createdAt)}</span>
-          <span class="my-order-amount">${formatWon(amount)}</span>
+          <div class="my-order-meta-left">
+            <span class="my-order-date">${escapeHtml(createdAt)}</span>${payNoteHtml}
+          </div>
+          <span class="my-order-amount${isCanceledOrder ? ' my-order-amount--canceled' : ''}">${formatWon(amount)}</span>
         </div>
-        ${paymentBadge}
-        ${cancelBtn}
-        ${reviewBtn}
+        ${actionsRow}
       </article>
     `
   }
