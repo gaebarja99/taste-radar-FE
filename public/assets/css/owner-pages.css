@@ -27,7 +27,6 @@
   padding: 0 20px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 18px;
 }
 
@@ -57,7 +56,53 @@
   letter-spacing: 0.2px;
 }
 
+.owner-topnav {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 8px;
+  padding: 2px 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.owner-topnav-link {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 34px;
+  padding: 0 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+}
+
+.owner-topnav-link .ti {
+  font-size: 15px;
+}
+
+.owner-topnav-link:hover {
+  color: var(--color-primary);
+  background: var(--color-primary-light);
+}
+
+.owner-topnav-link.is-active {
+  color: var(--color-primary);
+  background: var(--color-primary-light);
+  border-color: var(--color-primary);
+}
+
 .topbar-menu {
+  margin-left: auto;
   flex-shrink: 0;
   width: 38px;
   height: 38px;
@@ -92,12 +137,25 @@
   flex-shrink: 0;
 }
 
+/* 메인 .site-main 과 동일한 가로 폭·여백 (사이드바+본문 전체) */
+.app {
+  max-width: var(--max-width);
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
 /* 상단바가 있는 페이지에서는 .app 영역 높이를 topbar 만큼 보정 */
 .topbar + .app {
   min-height: calc(100vh - var(--topbar-height));
 }
 
 @media (max-width: 720px) {
+  .app {
+    padding: 0 16px;
+  }
+
   .topbar-inner {
     gap: 10px;
     padding: 0 16px;
@@ -107,9 +165,212 @@
     font-size: 18px;
   }
 
+  .owner-topnav {
+    margin: 0 4px;
+  }
+
+  .owner-topnav-link {
+    height: 32px;
+    padding: 0 9px;
+    font-size: 11px;
+  }
+
   .store-user-nickname {
     max-width: 72px;
   }
+}
+
+/* ---------- 사이드바 검색·필터·섹션 (모든 owner 페이지 공통) ---------- */
+.sidebar {
+  padding: 0;
+  overflow: hidden;
+}
+
+.sidebar-toolbar {
+  flex-shrink: 0;
+  padding: 12px 12px 10px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg-card);
+}
+
+.sidebar-search {
+  width: 100%;
+  height: 32px;
+  padding: 0 10px 0 30px;
+  font: inherit;
+  font-size: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-bg-page) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%239e948a' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3-3'/%3E%3C/svg%3E") no-repeat 10px center;
+  color: var(--color-text-main);
+}
+
+.sidebar-search:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  background-color: var(--color-bg-card);
+}
+
+.sidebar-search::placeholder {
+  color: var(--color-text-hint);
+}
+
+.sidebar-filter {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.sidebar-filter-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 28px;
+  padding: 0 4px;
+  font: inherit;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background: var(--color-bg-page);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.sidebar-filter-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.sidebar-filter-btn.is-active {
+  color: var(--color-primary);
+  background: var(--color-primary-light);
+  border-color: var(--color-primary);
+}
+
+.sidebar-stores {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 6px 0 16px;
+}
+
+.sidebar-section {
+  margin-top: 4px;
+}
+
+.sidebar-section-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 14px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.sidebar-section-label:hover {
+  color: var(--color-text-main);
+}
+
+.sidebar-section-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.sidebar-section-label .ti {
+  font-size: 13px;
+  color: var(--color-text-hint);
+  transition: transform 0.15s;
+}
+
+.sidebar-section:not([data-collapsed='true']) .sidebar-section-label .ti-chevron-right {
+  transform: rotate(90deg);
+}
+
+.sidebar-section-count {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-text-hint);
+}
+
+.sidebar-section[data-collapsed='true'] .sidebar-section-body {
+  display: none;
+}
+
+.sidebar-section--closed .sidebar-section-label {
+  color: var(--color-cancel);
+}
+
+.sidebar-empty {
+  margin: 20px 12px;
+  padding: 14px 10px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  border: 1px dashed var(--color-border);
+  border-radius: 10px;
+  background: var(--color-bg-page);
+}
+
+.sidebar-hint {
+  line-height: 1.5;
+}
+
+.sidebar-store-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 8px 6px;
+}
+
+.sidebar-store-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-main);
+  text-decoration: none;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.sidebar-store-item:hover {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+}
+
+.sidebar-store-item.is-active {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  font-weight: 700;
+}
+
+.sidebar-store-item.is-closed {
+  color: var(--color-text-muted);
+}
+
+.sidebar-store-item.is-closed .sidebar-store-item-name {
+  text-decoration: line-through;
+}
+
+.sidebar-store-item-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ---------- 사이드바 그룹 접기/펼치기 (모든 owner 페이지 공통) ---------- */
