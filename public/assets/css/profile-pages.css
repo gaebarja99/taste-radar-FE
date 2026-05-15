@@ -1,3 +1,12 @@
+/* 내 프로필 */
+
+.profile-page {
+  --color-background-secondary: #f9fafb;
+  --color-border-tertiary: #f3f4f6;
+  --color-text-secondary: #6b7280;
+  --color-text-tertiary: #9ca3af;
+}
+
 .profile-host {
   display: flex;
   flex-direction: column;
@@ -10,21 +19,38 @@
 }
 
 .profile-card-head {
-  padding: 16px 18px 12px;
-  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px;
+  background: var(--color-background-secondary);
+  border-bottom: 0.5px solid var(--color-border-tertiary);
+}
+
+.profile-card-head-icon {
+  flex-shrink: 0;
+  font-size: 15px;
+  color: var(--color-text-secondary);
+  line-height: 1;
+}
+
+.profile-card-head-text {
+  min-width: 0;
 }
 
 .profile-card-title {
   margin: 0;
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 500;
   color: var(--color-text-main);
 }
 
 .profile-card-desc {
   margin: 4px 0 0;
-  font-size: 12px;
-  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.45;
+  color: var(--color-text-secondary);
 }
 
 .profile-form {
@@ -41,32 +67,74 @@
   color: var(--color-text-muted);
 }
 
-.profile-field input {
+.profile-field input:not(.profile-input-readonly) {
   width: 100%;
-  height: 42px;
-  padding: 0 12px;
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
+  height: auto;
+  padding: 8px 12px;
+  border: 0.5px solid var(--color-border);
+  border-radius: 6px;
   font: inherit;
+  font-size: 13px;
   color: var(--color-text-main);
   background: var(--color-bg-card);
 }
 
-.profile-field input:focus {
+.profile-field input:not(.profile-input-readonly):focus {
   outline: none;
   border-color: var(--color-primary);
 }
 
-.profile-email-readonly {
-  height: 42px;
-  padding: 0 12px;
+.profile-field-readonly {
   display: flex;
   align-items: center;
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
-  background: var(--color-bg-page);
-  color: var(--color-text-muted);
+  gap: 8px;
+  padding: 8px 12px;
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: 6px;
+  background: var(--color-background-secondary);
+  color: var(--color-text-tertiary);
+  cursor: default;
+  pointer-events: none;
+}
+
+.profile-field-readonly-icon {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+  line-height: 1;
+}
+
+.profile-field-readonly-value {
+  min-width: 0;
   font-size: 13px;
+  line-height: 1.4;
+  word-break: break-all;
+}
+
+.profile-field-readonly--input {
+  pointer-events: none;
+}
+
+.profile-input-readonly {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--color-text-tertiary);
+  font: inherit;
+  font-size: 13px;
+  cursor: default;
+  pointer-events: none;
+}
+
+.profile-input-readonly::placeholder {
+  color: var(--color-text-tertiary);
+  opacity: 0.85;
 }
 
 .profile-address-row {
@@ -77,17 +145,37 @@
 .profile-zip-row {
   display: flex;
   gap: 8px;
+  align-items: stretch;
 }
 
-.profile-zip-row input {
+.profile-zip-row > input#address {
   flex: 1;
+  min-width: 0;
+  height: auto;
+  padding: 8px 12px;
+  border: 0.5px solid var(--color-border);
+  border-radius: 6px;
+  font: inherit;
+  font-size: 13px;
+  background: var(--color-bg-card);
+  color: var(--color-text-main);
+  cursor: pointer;
+}
+
+.profile-address-search-btn {
+  padding: 8px 10px;
 }
 
 .profile-actions {
   display: flex;
-  justify-content: flex-end;
+  flex-direction: column;
   gap: 8px;
   padding-top: 4px;
+}
+
+.profile-save-btn {
+  width: 100%;
+  padding: 9px 0;
 }
 
 .profile-hint {
@@ -98,7 +186,7 @@
 }
 
 .profile-toast {
-  margin: 0 18px 14px;
+  margin: 0;
   padding: 10px 12px;
   border-radius: 10px;
   font-size: 13px;
@@ -110,7 +198,7 @@
   border: 1px solid #b9e3cf;
 }
 
-.profile-field input[readonly] {
+.profile-field input[readonly]:not(.profile-input-readonly) {
   background: var(--color-bg-page);
   color: var(--color-text-muted);
   cursor: pointer;

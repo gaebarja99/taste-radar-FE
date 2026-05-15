@@ -72,14 +72,20 @@
   function renderProfileForms(me) {
     return `
       <section class="table-section profile-card">
-        <div class="profile-card-head">
-          <h2 class="profile-card-title">기본 정보</h2>
-          <p class="profile-card-desc">카카오 계정 이메일은 변경할 수 없어요.</p>
-        </div>
+        <header class="profile-card-head">
+          <i class="ti ti-user profile-card-head-icon" aria-hidden="true"></i>
+          <div class="profile-card-head-text">
+            <h2 class="profile-card-title">기본 정보</h2>
+            <p class="profile-card-desc">카카오 계정 이메일은 변경할 수 없어요.</p>
+          </div>
+        </header>
         <form id="nicknameForm" class="profile-form">
           <div class="profile-field">
             <label for="profileEmail">이메일</label>
-            <div class="profile-email-readonly" id="profileEmail">${escapeHtml(me?.email || '')}</div>
+            <div class="profile-field-readonly" id="profileEmail">
+              <i class="ti ti-lock profile-field-readonly-icon" aria-hidden="true"></i>
+              <span class="profile-field-readonly-value">${escapeHtml(me?.email || '')}</span>
+            </div>
           </div>
           <div class="profile-field">
             <label for="profileNickname">닉네임</label>
@@ -87,17 +93,20 @@
               value="${escapeAttr(me?.nickname || '')}" placeholder="2~10자 한글·영문·숫자" />
           </div>
           <div class="profile-actions">
-            <button type="submit" class="btn-primary">닉네임 저장</button>
+            <button type="submit" class="profile-save-btn">닉네임 저장</button>
           </div>
           <p id="nicknameToast" class="profile-toast" hidden></p>
         </form>
       </section>
 
       <section class="table-section profile-card">
-        <div class="profile-card-head">
-          <h2 class="profile-card-title">배달 주소</h2>
-          <p class="profile-card-desc">주소 검색으로 우편번호와 도로명 주소를 불러온 뒤 상세 주소만 입력해 주세요.</p>
-        </div>
+        <header class="profile-card-head">
+          <i class="ti ti-map-pin profile-card-head-icon" aria-hidden="true"></i>
+          <div class="profile-card-head-text">
+            <h2 class="profile-card-title">배달 주소</h2>
+            <p class="profile-card-desc">우편번호·도로명은 자동 입력돼요.</p>
+          </div>
+        </header>
         <form id="addressForm" class="profile-form">
           <div class="profile-address-row">
             <div class="profile-field">
@@ -105,15 +114,18 @@
               <div class="profile-zip-row">
                 <input id="address" name="address" type="text" maxlength="200" required readonly
                   value="${escapeAttr(me?.address || '')}" placeholder="주소 검색 버튼을 눌러주세요" />
-                <button type="button" id="btnAddressSearch" class="btn-outline-sm">
-                  <i class="ti ti-search" aria-hidden="true"></i> 주소 검색
+                <button type="button" id="btnAddressSearch" class="profile-address-search-btn">
+                  <i class="ti ti-search" aria-hidden="true"></i> 검색
                 </button>
               </div>
             </div>
             <div class="profile-field">
               <label for="zipCode">우편번호</label>
-              <input id="zipCode" name="zipCode" type="text" inputmode="numeric" maxlength="10" required readonly
-                value="${escapeAttr(me?.zipCode || '')}" placeholder="주소 검색 시 자동 입력" />
+              <div class="profile-field-readonly profile-field-readonly--input">
+                <i class="ti ti-lock profile-field-readonly-icon" aria-hidden="true"></i>
+                <input id="zipCode" name="zipCode" class="profile-input-readonly" type="text" inputmode="numeric" maxlength="10" required readonly
+                  value="${escapeAttr(me?.zipCode || '')}" placeholder="주소 검색 시 자동 입력" />
+              </div>
             </div>
             <div class="profile-field">
               <label for="addressDetail">상세 주소</label>
@@ -134,7 +146,7 @@
             </div>
           </div>
           <div class="profile-actions">
-            <button type="submit" class="btn-primary">주소 저장</button>
+            <button type="submit" class="profile-save-btn">주소 저장</button>
           </div>
           <p id="addressToast" class="profile-toast" hidden></p>
         </form>
