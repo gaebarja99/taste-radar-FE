@@ -178,6 +178,36 @@
   padding: 9px 0;
 }
 
+.profile-card--danger {
+  border-color: #f0d4d4;
+}
+
+.profile-card--danger .profile-card-head-icon {
+  color: #d84040;
+}
+
+.profile-danger-btn {
+  width: 100%;
+  padding: 10px 0;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  color: #d84040;
+  background: #fff5f5;
+  border: 1px solid #f0c4c4;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.profile-danger-btn:hover:not(:disabled) {
+  background: #ffecec;
+}
+
+.profile-danger-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .profile-hint {
   margin: 0;
   font-size: 12px;
