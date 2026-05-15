@@ -7,6 +7,7 @@
   'use strict'
 
   let currentStoreId = null
+  let currentStore = null
 
   document.addEventListener('DOMContentLoaded', init)
 
@@ -133,15 +134,29 @@
 
     try {
       const store = await api.stores.detail(storeId)
+      currentStore = store
       document.title = `${store.name} — Taste Radar`
       host.innerHTML = renderStorePage(store)
-      bindMenuActions(host, store)
       await enhanceStoreTasteRadar(store)
       await loadMenuRecommendations(storeId)
       await loadStoreReviews(storeId)
+      bindMenuActions(host, store)
     } catch (e) {
       renderError(errorMessage(e))
     }
+  }
+
+  function resolveRecoMenuId(menu) {
+    const direct = Number(menu?.id ?? menu?.menuId)
+    if (Number.isFinite(direct) && direct > 0) return direct
+
+    const name = String(menu?.name ?? '').trim().toLowerCase()
+    if (!name || !currentStore) return 0
+
+    const menus = Array.isArray(currentStore.menus) ? currentStore.menus : []
+    const match = menus.find((m) => String(m.name ?? '').trim().toLowerCase() === name)
+    const fromStore = Number(match?.id)
+    return Number.isFinite(fromStore) && fromStore > 0 ? fromStore : 0
   }
 
   function bindMenuActions(host, store) {
@@ -149,50 +164,63 @@
       const qtyEl = row.querySelector('[data-qty-value]')
       const decBtn = row.querySelector('[data-qty-act="dec"]')
       const incBtn = row.querySelector('[data-qty-act="inc"]')
-      const addBtn = row.querySelector('[data-add-cart]')
+      if (!qtyEl || !decBtn || !incBtn) return
 
-      const getQty = () => Math.max(1, Number(qtyEl?.textContent) || 1)
+      const getQty = () => Math.max(1, Number(qtyEl.textContent) || 1)
       const setQty = (n) => {
         const next = Math.min(99, Math.max(1, n))
-        if (qtyEl) qtyEl.textContent = String(next)
-        if (decBtn) decBtn.disabled = next <= 1
+        qtyEl.textContent = String(next)
+        decBtn.disabled = next <= 1
       }
 
-      decBtn?.addEventListener('click', () => setQty(getQty() - 1))
-      incBtn?.addEventListener('click', () => setQty(getQty() + 1))
+      decBtn.addEventListener('click', () => setQty(getQty() - 1))
+      incBtn.addEventListener('click', () => setQty(getQty() + 1))
       setQty(1)
+    })
 
-      addBtn?.addEventListener('click', async () => {
-        if (!api.auth.isLoggedIn()) {
-          alert('로그인 후 이용 가능합니다.')
-          return
-        }
-        const role = (localStorage.getItem('role') || '').toUpperCase()
-        if (role !== 'CUSTOMER') {
-          alert('주문하려면 고객 계정으로 로그인해 주세요.')
-          return
-        }
-        const menuId = Number(addBtn.dataset.menuId)
-        if (!menuId) return
-        const quantity = getQty()
+    if (host.dataset.cartActionsBound === '1') return
+    host.dataset.cartActionsBound = '1'
 
-        const canAdd = await confirmReplaceCartForOtherStore(store.id)
-        if (!canAdd) return
+    host.addEventListener('click', async (e) => {
+      const addBtn = e.target.closest('[data-add-cart]')
+      if (!addBtn || !host.contains(addBtn)) return
 
-        addBtn.disabled = true
-        try {
-          await api.cart.addItem({ storeId: store.id, menuId, quantity })
-          addBtn.textContent = '담김'
-          await refreshCartBadge()
-          setTimeout(() => {
-            addBtn.textContent = '담기'
-            addBtn.disabled = false
-          }, 1200)
-        } catch (err) {
-          alert(errorMessage(err))
+      const row = addBtn.closest('.customer-menu-row') || addBtn.closest('.store-menu-reco-item')
+      const qtyEl = row?.querySelector('[data-qty-value]')
+      const quantity = qtyEl ? Math.max(1, Number(qtyEl.textContent) || 1) : 1
+
+      if (!api.auth.isLoggedIn()) {
+        alert('로그인 후 이용 가능합니다.')
+        return
+      }
+      const role = (localStorage.getItem('role') || '').toUpperCase()
+      if (role !== 'CUSTOMER') {
+        alert('주문하려면 고객 계정으로 로그인해 주세요.')
+        return
+      }
+
+      const menuId = Number(addBtn.dataset.menuId)
+      if (!Number.isFinite(menuId) || menuId <= 0) {
+        alert('메뉴 정보를 찾지 못했어요. 아래 메뉴 목록에서 담아 주세요.')
+        return
+      }
+
+      const canAdd = await confirmReplaceCartForOtherStore(store.id)
+      if (!canAdd) return
+
+      addBtn.disabled = true
+      try {
+        await api.cart.addItem({ storeId: store.id, menuId, quantity })
+        addBtn.textContent = '담김'
+        await refreshCartBadge()
+        setTimeout(() => {
+          addBtn.textContent = '담기'
           addBtn.disabled = false
-        }
-      })
+        }, 1200)
+      } catch (err) {
+        alert(errorMessage(err))
+        addBtn.disabled = false
+      }
     })
   }
 
@@ -382,10 +410,10 @@
               <i class="ti ti-sparkles"></i>
             </div>
             <div class="store-menu-reco-header-text">
-              <p class="store-menu-reco-eyebrow">${isAi ? 'Gemini 입맛 분석' : '맞춤 추천'}</p>
+              <p class="store-menu-reco-eyebrow">${isAi ? 'AI 맞춤 추천' : '맞춤 추천'}</p>
               <h2 id="menuRecoTitle" class="store-menu-reco-title">이 가게, 이렇게 드세요</h2>
             </div>
-            ${isAi ? '<span class="store-menu-reco-badge">AI</span>' : ''}
+            ${isAi ? '<span class="store-menu-reco-badge">Gemini</span>' : ''}
           </header>
           <div class="store-menu-reco-quote">
             <p class="store-menu-reco-message">${escapeHtml(message || '회원님 입맛을 참고한 메뉴예요.')}</p>
@@ -401,6 +429,7 @@
                   <span class="store-menu-reco-name">${escapeHtml(m.name)}</span>
                   <span class="store-menu-reco-price">${formatWon(m.price)}</span>
                 </div>
+                <button type="button" class="store-menu-reco-add" data-add-cart data-menu-id="${resolveRecoMenuId(m)}">담기</button>
               </li>`,
               )
               .join('')}
