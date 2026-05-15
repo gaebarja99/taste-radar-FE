@@ -196,6 +196,30 @@
   display: none !important;
 }
 
+.drawer-owner-link-wrap {
+  padding: 2px 4px 12px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #ede8e0;
+}
+
+.drawer-owner-link {
+  display: block;
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #9e948a;
+  text-align: center;
+  text-decoration: none;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.drawer-owner-link:hover {
+  color: #ff6b47;
+  background: #fff5f2;
+}
+
 .drawer-logout-btn {
   width: 100%;
   display: flex;

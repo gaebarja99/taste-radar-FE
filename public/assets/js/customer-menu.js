@@ -80,7 +80,12 @@
     }
 
     const nickname = localStorage.getItem('nickname') || '회원'
-    const profileHref = role === 'CUSTOMER' ? '/pages/my-profile.html' : '/'
+    const profileHref =
+      role === 'CUSTOMER'
+        ? '/pages/my-profile.html'
+        : role === 'OWNER'
+          ? '/pages/owner/owner-main.html'
+          : '/'
 
     host.hidden = false
     host.innerHTML = `
@@ -109,6 +114,11 @@
     items.push({ icon: 'ti-home', label: '홈', href: '/' })
 
     if (!loggedIn) {
+      items.push({
+        icon: 'ti-mail',
+        label: '이메일 로그인',
+        href: '/pages/auth/login.html?role=CUSTOMER',
+      })
       items.push({
         icon: 'ti-brand-kakao-talk',
         label: '카카오 로그인',
@@ -152,14 +162,6 @@
       })
     }
 
-    if (loggedIn && role === 'OWNER') {
-      items.push({
-        icon: 'ti-layout-dashboard',
-        label: '사장 대시보드',
-        href: '/pages/owner/owner-main.html',
-      })
-    }
-
     list.innerHTML = items
       .map((it, idx) => {
         const cls = `${it.kakao ? 'item-kakao' : ''}`.trim()
@@ -199,7 +201,14 @@
     if (foot) {
       if (loggedIn) {
         foot.hidden = false
+        const ownerLink =
+          role === 'OWNER'
+            ? `<div class="drawer-owner-link-wrap">
+            <a href="/pages/owner/owner-main.html" class="drawer-owner-link">사장 페이지로 이동</a>
+          </div>`
+            : ''
         foot.innerHTML = `
+          ${ownerLink}
           <button type="button" class="drawer-logout-btn" id="menuDrawerLogout">
             <i class="ti ti-logout" aria-hidden="true"></i>
             <span>로그아웃</span>
