@@ -176,18 +176,13 @@
     const msgEl = row.querySelector('[data-edit-msg]')
 
     if (!name) return showRowMsg(msgEl, '메뉴명을 입력해 주세요.', true)
-    const price = Number(priceStr)
-    if (!Number.isFinite(price) || price < 0) return showRowMsg(msgEl, '가격을 올바르게 입력해 주세요.', true)
+    const built = buildMenuPayload({ name, price: priceStr, menuDescription: desc, imageUrl })
+    if (built.error) return showRowMsg(msgEl, built.error, true)
 
     const saveBtn = row.querySelector('[data-act="edit-save"]')
     saveBtn.disabled = true
     try {
-      await api.menus.update(state.storeId, menuId, {
-        name,
-        price,
-        menuDescription: desc,
-        imageUrl,
-      })
+      await api.menus.update(state.storeId, menuId, built.payload)
       await loadMenus()
     } catch (e) {
       showRowMsg(msgEl, OwnerShared.errorMessage(e, '메뉴 수정 실패'), true)
@@ -248,6 +243,20 @@
     el.style.color = isError ? 'var(--color-cancel)' : 'var(--color-delivering)'
   }
 
+  function buildMenuPayload(data) {
+    const name = String(data.name ?? '').trim()
+    const price = parseInt(String(data.price ?? '').trim(), 10)
+    const menuDescription = String(data.menuDescription ?? '').trim()
+    const imageUrl = String(data.imageUrl ?? '').trim()
+
+    if (!name) return { error: '메뉴명을 입력해 주세요.' }
+    if (!Number.isFinite(price) || price < 1) return { error: '가격은 1원 이상의 숫자로 입력해 주세요.' }
+
+    const payload = { name, price, menuDescription }
+    if (imageUrl) payload.imageUrl = imageUrl
+    return { payload }
+  }
+
   async function handleCreate(e) {
     e.preventDefault()
     if (!state.storeId) {
@@ -259,17 +268,16 @@
     msgEl.hidden = true
 
     const data = Object.fromEntries(new FormData(form).entries())
-    const payload = {
-      name: data.name?.trim(),
-      price: Number(data.price),
-      menuDescription: data.menuDescription?.trim() ?? '',
-      imageUrl: data.imageUrl?.trim() ?? '',
+    const built = buildMenuPayload(data)
+    if (built.error) {
+      showMsg(msgEl, built.error, true)
+      return
     }
 
     const submit = form.querySelector('button[type="submit"]')
     submit.disabled = true
     try {
-      await api.menus.create(state.storeId, payload)
+      await api.menus.create(state.storeId, built.payload)
       showMsg(msgEl, '메뉴가 추가되었습니다.', false)
       form.reset()
       clearImageUrl()
@@ -285,6 +293,7 @@
     const fileInput = e.currentTarget
     const file = fileInput.files?.[0]
     const urlInput = document.getElementById('newMenuImageUrl')
+    const urlDisplay = document.getElementById('newMenuImageUrlDisplay')
     const hintEl = document.getElementById('newMenuImageMsg')
     if (!file) return
 
@@ -305,7 +314,9 @@
     hintEl.style.color = 'var(--color-text-muted)'
     try {
       const res = await api.uploads.image(file)
-      urlInput.value = res?.url ?? ''
+      const uploaded = (res?.url ?? '').trim()
+      urlInput.value = uploaded
+      if (urlDisplay) urlDisplay.value = uploaded
       hintEl.textContent = '업로드 완료. 메뉴를 추가하면 이 이미지가 사용돼요.'
       hintEl.style.color = 'var(--color-delivering)'
     } catch (err) {
@@ -318,9 +329,11 @@
   function clearImageUrl() {
     const fileInput = document.getElementById('newMenuImageFile')
     const urlInput = document.getElementById('newMenuImageUrl')
+    const urlDisplay = document.getElementById('newMenuImageUrlDisplay')
     const hintEl = document.getElementById('newMenuImageMsg')
     if (fileInput) fileInput.value = ''
     if (urlInput) urlInput.value = ''
+    if (urlDisplay) urlDisplay.value = ''
     if (hintEl) {
       hintEl.textContent = '파일을 선택하면 서버에 업로드되고 주소가 자동으로 채워져요.'
       hintEl.style.color = 'var(--color-text-muted)'
