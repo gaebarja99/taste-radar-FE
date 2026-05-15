@@ -217,28 +217,30 @@
           <i class="ti ti-x" aria-hidden="true"></i>
         </button>
         <div class="role-options">
-          <a
-            class="role-card"
-            href="http://localhost:8080/api/auth/kakao/start?role=CUSTOMER"
-          >
+          <article class="role-card">
             <i class="ti ti-shopping-bag role-icon" aria-hidden="true"></i>
             <strong class="role-title">고객으로 시작</strong>
-            <span class="role-kakao-cta">
-              <svg class="kakao-logo" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3c5.523 0 10 3.582 10 8 0 2.558-1.294 4.832-3.333 6.274L19 22l-5.2-2.86C14.89 19.378 13.47 19.5 12 19.5 6.477 19.5 2 15.918 2 11.5 2 7.082 6.477 3.5 12 3.5z"/></svg>
-              카카오로 계속
-            </span>
-          </a>
-          <a
-            class="role-card"
-            href="http://localhost:8080/api/auth/kakao/start?role=OWNER"
-          >
+            <div class="role-auth-actions">
+              <a class="role-email-cta" href="/pages/auth/login.html?role=CUSTOMER">이메일 로그인</a>
+              <a class="role-kakao-cta" href="http://localhost:8080/api/auth/kakao/start?role=CUSTOMER">
+                <svg class="kakao-logo" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3c5.523 0 10 3.582 10 8 0 2.558-1.294 4.832-3.333 6.274L19 22l-5.2-2.86C14.89 19.378 13.47 19.5 12 19.5 6.477 19.5 2 15.918 2 11.5 2 7.082 6.477 3.5 12 3.5z"/></svg>
+                카카오로 계속
+              </a>
+            </div>
+            <a class="role-register-link" href="/pages/auth/register.html?role=CUSTOMER">이메일 회원가입</a>
+          </article>
+          <article class="role-card">
             <i class="ti ti-building-store role-icon" aria-hidden="true"></i>
             <strong class="role-title">사장으로 시작</strong>
-            <span class="role-kakao-cta">
-              <svg class="kakao-logo" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3c5.523 0 10 3.582 10 8 0 2.558-1.294 4.832-3.333 6.274L19 22l-5.2-2.86C14.89 19.378 13.47 19.5 12 19.5 6.477 19.5 2 15.918 2 11.5 2 7.082 6.477 3.5 12 3.5z"/></svg>
-              카카오로 계속
-            </span>
-          </a>
+            <div class="role-auth-actions">
+              <a class="role-email-cta" href="/pages/auth/login.html?role=OWNER">이메일 로그인</a>
+              <a class="role-kakao-cta" href="http://localhost:8080/api/auth/kakao/start?role=OWNER">
+                <svg class="kakao-logo" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3c5.523 0 10 3.582 10 8 0 2.558-1.294 4.832-3.333 6.274L19 22l-5.2-2.86C14.89 19.378 13.47 19.5 12 19.5 6.477 19.5 2 15.918 2 11.5 2 7.082 6.477 3.5 12 3.5z"/></svg>
+                카카오로 계속
+              </a>
+            </div>
+            <a class="role-register-link" href="/pages/auth/register.html?role=OWNER">이메일 회원가입</a>
+          </article>
         </div>
       </div>
     </div>
