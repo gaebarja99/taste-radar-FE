@@ -797,15 +797,55 @@ a.icon-btn.is-active {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   padding: 22px 14px 18px;
   border: 1px solid var(--color-border);
   border-radius: 16px;
   background: var(--color-bg-page);
   text-align: center;
-  cursor: pointer;
   transition: border-color 0.15s, transform 0.15s, background 0.15s,
     box-shadow 0.15s;
+}
+
+.role-auth-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.role-email-cta {
+  display: block;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  color: #fff;
+  background: var(--color-primary);
+  border-radius: 10px;
+}
+
+.role-email-cta:hover {
+  filter: brightness(1.05);
+}
+
+.role-register-link {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.role-register-link:hover {
+  text-decoration: underline;
+}
+
+.role-auth-actions .role-kakao-cta {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 0;
+  border-radius: 10px;
 }
 
 .role-card:hover {
@@ -1169,6 +1209,30 @@ a.icon-btn.is-active {
 
 #menuDrawer .drawer-foot[hidden] {
   display: none !important;
+}
+
+#menuDrawer .drawer-owner-link-wrap {
+  padding: 2px 4px 12px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #ede8e0;
+}
+
+#menuDrawer .drawer-owner-link {
+  display: block;
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  text-align: center;
+  text-decoration: none;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+}
+
+#menuDrawer .drawer-owner-link:hover {
+  color: var(--color-primary);
+  background: var(--color-primary-light);
 }
 
 #menuDrawer .drawer-logout-btn {
