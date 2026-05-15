@@ -12,16 +12,20 @@
 ;(function () {
   'use strict'
 
-  // 사이드바 각 가게 그룹에 표시할 메뉴
-  // (대시보드는 상단바의 "Taste Radar" 로고로 이동하므로 사이드바에선 제외)
-  const PAGE_LINKS = [
-    { file: 'owner-store-manage.html', label: '가게 관리' },
-    { file: 'owner-order-manage.html', label: '주문 관리' },
-    { file: 'owner-review-manage.html',label: '리뷰 관리' },
-    { file: 'owner-menu-manage.html',  label: '메뉴 관리' },
+  const OWNER_TOP_NAV = [
+    { file: 'owner-main.html', label: '대시보드', icon: 'ti-layout-dashboard', scoped: false },
+    { file: 'owner-store-manage.html', label: '가게 관리', icon: 'ti-building-store', scoped: true },
+    { file: 'owner-order-manage.html', label: '주문 관리', icon: 'ti-clipboard-list', scoped: true },
+    { file: 'owner-review-manage.html', label: '리뷰 관리', icon: 'ti-message-2', scoped: true },
+    { file: 'owner-menu-manage.html', label: '메뉴 관리', icon: 'ti-tools-kitchen-2', scoped: true },
   ]
 
-  async function bootstrap() {
+  function isScopedOwnerPage(page = currentPageFile()) {
+    return OWNER_TOP_NAV.some((p) => p.scoped && p.file === page)
+  }
+
+  async function bootstrap(options = {}) {
+    const skipSidebar = !!options.skipSidebar
     if (!window.api) {
       showFatalMessage('API 스크립트를 불러오지 못했습니다.')
       return null
@@ -49,8 +53,51 @@
       }
       console.warn('[owner] storeList fetch failed:', m)
     }
-    renderSidebar(storeList)
+    if (!skipSidebar) renderSidebar(storeList)
+    renderOwnerTopNav()
     return { storeList }
+  }
+
+  function resolveNavStoreId() {
+    const urlId = getStoreIdFromUrl()
+    if (urlId) return urlId
+    const first = sidebarState.stores.find((s) => !s.isDeleted) ?? sidebarState.stores[0]
+    return first?.storeId ?? null
+  }
+
+  function renderOwnerTopNav() {
+    const inner = document.querySelector('.topbar-inner')
+    if (!inner) return
+
+    const currentPage = currentPageFile()
+    const storeId = resolveNavStoreId()
+
+    let nav = inner.querySelector('.owner-topnav')
+    if (!nav) {
+      nav = document.createElement('nav')
+      nav.className = 'owner-topnav'
+      nav.setAttribute('aria-label', '사장 관리 메뉴')
+      const homeBtn = inner.querySelector('.topbar-menu')
+      if (homeBtn) inner.insertBefore(nav, homeBtn)
+      else inner.appendChild(nav)
+    }
+
+    nav.innerHTML = OWNER_TOP_NAV.map((item) => {
+      const href = item.scoped
+        ? buildOwnerPageHref(item.file, storeId)
+        : `./${item.file}`
+      const isActive = item.file === currentPage
+      return `
+        <a
+          href="${href}"
+          class="owner-topnav-link${isActive ? ' is-active' : ''}"
+          ${isActive ? ' aria-current="page"' : ''}
+        >
+          <i class="ti ${item.icon}" aria-hidden="true"></i>
+          <span>${escapeHtml(item.label)}</span>
+        </a>
+      `
+    }).join('')
   }
 
   /** URL 쿼리 `?storeId=` (지점별 관리 페이지용) */
@@ -72,7 +119,7 @@
   }
 
   /**
-   * 가게가 1개 이상이면 URL 에 `?storeId=` 필수 (없으면 첫 가게로 리다이렉트).
+   * 가게가 1개 이상이면 URL 에 `?storeId=` 필수 (없으면 첫 운영 가게로 리다이렉트).
    * 잘못된 id 면 fatal. 가게 없으면 `{ success:true, store:null }`.
    */
   function ensureOwnerStoreScope(storeList, pageFile) {
@@ -81,7 +128,8 @@
     }
     const urlId = getStoreIdFromUrl()
     if (!urlId) {
-      window.location.replace(buildOwnerPageHref(pageFile, storeList[0].storeId))
+      const first = storeList.find((s) => !s.isDeleted) ?? storeList[0]
+      window.location.replace(buildOwnerPageHref(pageFile, first.storeId))
       return { success: false, store: null }
     }
     const store = storeList.find((s) => String(s.storeId) === String(urlId))
@@ -106,91 +154,200 @@
   }
 
   /* --------------------- 사이드바 --------------------- */
+  const sidebarState = {
+    stores: [],
+    filter: 'all',
+    search: '',
+    chromeReady: false,
+  }
+
   function renderSidebar(storeList) {
+    sidebarState.stores = Array.isArray(storeList) ? storeList : []
     const sidebar = document.querySelector('aside.sidebar')
     if (!sidebar) return
 
-    if (!storeList || storeList.length === 0) {
+    if (!sidebarState.stores.length) {
+      sidebarState.chromeReady = false
       sidebar.innerHTML = `
-        <div class="sidebar-group" data-collapsed="false">
-          <div class="sidebar-group-label">내 가게 없음</div>
-          <ul class="sidebar-nav">
-            ${PAGE_LINKS.map(
-              (l) => `<li><a href="./${l.file}"${activeAttr(l.file, null, currentPageFile(), null)}>${l.label}</a></li>`,
-            ).join('')}
-          </ul>
-        </div>
+        <p class="sidebar-empty" style="margin:16px 12px">등록된 가게가 없어요.<br />상단 「가게 관리」에서 새 가게를 추가해 보세요.</p>
       `
-      attachToggle(sidebar)
       return
     }
 
-    const currentPage = currentPageFile()
-    const urlStoreId = getStoreIdFromUrl()
-    sidebar.innerHTML = `
-      ${storeList
-        .map((store, i) => {
-          const expanded = urlStoreId != null ? String(store.storeId) === String(urlStoreId) : i === 0
-          const closedBadge = store.isDeleted
-            ? '<span class="sidebar-group-badge" title="폐업한 가게">폐업</span>'
-            : ''
-          const closedCls = store.isDeleted ? ' is-closed' : ''
-          return `
-            <div class="sidebar-group${closedCls}" data-collapsed="${expanded ? 'false' : 'true'}" data-store-id="${store.storeId}"${store.isDeleted ? ' data-closed="true"' : ''}>
-              <div class="sidebar-group-label" role="button" tabindex="0" aria-expanded="${expanded}">
-                <i class="ti ti-chevron-right" aria-hidden="true"></i>
-                <span class="sidebar-group-name">${escapeHtml(store.storeName ?? '가게')}</span>
-                ${closedBadge}
-              </div>
-              <ul class="sidebar-nav">
-                ${PAGE_LINKS.map(
-                  (l) =>
-                    `<li><a href="${buildOwnerPageHref(l.file, store.storeId)}"${activeAttr(
-                      l.file,
-                      store.storeId,
-                      currentPage,
-                      urlStoreId,
-                    )}>${l.label}</a></li>`,
-                ).join('')}
-              </ul>
-            </div>
-          `
-        })
-        .join('')}
-    `
-    attachToggle(sidebar)
+    ensureSidebarChrome(sidebar)
+    paintSidebarStores(sidebar)
   }
 
-  function attachToggle(sidebar) {
-    sidebar.querySelectorAll('.sidebar-group-label[role="button"]').forEach((label) => {
-      label.addEventListener('click', () => toggleGroup(label))
-      label.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
-          toggleGroup(label)
-        }
+  function ensureSidebarChrome(sidebar) {
+    if (sidebarState.chromeReady) return
+
+    sidebar.innerHTML = `
+      <div class="sidebar-toolbar">
+        <label class="visually-hidden" for="sidebarStoreSearch">가게명 검색</label>
+        <input
+          id="sidebarStoreSearch"
+          class="sidebar-search"
+          type="search"
+          placeholder="가게명 검색"
+          autocomplete="off"
+        />
+        <div class="sidebar-filter" role="tablist" aria-label="가게 목록 필터">
+          <button type="button" class="sidebar-filter-btn is-active" data-filter="all" role="tab" aria-selected="true">전체</button>
+          <button type="button" class="sidebar-filter-btn" data-filter="active" role="tab" aria-selected="false">운영 중</button>
+          <button type="button" class="sidebar-filter-btn" data-filter="closed" role="tab" aria-selected="false">폐업</button>
+        </div>
+      </div>
+      <div class="sidebar-stores" aria-live="polite"></div>
+    `
+
+    const searchEl = sidebar.querySelector('#sidebarStoreSearch')
+    searchEl?.addEventListener('input', () => {
+      sidebarState.search = searchEl.value
+      paintSidebarStores(sidebar)
+    })
+
+    sidebar.querySelectorAll('.sidebar-filter-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        sidebarState.filter = btn.dataset.filter || 'all'
+        sidebar.querySelectorAll('.sidebar-filter-btn').forEach((b) => {
+          const on = b === btn
+          b.classList.toggle('is-active', on)
+          b.setAttribute('aria-selected', String(on))
+        })
+        paintSidebarStores(sidebar)
       })
+    })
+
+    sidebar.addEventListener('click', (e) => {
+      const sectionLabel = e.target.closest('.sidebar-section-label[role="button"]')
+      if (sectionLabel) toggleSection(sectionLabel)
+    })
+
+    sidebar.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' && e.key !== ' ') return
+      const sectionLabel = e.target.closest('.sidebar-section-label[role="button"]')
+      if (sectionLabel) {
+        e.preventDefault()
+        toggleSection(sectionLabel)
+      }
+    })
+
+    sidebarState.chromeReady = true
+  }
+
+  function filterSidebarStores(stores) {
+    const q = sidebarState.search.trim().toLowerCase()
+    return stores.filter((s) => {
+      if (sidebarState.filter === 'active' && s.isDeleted) return false
+      if (sidebarState.filter === 'closed' && !s.isDeleted) return false
+      if (!q) return true
+      return String(s.storeName ?? '가게').toLowerCase().includes(q)
     })
   }
 
-  function toggleGroup(label) {
-    const group = label.closest('.sidebar-group')
-    if (!group) return
-    const collapsed = group.dataset.collapsed === 'true'
-    group.dataset.collapsed = collapsed ? 'false' : 'true'
-    label.setAttribute('aria-expanded', String(collapsed))
+  function paintSidebarStores(sidebar) {
+    const host = sidebar.querySelector('.sidebar-stores')
+    if (!host) return
+
+    const searchEl = sidebar.querySelector('#sidebarStoreSearch')
+    if (searchEl && searchEl.value !== sidebarState.search) {
+      searchEl.value = sidebarState.search
+    }
+
+    const filtered = filterSidebarStores(sidebarState.stores)
+    const activeStores = filtered.filter((s) => !s.isDeleted)
+    const closedStores = filtered.filter((s) => s.isDeleted)
+    const urlStoreId = getStoreIdFromUrl()
+    const currentStore = urlStoreId
+      ? sidebarState.stores.find((s) => String(s.storeId) === String(urlStoreId))
+      : null
+    const currentIsClosed = !!currentStore?.isDeleted
+    const hasSearch = !!sidebarState.search.trim()
+
+    const toolbar = sidebar.querySelector('.sidebar-toolbar')
+    if (toolbar) toolbar.hidden = !isScopedOwnerPage()
+
+    if (!isScopedOwnerPage()) {
+      host.innerHTML = `<p class="sidebar-empty sidebar-hint">가게별 관리는 상단 탭(가게·주문·리뷰·메뉴)에서 할 수 있어요.</p>`
+      return
+    }
+
+    const sections = []
+    if (sidebarState.filter !== 'closed' && activeStores.length) {
+      sections.push(
+        renderSidebarSection('운영 중', activeStores, {
+          sectionKey: 'active',
+          collapsed: currentIsClosed && !hasSearch,
+          urlStoreId,
+        }),
+      )
+    }
+    if (sidebarState.filter !== 'active' && closedStores.length) {
+      sections.push(
+        renderSidebarSection('폐업', closedStores, {
+          sectionKey: 'closed',
+          sectionClass: 'sidebar-section--closed',
+          collapsed: !currentIsClosed && !hasSearch && sidebarState.filter === 'all',
+          urlStoreId,
+        }),
+      )
+    }
+
+    host.innerHTML = sections.length
+      ? sections.join('')
+      : '<p class="sidebar-empty">조건에 맞는 가게가 없어요.</p>'
   }
 
-  /**
-   * @param {string|null} groupStoreId 가게 없을 때는 null
-   * @param {string|null} urlStoreId   현재 URL 의 storeId
-   */
-  function activeAttr(file, groupStoreId, currentPage, urlStoreId) {
-    const cur = currentPage ?? currentPageFile()
-    if (groupStoreId == null) {
-      return file === cur ? ' class="is-active"' : ''
-    }
-    return file === cur && String(groupStoreId) === String(urlStoreId || '') ? ' class="is-active"' : ''
+  function renderSidebarSection(title, stores, opts) {
+    const { sectionKey, sectionClass = '', collapsed = false, urlStoreId } = opts
+    const urlStoreInSection = urlStoreId && stores.some((s) => String(s.storeId) === String(urlStoreId))
+    const sectionCollapsed = collapsed && !urlStoreInSection && !sidebarState.search.trim()
+    const sectionCls = ['sidebar-section', sectionClass].filter(Boolean).join(' ')
+
+    return `
+      <section class="${sectionCls}" data-section="${sectionKey}" data-collapsed="${sectionCollapsed ? 'true' : 'false'}">
+        <div class="sidebar-section-label" role="button" tabindex="0" aria-expanded="${!sectionCollapsed}">
+          <span class="sidebar-section-title">
+            <i class="ti ti-chevron-right" aria-hidden="true"></i>
+            ${escapeHtml(title)}
+          </span>
+          <span class="sidebar-section-count">${stores.length}</span>
+        </div>
+        <div class="sidebar-section-body sidebar-store-list">
+          ${stores.map((store) => renderStoreListItem(store, urlStoreId)).join('')}
+        </div>
+      </section>
+    `
+  }
+
+  function renderStoreListItem(store, urlStoreId) {
+    const page = currentPageFile()
+    const href = buildOwnerPageHref(page, store.storeId)
+    const isActive = urlStoreId != null && String(store.storeId) === String(urlStoreId)
+    const closedBadge = store.isDeleted
+      ? '<span class="sidebar-group-badge" title="폐업한 가게">폐업</span>'
+      : ''
+    const closedCls = store.isDeleted ? ' is-closed' : ''
+
+    return `
+      <a
+        href="${href}"
+        class="sidebar-store-item${isActive ? ' is-active' : ''}${closedCls}"
+        data-store-id="${store.storeId}"
+        ${isActive ? ' aria-current="page"' : ''}
+      >
+        <span class="sidebar-store-item-name">${escapeHtml(store.storeName ?? '가게')}</span>
+        ${closedBadge}
+      </a>
+    `
+  }
+
+  function toggleSection(label) {
+    const section = label.closest('.sidebar-section')
+    if (!section) return
+    const collapsed = section.dataset.collapsed === 'true'
+    section.dataset.collapsed = collapsed ? 'false' : 'true'
+    label.setAttribute('aria-expanded', String(collapsed))
   }
 
   function currentPageFile() {
