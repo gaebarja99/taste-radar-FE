@@ -47,6 +47,21 @@
     return qs ? `${base}${base.includes('?') ? '&' : '?'}${qs}` : base
   }
 
+  function extractApiErrorMessage(data) {
+    if (!data || typeof data !== 'object') return null
+    if (Array.isArray(data.errors) && data.errors.length) {
+      const parts = data.errors
+        .map((e) => {
+          if (typeof e === 'string') return e
+          const field = e.field ? `${e.field}: ` : ''
+          return `${field}${e.message || e.defaultMessage || ''}`.trim()
+        })
+        .filter(Boolean)
+      if (parts.length) return parts.join(' · ')
+    }
+    return data.message || data.detail || data.error || null
+  }
+
   async function parseBody(res) {
     const text = await res.text()
     if (!text) return null
@@ -88,7 +103,7 @@
     const data = await parseBody(res)
     if (!res.ok) {
       const message =
-        (data && typeof data === 'object' && (data.message || data.detail || data.error)) ||
+        extractApiErrorMessage(data) ||
         (typeof data === 'string' ? data : null) ||
         (res.status === 401
           ? '로그인이 만료되었거나 필요합니다. 다시 로그인해 주세요.'
@@ -99,8 +114,7 @@
       // 인증된 호출에서 401을 받으면 만료된 토큰을 정리 (재로그인 유도)
       if (res.status === 401 && auth) {
         try {
-          tokenStore.clear()
-          ;['userId', 'email', 'nickname', 'role'].forEach((k) => localStorage.removeItem(k))
+          clearAuthSession()
         } catch {
           /* noop */
         }
@@ -108,6 +122,30 @@
       throw err
     }
     return data
+  }
+
+  const SESSION_KEYS = ['userId', 'email', 'nickname', 'role']
+
+  function saveAuthSession(data) {
+    if (!data || typeof data !== 'object') return
+    if (data.accessToken) {
+      tokenStore.setTokens(data.accessToken, data.refreshToken)
+    }
+    if (data.userId != null) localStorage.setItem('userId', String(data.userId))
+    if (data.email) localStorage.setItem('email', data.email)
+    if (data.nickname) localStorage.setItem('nickname', data.nickname)
+    if (data.role) localStorage.setItem('role', data.role)
+  }
+
+  function clearAuthSession() {
+    tokenStore.clear()
+    SESSION_KEYS.forEach((k) => {
+      try {
+        localStorage.removeItem(k)
+      } catch {
+        /* noop */
+      }
+    })
   }
 
   /* ============================== 0. Auth ============================== */
@@ -118,10 +156,30 @@
     },
     /** 카카오 로그인 콜백에서 받은 토큰을 저장 */
     setTokens: tokenStore.setTokens,
+    saveSession: saveAuthSession,
+    clearSession: clearAuthSession,
     getAccessToken: tokenStore.getAccess,
     getRefreshToken: tokenStore.getRefresh,
     isLoggedIn() {
       return !!tokenStore.getAccess()
+    },
+    /** 이메일 회원가입 — body: { email, password, nickname, role: 'CUSTOMER'|'OWNER' } */
+    async register({ email, password, nickname, role }) {
+      const data = await request('POST', '/api/auth/register', {
+        body: { email, password, nickname, role },
+        auth: false,
+      })
+      saveAuthSession(data)
+      return data
+    },
+    /** 이메일 로그인 */
+    async login({ email, password }) {
+      const data = await request('POST', '/api/auth/login', {
+        body: { email, password },
+        auth: false,
+      })
+      saveAuthSession(data)
+      return data
     },
     /** 토큰 재발급 (Refresh Rotation) */
     async refresh() {
@@ -135,12 +193,12 @@
       }
       return data
     },
-    /** 로그아웃 (서버 Refresh 폐기 + 로컬 토큰 삭제) */
+    /** 로그아웃 (서버 Refresh 폐기 + 로컬 세션 삭제) */
     async logout() {
       try {
         await request('POST', '/api/auth/logout')
       } finally {
-        tokenStore.clear()
+        clearAuthSession()
       }
     },
   }
@@ -324,6 +382,14 @@
         return request('GET', '/api/owner/orders/stats/today/stores')
       },
     },
+    dashboard: {
+      weeklySales() {
+        return request('GET', '/api/owner/dashboard/weekly-sales')
+      },
+      ratingSummary() {
+        return request('GET', '/api/owner/dashboard/rating-summary')
+      },
+    },
   }
 
   /* ============================ 6. Reviews ========================== */
@@ -416,6 +482,7 @@
     menus,
     cart,
     orders,
+    dashboard: orders.dashboard,
     reviews,
     ai,
     payment,
