@@ -54,13 +54,21 @@ body {
   min-height: calc(100vh - var(--topbar-height));
 }
 
+.app--dashboard {
+  display: block;
+}
+
+.app--dashboard .main {
+  width: 100%;
+  max-width: none;
+}
+
 /* ---------- Sidebar ---------- */
 .sidebar {
   width: var(--sidebar-width);
   flex-shrink: 0;
   background: var(--color-bg-card);
   border-right: 1px solid var(--color-border);
-  padding: 14px 0;
   display: flex;
   flex-direction: column;
 }
@@ -160,16 +168,270 @@ body {
   flex: 1;
   min-width: 0;
   padding: 22px 28px 32px;
+}
+
+.main.dashboard-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: auto auto;
   gap: 20px;
-  align-content: start;
+  align-items: stretch;
 }
 
 @media (max-width: 1024px) {
-  .main {
+  .main.dashboard-grid {
     grid-template-columns: 1fr;
   }
+}
+
+.dashboard-chart-card .card-header {
+  align-items: flex-start;
+}
+
+.dashboard-metric-value {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-text-main);
+  white-space: nowrap;
+}
+
+.dashboard-change.is-up {
+  color: var(--color-delivering);
+}
+
+.dashboard-change.is-down {
+  color: var(--color-cancel);
+}
+
+.dashboard-change.is-error {
+  color: var(--color-cancel);
+}
+
+.weekly-sales-chart {
+  min-height: 160px;
+  padding-top: 8px;
+}
+
+.weekly-sales-chart-loading {
+  margin: 0;
+  padding: 48px 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.weekly-sales-bars {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+  height: 140px;
+  padding: 0 4px;
+}
+
+.weekly-sales-bar {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  height: 100%;
+}
+
+.weekly-sales-bar-fill {
+  width: 100%;
+  max-width: 36px;
+  border-radius: 8px 8px 4px 4px;
+  background: linear-gradient(180deg, var(--color-primary) 0%, #ff8f6b 100%);
+  transition: height 0.2s ease;
+}
+
+.weekly-sales-bar-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.dashboard-sales-card,
+.dashboard-rating-card {
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-rating-card {
+  text-align: center;
+}
+
+.dashboard-rating-card .card-title {
+  margin-bottom: 8px;
+  text-align: left;
+}
+
+.dashboard-rating-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.dashboard-rating-value {
+  margin: 0;
+  font-size: 42px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-primary);
+  letter-spacing: -0.02em;
+}
+
+.dashboard-rating-meta {
+  margin: 8px 0 12px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.dashboard-rating-stars {
+  display: flex;
+  gap: 4px;
+  font-size: 22px;
+  color: var(--color-primary);
+}
+
+.dashboard-rating-stars .ti-star {
+  color: var(--color-border);
+}
+
+.rating-distribution {
+  margin-top: auto;
+  text-align: left;
+}
+
+.rating-distribution-title {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.rating-distribution-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rating-distribution-loading {
+  margin: 0;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.rating-dist-row {
+  display: grid;
+  grid-template-columns: 36px 1fr 28px;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.rating-dist-label {
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.rating-dist-track {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--color-bg-cream);
+  overflow: hidden;
+}
+
+.rating-dist-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--color-primary) 0%, #ff8f6b 100%);
+}
+
+.rating-dist-count {
+  text-align: right;
+  font-weight: 700;
+  color: var(--color-text-main);
+}
+
+.weekly-sales-bar.is-no-data .weekly-sales-bar-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 52px;
+  min-height: 72px;
+  padding: 4px;
+  border-radius: 8px;
+  background: var(--color-bg-cream);
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--color-text-hint);
+  text-align: center;
+  line-height: 1.3;
+}
+
+.weekly-sales-bar.is-no-data .weekly-sales-bar-label {
+  color: var(--color-text-hint);
+}
+
+.weekly-sales-bar.is-empty .weekly-sales-bar-fill {
+  background: var(--color-bg-cream);
+  min-height: 4px;
+}
+
+.today-orders-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 280px;
+}
+
+.today-orders-header {
+  margin-bottom: 8px;
+}
+
+.today-orders-header .card-title {
+  margin: 0;
+}
+
+.today-orders-total {
+  margin: 0;
+  font-size: 42px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-text-main);
+  letter-spacing: -0.02em;
+}
+
+.today-orders-total::after {
+  content: '건';
+  margin-left: 4px;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.today-orders-meta {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.today-orders-list {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 220px;
+  margin-top: 4px;
 }
 
 .card {
@@ -310,7 +572,33 @@ body {
 
 /* ---------- Store status card ---------- */
 .store-status-card {
-  align-self: start;
+  display: flex;
+  flex-direction: column;
+  min-height: 280px;
+}
+
+.store-status-scroll {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.store-status-group-title {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.store-status-group-title--closed {
+  color: var(--color-cancel);
+}
+
+.store-status-group [data-store-row] + [data-store-row] {
+  margin-top: 10px;
 }
 
 .store-status-row {
@@ -318,6 +606,16 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+}
+
+.store-status-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.store-status-name {
+  font-weight: 700;
+  font-size: 14px;
 }
 
 .store-status-label {
