@@ -45,28 +45,34 @@
   transform: scale(0.98);
 }
 
-.btn-kakao--subtle {
-  padding: 8px 12px;
-  border: 1px solid #e8e2c8;
-  border-radius: 999px;
-  background: #faf8f2;
-  color: #5c5340;
+/* 메인 사이트 헤더 — 카카오 로그인만 (기능/마크업 변경 없음) */
+.site-header .header-actions .btn-kakao.btn-kakao--subtle {
+  padding: 7px 12px;
+  border: 0.5px solid #d1b800;
+  border-radius: 6px;
+  background: #fefce8;
+  color: #856b00;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 500;
   box-shadow: none;
+  transition: background 0.15s, border-color 0.15s, transform 0.15s;
 }
 
-.btn-kakao--subtle:hover {
+.site-header .header-actions .btn-kakao.btn-kakao--subtle:hover {
   filter: none;
-  background: #f3efe4;
-  color: #3d3829;
-  border-color: #ddd4b8;
+  background: #fef9c3;
+  border-color: #b8a000;
+  color: #856b00;
 }
 
-.btn-kakao--subtle .kakao-logo {
+.site-header .header-actions .btn-kakao.btn-kakao--subtle:active {
+  transform: scale(0.99);
+}
+
+.site-header .header-actions .btn-kakao--subtle .kakao-logo {
   width: 16px;
   height: 16px;
-  color: #9a8f3c;
+  color: #856b00;
 }
 
 .btn-kakao .ti {
@@ -119,5 +125,14 @@
   .header-actions .btn-kakao .kakao-logo {
     width: 22px;
     height: 22px;
+  }
+
+  .site-header .header-actions .btn-kakao--subtle {
+    padding: 8px 10px;
+  }
+
+  .site-header .header-actions .btn-kakao--subtle .kakao-logo {
+    width: 18px;
+    height: 18px;
   }
 }
