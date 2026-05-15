@@ -151,12 +151,27 @@
           <p id="addressToast" class="profile-toast" hidden></p>
         </form>
       </section>
+
+      <section class="table-section profile-card profile-card--danger">
+        <header class="profile-card-head">
+          <i class="ti ti-alert-triangle profile-card-head-icon" aria-hidden="true"></i>
+          <div class="profile-card-head-text">
+            <h2 class="profile-card-title">회원 탈퇴</h2>
+            <p class="profile-card-desc">탈퇴하면 계정 정보가 삭제되며 다시 로그인할 수 없어요.</p>
+          </div>
+        </header>
+        <div class="profile-actions">
+          <button type="button" id="btnWithdraw" class="profile-danger-btn">회원 탈퇴</button>
+        </div>
+        <p id="withdrawToast" class="profile-toast" hidden></p>
+      </section>
     `
   }
 
   function bindForms() {
     document.getElementById('nicknameForm')?.addEventListener('submit', handleNicknameSubmit)
     document.getElementById('addressForm')?.addEventListener('submit', handleAddressSubmit)
+    document.getElementById('btnWithdraw')?.addEventListener('click', handleWithdraw)
     document.getElementById('btnAddressSearch')?.addEventListener('click', openAddressSearch)
     document.getElementById('address')?.addEventListener('click', openAddressSearch)
     document.querySelectorAll('[data-postcode-close]').forEach((el) => {
@@ -277,8 +292,33 @@
     if (host) host.innerHTML = `<p class="empty-state">${escapeHtml(message)}</p>`
   }
 
+  async function handleWithdraw() {
+    const toast = document.getElementById('withdrawToast')
+    const msg =
+      '정말 탈퇴하시겠어요?\n탈퇴 후에는 계정·주문·리뷰 정보를 복구할 수 없습니다.'
+    if (!window.confirm(msg)) return
+
+    const btn = document.getElementById('btnWithdraw')
+    if (btn) btn.disabled = true
+    try {
+      await api.users.withdraw()
+      if (api.auth.clearSession) api.auth.clearSession()
+      else clearAuthStorage()
+      window.location.href = '/'
+    } catch (err) {
+      showToast(toast, errorMessage(err), true)
+      if (btn) btn.disabled = false
+    }
+  }
+
   function clearAuthStorage() {
-    ;['userId', 'email', 'nickname', 'role'].forEach((k) => localStorage.removeItem(k))
+    if (api.auth?.clearSession) {
+      api.auth.clearSession()
+      return
+    }
+    ;['userId', 'email', 'nickname', 'role', 'accessToken', 'refreshToken'].forEach((k) =>
+      localStorage.removeItem(k),
+    )
   }
 
   function errorMessage(e) {
