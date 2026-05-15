@@ -102,7 +102,12 @@
     } catch {
       /* 서버 실패 여부와 무관하게 로컬은 정리 */
     }
-    ;['userId', 'email', 'nickname', 'role'].forEach((k) => localStorage.removeItem(k))
+    if (api.auth.clearSession) api.auth.clearSession()
+    else {
+      ;['userId', 'email', 'nickname', 'role', 'accessToken', 'refreshToken'].forEach((k) =>
+        localStorage.removeItem(k),
+      )
+    }
     state.cart = null
     applyAuthUi()
     closeAllDrawers()
@@ -205,7 +210,12 @@
     if (loggedIn) {
       userBox.hidden = false
       if (userBox.tagName === 'A') {
-        userBox.href = role === 'CUSTOMER' ? '/pages/my-profile.html' : '/'
+        userBox.href =
+          role === 'CUSTOMER'
+            ? '/pages/my-profile.html'
+            : role === 'OWNER'
+              ? '/pages/owner/owner-main.html'
+              : '/'
       }
       nick.textContent = localStorage.getItem('nickname') || '회원'
     } else if (userBox) {
@@ -265,14 +275,6 @@
       })
     }
 
-    if (loggedIn && role === 'OWNER') {
-      items.push({
-        icon: 'ti-layout-dashboard',
-        label: '사장 대시보드',
-        href: '/pages/owner/owner-main.html',
-      })
-    }
-
     list.innerHTML = items
       .map((it, idx) => {
         const cls = [
@@ -324,7 +326,14 @@
     if (foot) {
       if (loggedIn) {
         foot.hidden = false
+        const ownerLink =
+          role === 'OWNER'
+            ? `<div class="drawer-owner-link-wrap">
+            <a href="/pages/owner/owner-main.html" class="drawer-owner-link">사장 페이지로 이동</a>
+          </div>`
+            : ''
         foot.innerHTML = `
+          ${ownerLink}
           <button type="button" class="drawer-logout-btn" id="menuDrawerLogout">
             <i class="ti ti-logout" aria-hidden="true"></i>
             <span>로그아웃</span>
