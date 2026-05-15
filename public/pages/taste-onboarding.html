@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" class="taste-onboarding-page">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="/assets/css/owner-pages.css" />
     <link rel="stylesheet" href="/assets/css/store-pages.css" />
     <link rel="stylesheet" href="/assets/css/review-pages.css" />
+    <link rel="stylesheet" href="/assets/css/taste-onboarding.css" />
     <script src="/assets/js/api.js" defer></script>
     <script src="/assets/js/review-shared.js" defer></script>
     <script src="/assets/js/taste-onboarding-page.js" defer></script>
@@ -19,26 +20,52 @@
   <body>
     <header class="topbar" aria-label="상단 바">
       <div class="topbar-inner">
-      <a class="topbar-brand" href="/">Taste Radar</a>
+        <a class="topbar-brand" href="/">Taste Radar</a>
       </div>
     </header>
     <div class="store-page">
-      <main class="store-page-main" style="max-width:480px;margin:0 auto">
+      <main class="store-page-main">
         <header class="cart-page-head">
           <h1 class="cart-page-title">선호하는 입맛</h1>
           <p class="cart-page-store muted">한 가지 이상 골라 주세요. 나중에 다시 바꿀 수 있어요.</p>
+          <p id="tastePickCount" class="taste-pick-count taste-pick-count--empty" aria-live="polite">
+            아직 선택하지 않았어요
+          </p>
         </header>
-        <section class="table-section" style="padding:18px">
-          <form id="tasteForm" class="taste-pick-grid">
-            <label class="taste-pick-item"><input type="checkbox" name="sweet" /> 단맛</label>
-            <label class="taste-pick-item"><input type="checkbox" name="salty" /> 짠맛</label>
-            <label class="taste-pick-item"><input type="checkbox" name="sour" /> 신맛</label>
-            <label class="taste-pick-item"><input type="checkbox" name="bitter" /> 쓴맛</label>
-            <label class="taste-pick-item"><input type="checkbox" name="umami" /> 감칠맛</label>
+        <section class="table-section taste-onboarding-section">
+          <form id="tasteForm" class="taste-onboarding-pills">
+            <label class="taste-pill">
+              <input type="checkbox" name="sweet" class="taste-pill-input" />
+              <span class="taste-pill-text">단맛</span>
+            </label>
+            <label class="taste-pill">
+              <input type="checkbox" name="salty" class="taste-pill-input" />
+              <span class="taste-pill-text">짠맛</span>
+            </label>
+            <label class="taste-pill">
+              <input type="checkbox" name="sour" class="taste-pill-input" />
+              <span class="taste-pill-text">신맛</span>
+            </label>
+            <label class="taste-pill">
+              <input type="checkbox" name="bitter" class="taste-pill-input" />
+              <span class="taste-pill-text">쓴맛</span>
+            </label>
+            <label class="taste-pill">
+              <input type="checkbox" name="umami" class="taste-pill-input" />
+              <span class="taste-pill-text">감칠맛</span>
+            </label>
           </form>
-          <div class="review-form-actions">
-            <button type="button" id="btnSaveTaste" class="btn-primary" style="flex:1">저장하고 시작하기</button>
-            <a href="/" class="btn-outline-sm" style="display:inline-flex;align-items:center;text-decoration:none">나중에</a>
+          <div class="taste-onboarding-actions">
+            <button type="button" id="btnSaveTaste" class="btn-primary taste-onboarding-btn-save">저장하고 시작하기</button>
+            <div class="taste-onboarding-bottom">
+              <a href="/" class="taste-onboarding-skip">나중에</a>
+              <div class="taste-onboarding-notice" role="note">
+                <i class="ti ti-info-circle taste-onboarding-notice-icon" aria-hidden="true"></i>
+                <p class="taste-onboarding-notice-text">
+                  나중에 건너뛰면 AI 맞춤 추천을 받을 수 없어요. 입맛 설정에서 언제든 바꿀 수 있어요.
+                </p>
+              </div>
+            </div>
           </div>
         </section>
       </main>

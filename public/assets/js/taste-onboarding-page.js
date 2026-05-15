@@ -27,7 +27,26 @@
       /* ignore */
     }
 
+    const form = document.getElementById('tasteForm')
+    form?.addEventListener('change', updateTastePickCount)
+    updateTastePickCount()
+
     document.getElementById('btnSaveTaste')?.addEventListener('click', saveTastes)
+  }
+
+  function updateTastePickCount() {
+    const form = document.getElementById('tasteForm')
+    const el = document.getElementById('tastePickCount')
+    if (!form || !el) return
+    const keys = ['sweet', 'salty', 'sour', 'bitter', 'umami']
+    const n = keys.filter((k) => form.elements[k]?.checked).length
+    if (n === 0) {
+      el.textContent = '아직 선택하지 않았어요'
+      el.classList.add('taste-pick-count--empty')
+    } else {
+      el.textContent = `${n}개 선택됨`
+      el.classList.remove('taste-pick-count--empty')
+    }
   }
 
   function fillForm(prefs) {
@@ -37,6 +56,7 @@
       const el = form.elements[k]
       if (el) el.checked = !!prefs[k]
     })
+    updateTastePickCount()
   }
 
   async function saveTastes() {

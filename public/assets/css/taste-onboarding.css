@@ -1,0 +1,157 @@
+/* 입맛 온보딩 (taste-onboarding.html) */
+
+.taste-onboarding-page {
+  background: var(--color-bg-page, #f5f5f4);
+  min-height: 100vh;
+}
+
+.taste-onboarding-page .store-page-main {
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.taste-onboarding-section {
+  padding: 18px;
+}
+
+.taste-pick-count {
+  margin: 8px 0 0;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.taste-pick-count--empty {
+  color: var(--color-text-tertiary, #9ca3af);
+}
+
+.taste-pick-count:not(.taste-pick-count--empty) {
+  color: #e8642a;
+  font-weight: 500;
+}
+
+/* Pill grid */
+.taste-onboarding-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+}
+
+.taste-pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  cursor: pointer;
+  border: 0.5px solid #d1d5db;
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--color-text-secondary, #6b7280);
+  background: transparent;
+  user-select: none;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease,
+    font-weight 0.15s ease;
+}
+
+.taste-pill:hover {
+  border-color: #bfc4d0;
+}
+
+.taste-pill:has(.taste-pill-input:checked) {
+  border: 2px solid #e8642a;
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 13px;
+  background: #fff0ec;
+  color: #993c1d;
+  font-weight: 500;
+}
+
+.taste-pill:has(.taste-pill-input:checked) .taste-pill-text::before {
+  content: '✓';
+  display: inline-block;
+  margin-right: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.taste-pill-text {
+  pointer-events: none;
+}
+
+.taste-pill-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.taste-onboarding-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.taste-onboarding-btn-save {
+  width: 100%;
+}
+
+.taste-onboarding-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.taste-onboarding-skip {
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-muted, #8a8580);
+  text-decoration: none;
+}
+
+.taste-onboarding-skip:hover {
+  color: var(--color-text-main, #1a1a1a);
+  text-decoration: underline;
+}
+
+.taste-onboarding-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: #fefce8;
+}
+
+.taste-onboarding-notice-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+  font-size: 13px;
+  color: #854d0e;
+  line-height: 1;
+}
+
+.taste-onboarding-notice-text {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #854d0e;
+}
