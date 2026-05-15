@@ -1,5 +1,8 @@
 /* 고객용 가게 상세 — owner-order-manage.css / owner-pages.css 보강 */
 
+@import url('notification-dropdown.css');
+@import url('customer-buttons.css');
+
 .topbar + .store-page {
   min-height: calc(100vh - var(--topbar-height));
 }
