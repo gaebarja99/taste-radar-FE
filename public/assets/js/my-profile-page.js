@@ -32,6 +32,7 @@
     })
 
     setupAuthUi()
+    refreshCartBadge()
 
     if (!api.auth.isLoggedIn()) {
       renderGuest()
@@ -152,19 +153,10 @@
         </form>
       </section>
 
-      <section class="table-section profile-card profile-card--danger">
-        <header class="profile-card-head">
-          <i class="ti ti-alert-triangle profile-card-head-icon" aria-hidden="true"></i>
-          <div class="profile-card-head-text">
-            <h2 class="profile-card-title">회원 탈퇴</h2>
-            <p class="profile-card-desc">탈퇴하면 계정 정보가 삭제되며 다시 로그인할 수 없어요.</p>
-          </div>
-        </header>
-        <div class="profile-actions">
-          <button type="button" id="btnWithdraw" class="profile-danger-btn">회원 탈퇴</button>
-        </div>
-        <p id="withdrawToast" class="profile-toast" hidden></p>
-      </section>
+      <footer class="profile-withdraw-footer">
+        <button type="button" id="btnWithdraw" class="profile-danger-btn">회원 탈퇴</button>
+        <p id="withdrawToast" class="profile-toast profile-toast--inline" hidden></p>
+      </footer>
     `
   }
 
@@ -309,6 +301,42 @@
       showToast(toast, errorMessage(err), true)
       if (btn) btn.disabled = false
     }
+  }
+
+  async function refreshCartBadge() {
+    if (!api.auth.isLoggedIn()) {
+      setCartBadge(0)
+      return
+    }
+    const role = (localStorage.getItem('role') || '').toUpperCase()
+    if (role !== 'CUSTOMER') {
+      setCartBadge(0)
+      return
+    }
+    try {
+      const data = await api.cart.get()
+      setCartBadge(itemTotalQuantity(data))
+    } catch {
+      setCartBadge(0)
+    }
+  }
+
+  function setCartBadge(count) {
+    const badge = document.getElementById('cartBadge')
+    if (!badge) return
+    const n = Number(count) || 0
+    if (n <= 0) {
+      badge.hidden = true
+      badge.textContent = '0'
+    } else {
+      badge.hidden = false
+      badge.textContent = n > 99 ? '99+' : String(n)
+    }
+  }
+
+  function itemTotalQuantity(cart) {
+    const items = Array.isArray(cart?.items) ? cart.items : []
+    return items.reduce((sum, it) => sum + Number(it.quantity ?? 0), 0)
   }
 
   function clearAuthStorage() {
