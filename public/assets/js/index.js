@@ -1,5 +1,5 @@
-/**
- * 메인 페이지: 내 주변 가게 + 가게/메뉴 검색 (카카오맵)
+﻿/**
+ * ??? ??????: ??? ??? ???? + ????/????? ????? (??????)
  * - GET /api/stores/nearby?lat=&lng=&radiusKm=
  * - GET /api/stores?q=
  */
@@ -11,8 +11,9 @@
     map: null,
     userMarker: null,
     storeMarkers: [],
+    activeStoreOverlay: null,
     userPos: null,
-    /** null = 주변 검색 모드, 문자열 = 키워드 검색 모드 */
+    /** null = ??? ????? ????, ??????? = ????????? ????? ???? */
     searchQuery: null,
     allStores: [],
     tasteFilters: new Set(),
@@ -28,29 +29,40 @@
     umami: '#f97316',
   }
 
+  /** \uce69 \ubc84\ud2bc data-taste \u2194 API tasteHighlights.key */
+  const TASTE_FILTER_ALIASES = {
+    sweetness: ['sweetness', 'sweet'],
+    saltiness: ['saltiness', 'salty'],
+    sourness: ['sourness', 'sour'],
+    bitterness: ['bitterness', 'bitter'],
+    umami: ['umami'],
+  }
+
   const NEARBY_SESSION_KEY = 'tasteRadar.nearbySession'
+  let roleModalSelectedRole = 'CUSTOMER'
 
   document.addEventListener('DOMContentLoaded', init)
 
   async function init() {
     if (!window.api) {
-      setNearbyStatus('API 스크립트를 불러오지 못했습니다.', true)
+      setNearbyStatus('API ????????? ?????????? ?????????????.', true)
       return
     }
 
     const logoutBtn = document.getElementById('btnLogout')
     const loginBtn = document.getElementById('btnKakaoLogin')
     const cartBtn = document.getElementById('btnCart')
-    const menuBtn = document.getElementById('btnMenu')
-
-    loginBtn.addEventListener('click', openRoleModal)
-    cartBtn.addEventListener('click', goToCartPage)
-    menuBtn.addEventListener('click', openMenuDrawer)
-    logoutBtn.addEventListener('click', handleLogout)
+    loginBtn?.addEventListener('click', openRoleModal)
+    cartBtn?.addEventListener('click', goToCartPage)
+    logoutBtn?.addEventListener('click', handleLogout)
 
     setupRoleModal()
     setupMenuDrawerGuest()
     setupDrawers()
+    window.CustomerMenu?.init({
+      onLoginClick: openRoleModal,
+      onLogout: handleLogout,
+    })
     setupCartActions()
     setupNearby()
     setupSearch()
@@ -73,7 +85,7 @@
     await initKakaoMap()
   }
 
-  /* ----------------------------- 인증 UI ----------------------------- */
+  /* ----------------------------- ?? UI ----------------------------- */
   function applyAuthUi() {
     const loggedIn = api.auth.isLoggedIn()
     const role = (localStorage.getItem('role') || '').toUpperCase()
@@ -88,7 +100,7 @@
     cartBtn.hidden = loggedIn && role !== 'CUSTOMER'
 
     if (loggedIn) {
-      const nickname = localStorage.getItem('nickname') || '회원'
+      const nickname = localStorage.getItem('nickname') || '??????'
       nicknameEl.textContent = nickname
     } else {
       nicknameEl.textContent = ''
@@ -100,7 +112,7 @@
     try {
       await api.auth.logout()
     } catch {
-      /* 서버 실패 여부와 무관하게 로컬은 정리 */
+      /* ????? ?????? ???????? ???????? ????? ??? */
     }
     if (api.auth.clearSession) api.auth.clearSession()
     else {
@@ -115,7 +127,7 @@
     window.CustomerNotifications?.refreshBadge?.()
   }
 
-  /* ----------------------------- 역할 선택 모달 ----------------------------- */
+  /* ----------------------------- ?????? ?????? ???? ----------------------------- */
   function setupRoleModal() {
     const modal = document.getElementById('roleModal')
     const closeBtn = document.getElementById('roleModalClose')
@@ -128,15 +140,44 @@
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && !modal.hidden) closeRoleModal()
     })
+
+    modal.querySelectorAll('.role-picker-btn').forEach((btn) => {
+      btn.addEventListener('click', () => setRoleModalRole(btn.dataset.role))
+    })
+
+    setRoleModalRole('CUSTOMER')
+  }
+
+  function setRoleModalRole(role) {
+    roleModalSelectedRole = role === 'OWNER' ? 'OWNER' : 'CUSTOMER'
+    const modal = document.getElementById('roleModal')
+    if (!modal) return
+
+    modal.querySelectorAll('.role-picker-btn').forEach((btn) => {
+      const active = btn.dataset.role === roleModalSelectedRole
+      btn.classList.toggle('is-active', active)
+      btn.setAttribute('aria-selected', active ? 'true' : 'false')
+    })
+
+    const kakaoUrl = window.AuthShared?.kakaoStartUrl
+      ? AuthShared.kakaoStartUrl(roleModalSelectedRole)
+      : `${api?.COMMON_URL || ''}/api/auth/kakao/start?role=${encodeURIComponent(roleModalSelectedRole)}`
+
+    const kakao = document.getElementById('roleModalKakao')
+    const login = document.getElementById('roleModalEmailLogin')
+    const register = document.getElementById('roleModalEmailRegister')
+    if (kakao) kakao.href = kakaoUrl
+    if (login) login.href = `/pages/auth/login.html?role=${roleModalSelectedRole}`
+    if (register) register.href = `/pages/auth/register.html?role=${roleModalSelectedRole}`
   }
 
   function openRoleModal() {
     const modal = document.getElementById('roleModal')
     if (!modal) return
+    setRoleModalRole(roleModalSelectedRole)
     modal.hidden = false
     document.body.style.overflow = 'hidden'
-    const firstCard = modal.querySelector('.role-card')
-    if (firstCard) firstCard.focus()
+    document.getElementById('roleModalKakao')?.focus()
   }
 
   function closeRoleModal() {
@@ -146,7 +187,7 @@
     document.body.style.overflow = ''
   }
 
-  /* ----------------------------- 사이드 드로어 공통 ----------------------------- */
+  /* ----------------------------- ??????? ???????? ???? ----------------------------- */
   function setupDrawers() {
     document.querySelectorAll('.side-drawer').forEach((drawer) => {
       drawer.querySelectorAll('[data-drawer-close]').forEach((el) => {
@@ -181,13 +222,6 @@
     document.querySelectorAll('.side-drawer').forEach(closeDrawer)
   }
 
-  /* ----------------------------- 햄버거 메뉴 ----------------------------- */
-  function openMenuDrawer() {
-    const drawer = document.getElementById('menuDrawer')
-    renderMenuDrawer()
-    openDrawer(drawer)
-  }
-
   function setupMenuDrawerGuest() {
     const openLogin = () => {
       closeDrawer(document.getElementById('menuDrawer'))
@@ -196,161 +230,10 @@
     document.getElementById('menuDrawerKakaoStart')?.addEventListener('click', openLogin)
   }
 
-  function renderMenuDrawer() {
-    const userBox = document.getElementById('menuDrawerUser')
-    const guestBox = document.getElementById('menuDrawerGuest')
-    const nick = document.getElementById('menuDrawerNickname')
-    const list = document.getElementById('menuDrawerList')
-
-    const loggedIn = api.auth.isLoggedIn()
-    const role = (localStorage.getItem('role') || '').toUpperCase()
-
-    if (guestBox) guestBox.hidden = loggedIn
-
-    if (loggedIn) {
-      userBox.hidden = false
-      if (userBox.tagName === 'A') {
-        userBox.href =
-          role === 'CUSTOMER'
-            ? '/pages/my-profile.html'
-            : role === 'OWNER'
-              ? '/pages/owner/owner-main.html'
-              : '/'
-      }
-      nick.textContent = localStorage.getItem('nickname') || '회원'
-    } else if (userBox) {
-      userBox.hidden = true
-    }
-
-    const items = []
-    const promptLogin = () => {
-      closeDrawer(document.getElementById('menuDrawer'))
-      openRoleModal()
-    }
-
-    items.push({
-      icon: 'ti-home',
-      label: '홈',
-      href: '/',
-    })
-
-    if (!loggedIn) {
-      items.push(
-        { icon: 'ti-user', label: '내 프로필', locked: true, action: promptLogin },
-        { icon: 'ti-shopping-cart', label: '장바구니', locked: true, action: promptLogin },
-        { icon: 'ti-clipboard-list', label: '내 주문', locked: true, action: promptLogin },
-        { icon: 'ti-message-2', label: '내 리뷰', locked: true, action: promptLogin },
-        { icon: 'ti-adjustments', label: '입맛 설정', locked: true, action: promptLogin },
-      )
-    }
-
-    if (loggedIn && role === 'CUSTOMER') {
-      items.push({
-        icon: 'ti-user',
-        label: '내 프로필',
-        href: '/pages/my-profile.html',
-      })
-      items.push({
-        icon: 'ti-shopping-cart',
-        label: '장바구니',
-        action: () => {
-          closeDrawer(document.getElementById('menuDrawer'))
-          goToCartPage()
-        },
-      })
-      items.push({
-        icon: 'ti-clipboard-list',
-        label: '내 주문',
-        href: '/pages/my-orders.html',
-      })
-      items.push({
-        icon: 'ti-message-2',
-        label: '내 리뷰',
-        href: '/pages/my-reviews.html',
-      })
-      items.push({
-        icon: 'ti-adjustments',
-        label: '입맛 설정',
-        href: '/pages/taste-onboarding.html',
-      })
-    }
-
-    list.innerHTML = items
-      .map((it, idx) => {
-        const cls = [
-          it.danger ? 'item-danger' : '',
-          it.kakao ? 'item-kakao' : '',
-          it.locked ? 'item-locked' : '',
-        ]
-          .filter(Boolean)
-          .join(' ')
-        const iconMarkup = it.kakao
-          ? (window.KakaoBrand?.iconHtml?.() ||
-              '<svg class="kakao-logo" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3c5.523 0 10 3.582 10 8 0 2.558-1.294 4.832-3.333 6.274L19 22l-5.2-2.86C14.89 19.378 13.47 19.5 12 19.5 6.477 19.5 2 15.918 2 11.5 2 7.082 6.477 3.5 12 3.5z"/></svg>')
-          : `<i class="ti ${it.icon}" aria-hidden="true"></i>`
-        const lockMarkup = it.locked
-          ? '<i class="ti ti-lock drawer-item-lock" aria-hidden="true"></i>'
-          : ''
-        if (it.href) {
-          return `
-            <li>
-              <a class="${cls}" href="${it.href}">
-                ${iconMarkup}
-                <span>${escapeHtml(it.label)}</span>
-                ${lockMarkup}
-              </a>
-            </li>`
-        }
-        return `
-          <li>
-            <button type="button" class="${cls}" data-menu-idx="${idx}" ${
-          it.disabled ? 'disabled' : ''
-        }>
-              ${iconMarkup}
-              <span>${escapeHtml(it.label)}</span>
-              ${lockMarkup}
-            </button>
-          </li>`
-      })
-      .join('')
-
-    list.querySelectorAll('button[data-menu-idx]').forEach((btn) => {
-      const idx = Number(btn.dataset.menuIdx)
-      const item = items[idx]
-      if (item && typeof item.action === 'function') {
-        btn.addEventListener('click', item.action)
-      }
-    })
-
-    const foot = document.getElementById('menuDrawerFoot')
-    if (foot) {
-      if (loggedIn) {
-        foot.hidden = false
-        const ownerLink =
-          role === 'OWNER'
-            ? `<div class="drawer-owner-link-wrap">
-            <a href="/pages/owner/owner-main.html" class="drawer-owner-link">사장 페이지로 이동</a>
-          </div>`
-            : ''
-        foot.innerHTML = `
-          ${ownerLink}
-          <button type="button" class="drawer-logout-btn" id="menuDrawerLogout">
-            <i class="ti ti-logout" aria-hidden="true"></i>
-            <span>로그아웃</span>
-          </button>`
-        foot.querySelector('#menuDrawerLogout')?.addEventListener('click', handleLogout)
-      } else {
-        foot.hidden = true
-        foot.innerHTML = ''
-      }
-    }
-  }
-
-  /* ----------------------------- 장바구니 ----------------------------- */
   function setupCartActions() {
     document.getElementById('btnCartClear').addEventListener('click', handleCartClear)
     document.getElementById('btnCartCheckout').addEventListener('click', () => {
-      alert('주문하기 화면은 아직 준비 중입니다.')
+      alert('?????? ?????? ???? ???? ???????????.')
     })
   }
 
@@ -361,7 +244,7 @@
     }
     const role = (localStorage.getItem('role') || '').toUpperCase()
     if (role !== 'CUSTOMER') {
-      alert('장바구니는 고객 계정에서만 사용할 수 있어요.')
+      alert('???????????? ?? ???????????? ????????? ??? ?????????.')
       return
     }
     window.location.href = '/pages/cart.html'
@@ -374,7 +257,7 @@
     }
     const role = (localStorage.getItem('role') || '').toUpperCase()
     if (role !== 'CUSTOMER') {
-      alert('장바구니는 고객 계정에서만 사용할 수 있어요.')
+      alert('???????????? ?? ???????????? ????????? ??? ?????????.')
       return
     }
     const drawer = document.getElementById('cartDrawer')
@@ -384,7 +267,7 @@
 
   async function loadCart() {
     const body = document.getElementById('cartBody')
-    body.innerHTML = '<p class="drawer-empty">불러오는 중…</p>'
+    body.innerHTML = '<p class="drawer-empty">??????????? ?????</p>'
 
     try {
       const data = await api.cart.get()
@@ -395,8 +278,8 @@
       state.cart = null
       const msg =
         e?.status === 401
-          ? '로그인이 필요합니다.'
-          : e?.message || '장바구니를 불러오지 못했습니다.'
+          ? '????? ???????????????.'
+          : e?.message || '?????????? ?????????? ?????????????.'
       body.innerHTML = `<p class="drawer-empty is-error">${escapeHtml(msg)}</p>`
       setCartFooter([], 0, true)
     }
@@ -409,11 +292,11 @@
     const data = state.cart
     const items = Array.isArray(data?.items) ? data.items : []
 
-    storeNameEl.textContent = data?.storeName || '담긴 가게 없음'
-    countEl.textContent = `${itemTotalQuantity(data)}개`
+    storeNameEl.textContent = data?.storeName || '???? ???? ?????'
+    countEl.textContent = `${itemTotalQuantity(data)}??`
 
     if (items.length === 0) {
-      body.innerHTML = '<p class="drawer-empty">장바구니가 비어 있어요.</p>'
+      body.innerHTML = '<p class="drawer-empty">??????????? ????? ?????????.</p>'
       setCartFooter([], 0, true)
       return
     }
@@ -437,8 +320,8 @@
     return `
       <div class="cart-item">
         <div>
-          <p class="cart-item-name">${escapeHtml(item.menuName ?? '메뉴')}</p>
-          <p class="cart-item-price">${formatWon(unit)} · 합계 ${formatWon(line)}</p>
+          <p class="cart-item-name">${escapeHtml(item.menuName ?? '?????')}</p>
+          <p class="cart-item-price">${formatWon(unit)} ? ????? ${formatWon(line)}</p>
         </div>
         <button
           type="button"
@@ -446,10 +329,10 @@
           data-cart-act="remove"
           data-item-id="${item.id}"
           data-qty="0"
-          aria-label="삭제"
-        >삭제</button>
+          aria-label="?????"
+        >?????</button>
         <div class="cart-item-line">
-          <div class="qty-stepper" role="group" aria-label="수량 조절">
+          <div class="qty-stepper" role="group" aria-label="?????? ???">
             <button
               type="button"
               class="qty-btn"
@@ -457,8 +340,8 @@
               data-item-id="${item.id}"
               data-qty="${qty}"
               ${qty <= 1 ? 'disabled' : ''}
-              aria-label="수량 감소"
-            >−</button>
+              aria-label="?????? ????"
+            >???</button>
             <span class="qty-value">${qty}</span>
             <button
               type="button"
@@ -466,7 +349,7 @@
               data-cart-act="inc"
               data-item-id="${item.id}"
               data-qty="${qty}"
-              aria-label="수량 증가"
+              aria-label="?????? ???"
             >+</button>
           </div>
           <strong>${formatWon(line)}</strong>
@@ -493,17 +376,17 @@
       }
       await loadCart()
     } catch (e) {
-      alert(e?.message || '장바구니를 수정하지 못했어요.')
+      alert(e?.message || '?????????? ?????????? ??????????.')
     }
   }
 
   async function handleCartClear() {
-    if (!confirm('장바구니를 비울까요?')) return
+    if (!confirm('?????????? ???????????')) return
     try {
       await api.cart.clear()
       await loadCart()
     } catch (e) {
-      alert(e?.message || '장바구니를 비우지 못했어요.')
+      alert(e?.message || '?????????? ??????? ??????????.')
     }
   }
 
@@ -552,7 +435,7 @@
     )
   }
 
-  /* ----------------------------- 가게/메뉴 검색 ----------------------------- */
+  /* ----------------------------- ????/????? ????? ----------------------------- */
   function setupSearch() {
     const form = document.getElementById('searchForm')
     const input = document.getElementById('searchInput')
@@ -575,8 +458,8 @@
     state.searchQuery = null
     const titleEl = document.getElementById('panelTitle')
     const leadEl = document.getElementById('pageLead')
-    if (titleEl) titleEl.textContent = '내 주변 가게'
-    if (leadEl) leadEl.textContent = '현재 위치를 기준으로 가까운 가게를 보여드려요.'
+    if (titleEl) titleEl.textContent = '??? ??? ????'
+    if (leadEl) leadEl.textContent = '?????? ?????? ???????? ??????? ????? ???????????.'
   }
 
   function resetNearbyPanel() {
@@ -585,11 +468,11 @@
     state.tasteFilters.clear()
     document.querySelectorAll('.taste-chip.is-active').forEach((b) => b.classList.remove('is-active'))
     showTasteFilterBar(false)
-    document.getElementById('nearbyCount').textContent = '위치를 알려주세요'
+    document.getElementById('nearbyCount').textContent = '?????? ???????????'
     document.getElementById('nearbyList').innerHTML = ''
     document.getElementById('nearbyEmpty').hidden = true
     clearStoreMarkers()
-    setNearbyStatus('"내 위치로 검색"을 눌러 주세요.')
+    setNearbyStatus('"??? ??????? ?????"?? ?????? ???????.')
   }
 
   async function loadSearchStores(q) {
@@ -600,10 +483,10 @@
     const titleEl = document.getElementById('panelTitle')
     const leadEl = document.getElementById('pageLead')
 
-    if (titleEl) titleEl.textContent = '검색 결과'
-    if (leadEl) leadEl.textContent = '가게명·메뉴명으로 찾은 가게예요.'
+    if (titleEl) titleEl.textContent = '????? ??'
+    if (leadEl) leadEl.textContent = '??????????????????? ??? ??????????.'
 
-    setNearbyStatus(`「${q}」 검색 중…`)
+    setNearbyStatus(`???${q}??? ????? ?????`)
     listEl.setAttribute('aria-busy', 'true')
     listEl.innerHTML = renderSkeletons(4)
     emptyEl.hidden = true
@@ -618,9 +501,9 @@
       showTasteFilterBar(content.length > 0)
       refreshStoreView()
       if (content.length > 0) {
-        setNearbyStatus(`「${q}」 검색 결과를 표시하고 있어요.`)
+        setNearbyStatus(`???${q}??? ????? ??? ?????????? ?????????.`)
       } else {
-        setNearbyStatus('검색을 완료했어요.')
+        setNearbyStatus('??????? ??????????????.')
       }
     } catch (e) {
       listEl.innerHTML = ''
@@ -631,7 +514,7 @@
     }
   }
 
-  /* ----------------------------- 카카오맵 ----------------------------- */
+  /* ----------------------------- ?????? ----------------------------- */
   function setupNearby() {
     document.getElementById('btnUseMyLocation').addEventListener('click', useMyLocation)
     document.getElementById('nearbyRadius').addEventListener('change', () => {
@@ -644,9 +527,9 @@
 
     if (window.__kakaoMapLoadError === 'missing-key') {
       showMapPlaceholderError(
-        '카카오맵 키가 없어요. 프로젝트 루트에 .env 파일을 만들고 VITE_KAKAO_JS_KEY=JavaScript키 를 넣은 뒤 npm run dev 를 다시 실행하세요.',
+        '?????? ????? ?????????. ????????? ??????? .env ?????? ?????? VITE_KAKAO_JS_KEY=JavaScript??? ? ????? ??? npm run dev ? ?????? ???????????????.',
       )
-      setNearbyStatus('VITE_KAKAO_JS_KEY 가 설정되지 않았습니다.', true)
+      setNearbyStatus('VITE_KAKAO_JS_KEY ?? ????????? ???????????????.', true)
       tryRestoreNearbySession()
       return
     }
@@ -661,10 +544,10 @@
 
     if (!window.kakao || !window.kakao.maps) {
       showMapPlaceholderError(
-        '카카오맵 SDK를 불러오지 못했어요. .env 의 VITE_KAKAO_JS_KEY 와 카카오 디벨로퍼스 → 플랫폼(Web 도메인: http://localhost:5173) 등록을 확인하세요.',
+        '?????? SDK? ?????????? ??????????. .env ?? VITE_KAKAO_JS_KEY ??? ????? ?????????? ??? ???????(Web ?????: http://localhost:5173) ?????? ?????????????.',
       )
       setNearbyStatus(
-        '카카오맵 SDK 로드 실패. 브라우저 콘솔(F12)의 에러를 확인하세요.',
+        '?????? SDK ????? ??????. ???????? ?????(F12)?? ??????? ?????????????.',
         true,
       )
       tryRestoreNearbySession()
@@ -675,12 +558,13 @@
       const placeholder = document.getElementById('mapPlaceholder')
       if (placeholder) placeholder.style.display = 'none'
 
-      // 기본 중심: 서울 시청
+      // ?? ?????: ?????? ????
       const defaultCenter = new kakao.maps.LatLng(37.5666103, 126.9783882)
       state.map = new kakao.maps.Map(container, {
         center: defaultCenter,
         level: 5,
       })
+      kakao.maps.event.addListener(state.map, 'click', closeStoreOverlay)
       tryRestoreNearbySession()
     })
   }
@@ -741,10 +625,10 @@
 
   function useMyLocation() {
     if (!navigator.geolocation) {
-      setNearbyStatus('이 브라우저에서는 위치 기능을 사용할 수 없어요.', true)
+      setNearbyStatus('? ????????????????? ????? ?????? ????????? ??? ?????????.', true)
       return
     }
-    setNearbyStatus('현재 위치를 가져오는 중…')
+    setNearbyStatus('?????? ?????? ????????? ?????')
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude, longitude } = pos.coords
@@ -753,10 +637,10 @@
         loadNearbyStores()
       },
       (err) => {
-        let msg = '현재 위치를 가져오지 못했어요.'
-        if (err.code === err.PERMISSION_DENIED) msg = '위치 권한이 거부되었어요. 브라우저 설정에서 허용해 주세요.'
-        else if (err.code === err.POSITION_UNAVAILABLE) msg = '위치 정보를 사용할 수 없어요.'
-        else if (err.code === err.TIMEOUT) msg = '위치 요청이 시간 초과되었어요.'
+        let msg = '?????? ?????? ???????? ??????????.'
+        if (err.code === err.PERMISSION_DENIED) msg = '????? ?????? ??????????????. ???????? ??????????? ????????? ???????.'
+        else if (err.code === err.POSITION_UNAVAILABLE) msg = '????? ???? ????????? ??? ?????????.'
+        else if (err.code === err.TIMEOUT) msg = '????? ????? ????? ??????????????.'
         setNearbyStatus(msg, true)
       },
       { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 },
@@ -770,26 +654,36 @@
     state.map.setLevel(4)
 
     if (state.userMarker) state.userMarker.setMap(null)
+    const { image } = makeUserMarkerImage()
     state.userMarker = new kakao.maps.Marker({
       position: center,
       map: state.map,
-      title: '내 위치',
-      image: makeUserMarkerImage(),
+      title: '\ub0b4 \uc704\uce58',
+      image,
+      zIndex: 100,
     })
   }
 
+  /** \uac00\uac8c \uc6d0\ud615 \ub9c8\ucee4\uc640 \uad6c\ubd84: \ud540 \ud615\ud0c1 \ub9c8\ucee4 */
   function makeUserMarkerImage() {
+    const w = 36
+    const h = 44
     const svg = encodeURIComponent(
-      `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
-        <circle cx="14" cy="14" r="10" fill="#ff6b47" fill-opacity="0.25"/>
-        <circle cx="14" cy="14" r="6" fill="#ff6b47" stroke="#fff" stroke-width="2"/>
+      `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 36 44">
+        <circle cx="18" cy="18" r="15" fill="#2563EB" fill-opacity="0.14"/>
+        <circle cx="18" cy="18" r="10" fill="#2563EB" fill-opacity="0.22"/>
+        <path d="M18 5c-5.2 0-9.5 4.1-9.5 9.5 0 7.2 9.5 20.5 9.5 20.5s9.5-13.3 9.5-20.5C27.5 9.1 23.2 5 18 5z" fill="#2563EB" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"/>
+        <circle cx="18" cy="14.5" r="4.2" fill="#fff"/>
       </svg>`,
     )
-    return new kakao.maps.MarkerImage(
-      `data:image/svg+xml;charset=utf-8,${svg}`,
-      new kakao.maps.Size(28, 28),
-      { offset: new kakao.maps.Point(14, 14) },
-    )
+    return {
+      image: new kakao.maps.MarkerImage(
+        `data:image/svg+xml;charset=utf-8,${svg}`,
+        new kakao.maps.Size(w, h),
+        { offset: new kakao.maps.Point(w / 2, h) },
+      ),
+      size: h,
+    }
   }
 
   async function loadNearbyStores(options = {}) {
@@ -807,8 +701,8 @@
 
     setNearbyStatus(
       options.restored
-        ? '이전에 검색한 위치 기준으로 주변 가게를 불러오는 중…'
-        : '내 주변 가게를 검색하는 중…',
+        ? '?????? ???????? ????? ???????? ??? ????? ??????????? ?????'
+        : '??? ??? ????? ??????????? ?????',
     )
     listEl.setAttribute('aria-busy', 'true')
     listEl.innerHTML = renderSkeletons(4)
@@ -833,11 +727,11 @@
       if (content.length > 0) {
         setNearbyStatus(
           options.restored
-            ? `이전 위치 기준 ${radiusKm}km 내 맛집을 표시하고 있어요.`
-            : `내 위치 기준 ${radiusKm}km 내 맛집을 표시하고 있어요.`,
+            ? `??? ????? ??? ${radiusKm}km ??? ?????? ?????????? ?????????.`
+            : `??? ????? ??? ${radiusKm}km ??? ?????? ?????????? ?????????.`,
         )
       } else {
-        setNearbyStatus('검색을 완료했어요.')
+        setNearbyStatus('??????? ??????????????.')
       }
     } catch (e) {
       listEl.innerHTML = ''
@@ -873,12 +767,19 @@
     return list.filter(storeMatchesTasteFilters)
   }
 
+  function highlightMatchesFilter(highlightKey) {
+    const hk = String(highlightKey)
+    for (const filterKey of state.tasteFilters) {
+      const aliases = TASTE_FILTER_ALIASES[filterKey] || [filterKey]
+      if (aliases.includes(hk)) return true
+    }
+    return false
+  }
+
   function storeMatchesTasteFilters(store) {
     const highlights = Array.isArray(store.tasteHighlights) ? store.tasteHighlights : []
     if (!highlights.length) return false
-    return highlights.some(
-      (h) => state.tasteFilters.has(String(h.key)) && Number(h.score) >= 3,
-    )
+    return highlights.some((h) => highlightMatchesFilter(h.key) && Number(h.score) >= 3)
   }
 
   function isRadarMatch(store) {
@@ -903,8 +804,8 @@
       listEl.innerHTML = ''
       emptyEl.hidden = false
       emptyEl.textContent = state.searchQuery
-        ? `「${state.searchQuery}」에 맞는 가게가 없어요.`
-        : '아직 주변 가게가 없어요.'
+        ? `???${state.searchQuery}?????? ????? ?????? ?????????.`
+        : '???? ??? ?????? ?????????.'
       clearStoreMarkers()
       return
     }
@@ -912,7 +813,7 @@
     if (filtered.length === 0) {
       listEl.innerHTML = ''
       emptyEl.hidden = false
-      emptyEl.textContent = '선택한 입맛에 맞는 가게가 없어요. 필터를 조절해 보세요.'
+      emptyEl.textContent = '????????? ???????? ????? ?????? ?????????. ??????? ?????? ???????.'
       clearStoreMarkers()
       return
     }
@@ -932,15 +833,15 @@
 
     if (searchQuery) {
       el.textContent = state.tasteFilters.size
-        ? `「${searchQuery}」 검색 중 입맛에 맞는 ${n.toLocaleString('ko-KR')}개의 맛집이 레이더에 포착됐어요!`
-        : `「${searchQuery}」에서 ${t.toLocaleString('ko-KR')}개의 맛집을 찾았어요!`
+        ? `\u201c${searchQuery}\u201d \uac80\uc0c9 \uacb0\uacfc \uc911 \uc785\ub9db\uc5d0 \ub9de\ub294 ${n.toLocaleString('ko-KR')}\uac1c\ub9db\uc9d4\uc744 \ub808\uc774\ub354\uc5d0 \ud3ec\uce69\ud588\uc5b4\uc694!`
+        : `\u201c${searchQuery}\u201d\uc5d0\uc11c ${t.toLocaleString('ko-KR')}\uac1c\uc758 \ub9db\uc9d4\uc744 \ucc3e\uc558\uc5b4\uc694!`
       return
     }
 
     const km = radiusKm ?? state.nearbyRadiusKm ?? 3
     el.textContent = state.tasteFilters.size
-      ? `내 주변 ${km}km 이내에 ${n.toLocaleString('ko-KR')}개의 맛집이 입맛 레이더에 포착됐어요!`
-      : `내 주변 ${km}km 이내에 ${t.toLocaleString('ko-KR')}개의 맛집이 레이더에 포착됐어요!`
+      ? `\ub0b4 \uc8fc\ubcc0 ${km}km \uc548\uc5d0 ${n.toLocaleString('ko-KR')}\uac1c \ub9db\uc9d4 \uc911 \uc785\ub9db\uc5d0 \ub9de\ub294 \uac00\uac8c\ub97c \ub808\uc774\ub354\uc5d0 \ud3ec\uce69\ud588\uc5b4\uc694!`
+      : `\ub0b4 \uc8fc\ubcc0 ${km}km \uc548\uc5d0 ${t.toLocaleString('ko-KR')}\uac1c \uac00\uac8c\uac00 \ub808\uc774\ub354\uc5d0 \uac78\ub838\uc5b4\uc694!`
   }
 
   function dominantTasteKey(store) {
@@ -952,12 +853,12 @@
 
   function inferCategoryColor(name) {
     const n = String(name || '')
-    if (/카페|coffee|베이커리|디저트|브런치/i.test(n)) return '#8B5E3C'
-    if (/한식|백반|국밥|찌개|김치|비빔/i.test(n)) return '#DC2626'
-    if (/중식|짜장|짬뽕|마라|탕수/i.test(n)) return '#EA580C'
-    if (/일식|초밥|라멘|돈까스|우동/i.test(n)) return '#2563EB'
-    if (/양식|파스타|피자|스테이크|버거/i.test(n)) return '#7C3AED'
-    if (/샐러드|포케|다이어트/i.test(n)) return '#16A34A'
+    if (/\uce74\ud398|coffee|\ubca0\uc774\ud130\ub9ac|\ube0c\ub7f0\uce58|\ub514\uc800\ud2b8/i.test(n)) return '#8B5E3C'
+    if (/\ud55c\uc2dd|\ubc31\ubc18|\uad6d\ubb34|\ucc0c\uac1c|\uae40\uce58|\ube44\ube48/i.test(n)) return '#DC2626'
+    if (/\uc911\uc2dd|\uc9dc\uc7a5|\uc9ec\ubf55|\ub9c8\ub77c|\ud0d5\uc218/i.test(n)) return '#EA580C'
+    if (/\uc77c\uc2dd|\ucd08\ubc25|\ub77c\uba58|\ub3c8\uae4c\uc2a4|\ud68c\ub367/i.test(n)) return '#2563EB'
+    if (/\uc591\uc2dd|\ud30c\uc2a4\ud0c0|\ud53c\uc790|\uc2a4\ud14c\uc774\ud06c|\ubc84\uac70/i.test(n)) return '#7C3AED'
+    if (/\uc0d4\ub7ec\ub4dc|\ud3ec\ucf00|\ub2e4\uc774\uc5b4\ud2b8/i.test(n)) return '#16A34A'
     return '#6366F1'
   }
 
@@ -986,13 +887,14 @@
 
   function plotStoreMarkers(stores) {
     if (!state.map) return
+    clearStoreMarkers()
     const bounds = new kakao.maps.LatLngBounds()
     if (state.userPos) bounds.extend(new kakao.maps.LatLng(state.userPos.lat, state.userPos.lng))
 
     stores.forEach((s) => {
       const lat = Number(s.latitude ?? s.lat)
       const lng = Number(s.longitude ?? s.lng)
-      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return // 좌표 없는 가게는 스킵
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return // ????? ?????? ??????? ??????
 
       const pos = new kakao.maps.LatLng(lat, lng)
       const radar = isRadarMatch(s)
@@ -1003,23 +905,85 @@
         map: state.map,
         title: s.name,
         image,
+        zIndex: radar ? 3 : 2,
       })
-      const info = new kakao.maps.InfoWindow({
-        content: `<div style="padding:6px 10px;font-size:12px;font-weight:700">${escapeHtml(
-          s.name,
-        )}</div>`,
-      })
-      kakao.maps.event.addListener(marker, 'click', () => info.open(state.map, marker))
+      kakao.maps.event.addListener(marker, 'click', () => openStoreOverlay(s, marker))
       state.storeMarkers.push(marker)
       bounds.extend(pos)
     })
 
     if (state.storeMarkers.length > 0) state.map.setBounds(bounds)
+    if (state.userMarker && state.userPos) {
+      state.userMarker.setMap(state.map)
+      state.userMarker.setZIndex(100)
+    }
   }
 
   function clearStoreMarkers() {
+    closeStoreOverlay()
     state.storeMarkers.forEach((m) => m.setMap(null))
     state.storeMarkers = []
+  }
+
+  function closeStoreOverlay() {
+    if (!state.activeStoreOverlay) return
+    state.activeStoreOverlay.setMap(null)
+    state.activeStoreOverlay = null
+  }
+
+  function openStoreOverlay(store, marker) {
+    if (!state.map || !marker) return
+    closeStoreOverlay()
+    const overlay = new kakao.maps.CustomOverlay({
+      position: marker.getPosition(),
+      content: buildMapStoreCard(store),
+      yAnchor: 1.08,
+      xAnchor: 0.5,
+      zIndex: 5,
+    })
+    overlay.setMap(state.map)
+    state.activeStoreOverlay = overlay
+  }
+
+  function buildMapStoreCard(store) {
+    const status = String(store.status || '').toUpperCase()
+    const statusMod = status === 'OPEN' ? 'open' : status === 'PREPARING' ? 'preparing' : 'close'
+    const statusLabel =
+      status === 'OPEN' ? '\uc601\uc5c5 \uc911' : status === 'PREPARING' ? '\uc900\ube44 \uc911' : '\uc601\uc5c5 \uc885\ub8cc'
+
+    const storeId = encodeURIComponent(store.id ?? '')
+    const storeHref = `/pages/store.html?storeId=${storeId}`
+
+    const card = document.createElement('article')
+    card.className = 'map-store-card'
+    card.setAttribute('role', 'dialog')
+    card.setAttribute('aria-label', store.name || '\uac00\uac8c \uc815\ubcf4')
+    card.innerHTML = `
+      <button type="button" class="map-store-card__close" aria-label="\ub2eb\uae30">
+        <i class="ti ti-x" aria-hidden="true"></i>
+      </button>
+      <div class="map-store-card__body">
+        <h3 class="map-store-card__name">${escapeHtml(store.name)}</h3>
+        <p class="map-store-card__meta">
+          <span class="map-store-card__score">\u2605 ${formatRating(store.averageRating)}</span>
+          <span>\ub9ac\ubdf0 ${Number(store.reviewCount ?? 0).toLocaleString('ko-KR')}</span>
+          <span class="map-store-card__status map-store-card__status--${statusMod}">${statusLabel}</span>
+        </p>
+        <p class="map-store-card__min">\ucd5c\uc18c \uc8fc\ubb38 ${formatWon(store.minOrderAmount)}</p>
+        <a class="map-store-card__cta" href="${storeHref}">\uac00\uac8c \ubcf4\uae30</a>
+      </div>
+    `
+
+    card.querySelector('.map-store-card__close')?.addEventListener('click', (e) => {
+      e.preventDefault()
+      e.stopPropagation()
+      closeStoreOverlay()
+    })
+    ;['mousedown', 'touchstart', 'wheel'].forEach((type) => {
+      card.addEventListener(type, (e) => e.stopPropagation())
+    })
+
+    return card
   }
 
   function setNearbyStatus(message, isError = false) {
@@ -1029,7 +993,7 @@
     el.classList.toggle('is-error', !!isError)
   }
 
-  /* ----------------------------- 렌더링 ----------------------------- */
+  /* ----------------------------- ????? ----------------------------- */
   function renderSkeletons(n) {
     return Array.from({ length: n })
       .map(() => '<li><div class="store-card-skeleton"></div></li>')
@@ -1039,11 +1003,12 @@
   function renderCard(store, radarMatch = false) {
     const status = String(store.status || '').toUpperCase()
     const statusMod = status === 'OPEN' ? 'open' : status === 'PREPARING' ? 'preparing' : 'close'
-    const statusLabel = status === 'OPEN' ? '영업 중' : status === 'PREPARING' ? '준비 중' : '영업 종료'
+    const statusLabel =
+      status === 'OPEN' ? '\uc601\uc5c5 \uc911' : status === 'PREPARING' ? '\uc900\ube44 \uc911' : '\uc601\uc5c5 \uc885\ub8cc'
 
     const thumb = store.thumbnailUrl
       ? `<img src="${escapeAttr(store.thumbnailUrl)}" alt="" loading="lazy" />`
-      : '<span aria-hidden="true">🍽️</span>'
+      : '<span aria-hidden="true">\ud83c\udf7d\ufe0f</span>'
 
     const tasteTags =
       window.ReviewUi && Array.isArray(store.tasteHighlights) && store.tasteHighlights.length
@@ -1062,35 +1027,35 @@
           <div class="store-body">
             <h2 class="store-name">${escapeHtml(store.name)}</h2>
             <p class="store-meta">
-              <span class="store-rating">★ ${formatRating(store.averageRating)}</span>
-              <span class="store-review-count">리뷰 ${Number(store.reviewCount ?? 0).toLocaleString('ko-KR')}</span>
+              <span class="store-rating">\u2605 ${formatRating(store.averageRating)}</span>
+              <span class="store-review-count">\ub9ac\ubdf0 ${Number(store.reviewCount ?? 0).toLocaleString('ko-KR')}</span>
             </p>
             ${tasteTags}
-            <p class="store-min-order">최소 주문 ${formatWon(store.minOrderAmount)}</p>
+            <p class="store-min-order">\ucd5c\uc18c \uc8fc\ubb38 ${formatWon(store.minOrderAmount)}</p>
           </div>
         </a>
       </li>
     `
   }
 
-  /* ----------------------------- 상태/유틸 ----------------------------- */
+  /* ----------------------------- ??????/?????? ----------------------------- */
   function errorMessage(e) {
-    if (!e) return '가게 목록을 불러오지 못했습니다.'
+    if (!e) return '???? ???? ?????????? ?????????????.'
     const msg = e.message || ''
     if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) {
-      return '백엔드 서버(http://localhost:8080)에 연결할 수 없습니다.'
+      return '??????? ?????(http://localhost:8080)??? ??????? ??? ????????????.'
     }
-    if (e.status === 401) return '로그인이 필요합니다.'
-    return msg || '가게 목록을 불러오지 못했습니다.'
+    if (e.status === 401) return '????? ???????????????.'
+    return msg || '???? ???? ?????????? ?????????????.'
   }
 
   function formatRating(v) {
-    if (v == null || Number.isNaN(Number(v))) return '—'
+    if (v == null || Number.isNaN(Number(v))) return '\u2014'
     return Number(v).toFixed(1)
   }
 
   function formatWon(v) {
-    return `${Number(v ?? 0).toLocaleString('ko-KR')}원`
+    return `${Number(v ?? 0).toLocaleString('ko-KR')}\uc6d0`
   }
 
   function escapeHtml(text) {

@@ -23,7 +23,9 @@
     <script type="module" src="/src/load-kakao-map.js"></script>
     <script src="/assets/js/kakao-brand.js" defer></script>
     <script src="/assets/js/api.js" defer></script>
+    <script src="/assets/js/auth-shared.js" defer></script>
     <script src="/assets/js/customer-notifications.js" defer></script>
+    <script src="/assets/js/customer-menu.js" defer></script>
     <script src="/assets/js/review-shared.js" defer></script>
     <script src="/assets/js/index.js" defer></script>
   </head>
@@ -207,7 +209,7 @@
       aria-labelledby="roleModalTitle"
       hidden
     >
-      <div class="modal-card">
+      <div class="modal-card role-modal-card">
         <button
           type="button"
           id="roleModalClose"
@@ -216,31 +218,54 @@
         >
           <i class="ti ti-x" aria-hidden="true"></i>
         </button>
-        <div class="role-options">
-          <article class="role-card">
-            <i class="ti ti-shopping-bag role-icon" aria-hidden="true"></i>
-            <strong class="role-title">고객으로 시작</strong>
-            <div class="role-auth-actions">
-              <a class="role-email-cta" href="/pages/auth/login.html?role=CUSTOMER">이메일 로그인</a>
-              <a class="role-kakao-cta" href="http://localhost:8080/api/auth/kakao/start?role=CUSTOMER">
-                <svg class="kakao-logo" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3c5.523 0 10 3.582 10 8 0 2.558-1.294 4.832-3.333 6.274L19 22l-5.2-2.86C14.89 19.378 13.47 19.5 12 19.5 6.477 19.5 2 15.918 2 11.5 2 7.082 6.477 3.5 12 3.5z"/></svg>
-                카카오로 계속
-              </a>
-            </div>
-            <a class="role-register-link" href="/pages/auth/register.html?role=CUSTOMER">이메일 회원가입</a>
-          </article>
-          <article class="role-card">
-            <i class="ti ti-building-store role-icon" aria-hidden="true"></i>
-            <strong class="role-title">사장으로 시작</strong>
-            <div class="role-auth-actions">
-              <a class="role-email-cta" href="/pages/auth/login.html?role=OWNER">이메일 로그인</a>
-              <a class="role-kakao-cta" href="http://localhost:8080/api/auth/kakao/start?role=OWNER">
-                <svg class="kakao-logo" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3c5.523 0 10 3.582 10 8 0 2.558-1.294 4.832-3.333 6.274L19 22l-5.2-2.86C14.89 19.378 13.47 19.5 12 19.5 6.477 19.5 2 15.918 2 11.5 2 7.082 6.477 3.5 12 3.5z"/></svg>
-                카카오로 계속
-              </a>
-            </div>
-            <a class="role-register-link" href="/pages/auth/register.html?role=OWNER">이메일 회원가입</a>
-          </article>
+        <header class="role-modal-head">
+          <h2 id="roleModalTitle" class="role-modal-title">Taste Radar 시작하기</h2>
+          <p class="role-modal-subtitle">역할을 선택하고 로그인하세요</p>
+        </header>
+        <div class="role-picker" role="tablist" aria-label="로그인 역할">
+          <button
+            type="button"
+            class="role-picker-btn is-active"
+            data-role="CUSTOMER"
+            role="tab"
+            aria-selected="true"
+          >
+            <i class="ti ti-shopping-bag" aria-hidden="true"></i>
+            <span>고객</span>
+          </button>
+          <button
+            type="button"
+            class="role-picker-btn"
+            data-role="OWNER"
+            role="tab"
+            aria-selected="false"
+          >
+            <i class="ti ti-building-store" aria-hidden="true"></i>
+            <span>사장</span>
+          </button>
+        </div>
+        <div class="role-modal-actions">
+          <a id="roleModalKakao" class="role-modal-kakao" href="#">
+            <span class="role-modal-kakao-icon" aria-hidden="true">
+              <svg class="kakao-logo" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  fill="currentColor"
+                  d="M12 3c5.523 0 10 3.582 10 8 0 2.558-1.294 4.832-3.333 6.274L19 22l-5.2-2.86C14.89 19.378 13.47 19.5 12 19.5 6.477 19.5 2 15.918 2 11.5 2 7.082 6.477 3.5 12 3.5z"
+                />
+              </svg>
+            </span>
+            카카오로 계속하기
+          </a>
+          <p class="role-modal-divider" aria-hidden="true"><span>또는</span></p>
+          <a id="roleModalEmailLogin" class="role-modal-secondary" href="/pages/auth/login.html?role=CUSTOMER"
+            >이메일로 로그인</a
+          >
+          <a
+            id="roleModalEmailRegister"
+            class="role-modal-secondary"
+            href="/pages/auth/register.html?role=CUSTOMER"
+            >이메일로 회원가입</a
+          >
         </div>
       </div>
     </div>
