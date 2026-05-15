@@ -70,6 +70,35 @@
   }
 
   function renderProfileSection(loggedIn, role) {
+    const guestBox = document.getElementById('menuDrawerGuest')
+    const userBox = document.getElementById('menuDrawerUser')
+
+    if (guestBox) guestBox.hidden = loggedIn
+
+    if (userBox) {
+      if (!loggedIn) {
+        userBox.hidden = true
+      } else {
+        userBox.hidden = false
+        const nick = document.getElementById('menuDrawerNickname')
+        if (nick) nick.textContent = localStorage.getItem('nickname') || '회원'
+        if (userBox.tagName === 'A') {
+          userBox.href =
+            role === 'CUSTOMER'
+              ? '/pages/my-profile.html'
+              : role === 'OWNER'
+                ? '/pages/owner/owner-main.html'
+                : '/'
+        }
+      }
+      const host = document.getElementById('menuDrawerProfile')
+      if (host) {
+        host.hidden = true
+        host.innerHTML = ''
+      }
+      return
+    }
+
     const host = ensureProfileHost()
     if (!host) return
 
@@ -114,21 +143,33 @@
     items.push({ icon: 'ti-home', label: '홈', href: '/' })
 
     if (!loggedIn) {
-      items.push({
-        icon: 'ti-mail',
-        label: '이메일 로그인',
-        href: '/pages/auth/login.html?role=CUSTOMER',
-      })
-      items.push({
-        icon: 'ti-brand-kakao-talk',
-        label: '카카오 로그인',
-        kakao: true,
-        action: () => {
-          closeDrawer(document.getElementById('menuDrawer'))
-          if (typeof options.onLoginClick === 'function') options.onLoginClick()
-          else window.location.href = '/'
-        },
-      })
+      const promptLogin = () => {
+        closeDrawer(document.getElementById('menuDrawer'))
+        if (typeof options.onLoginClick === 'function') options.onLoginClick()
+        else window.location.href = '/'
+      }
+      const hasGuestCard = Boolean(document.getElementById('menuDrawerGuest'))
+      if (hasGuestCard) {
+        items.push(
+          { icon: 'ti-user', label: '내 프로필', locked: true, action: promptLogin },
+          { icon: 'ti-shopping-cart', label: '장바구니', locked: true, action: promptLogin },
+          { icon: 'ti-clipboard-list', label: '내 주문', locked: true, action: promptLogin },
+          { icon: 'ti-message-2', label: '내 리뷰', locked: true, action: promptLogin },
+          { icon: 'ti-adjustments', label: '입맛 설정', locked: true, action: promptLogin },
+        )
+      } else {
+        items.push({
+          icon: 'ti-mail',
+          label: '이메일 로그인',
+          href: '/pages/auth/login.html?role=CUSTOMER',
+        })
+        items.push({
+          icon: 'ti-brand-kakao-talk',
+          label: '카카오 로그인',
+          kakao: true,
+          action: promptLogin,
+        })
+      }
     }
 
     if (loggedIn && role === 'CUSTOMER') {
@@ -164,17 +205,27 @@
 
     list.innerHTML = items
       .map((it, idx) => {
-        const cls = `${it.kakao ? 'item-kakao' : ''}`.trim()
+        const cls = [
+          it.danger ? 'item-danger' : '',
+          it.kakao ? 'item-kakao' : '',
+          it.locked ? 'item-locked' : '',
+        ]
+          .filter(Boolean)
+          .join(' ')
         const iconMarkup = it.kakao
           ? (window.KakaoBrand?.iconHtml?.() ||
               '<svg class="kakao-logo" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3c5.523 0 10 3.582 10 8 0 2.558-1.294 4.832-3.333 6.274L19 22l-5.2-2.86C14.89 19.378 13.47 19.5 12 19.5 6.477 19.5 2 15.918 2 11.5 2 7.082 6.477 3.5 12 3.5z"/></svg>')
           : `<i class="ti ${it.icon}" aria-hidden="true"></i>`
+        const lockMarkup = it.locked
+          ? '<i class="ti ti-lock drawer-item-lock" aria-hidden="true"></i>'
+          : ''
         if (it.href) {
           return `
             <li>
               <a class="${cls}" href="${it.href}">
                 ${iconMarkup}
                 <span>${escapeHtml(it.label)}</span>
+                ${lockMarkup}
               </a>
             </li>`
         }
@@ -185,6 +236,7 @@
         }>
               ${iconMarkup}
               <span>${escapeHtml(it.label)}</span>
+              ${lockMarkup}
             </button>
           </li>`
       })
