@@ -27,7 +27,7 @@
         Taste Radar
         <span class="topbar-brand-tag">사장용</span>
       </a>
-      <a class="topbar-menu" href="/" title="메인으로" aria-label="메인으로 이동">
+      <a class="topbar-menu" href="/index.html" title="메인으로" aria-label="메인으로 이동">
         <i class="ti ti-home" aria-hidden="true"></i>
       </a>
       </div>
@@ -62,14 +62,14 @@
           <div class="section-head">
             <h2 id="newMenuTitle" class="section-head-title">새 메뉴 등록</h2>
           </div>
-          <form id="newMenuForm" class="form-grid" style="padding: 16px" novalidate>
+          <form id="newMenuForm" class="form-grid" style="padding: 16px">
             <label>
               메뉴명
               <input type="text" name="name" placeholder="예: 김치찌개" required />
             </label>
             <label>
               가격
-              <input type="number" name="price" min="0" placeholder="8000" required />
+              <input type="number" name="price" min="1" step="1" placeholder="8000" required />
             </label>
             <label class="col-span-2">
               설명
@@ -81,12 +81,14 @@
                 <input type="file" id="newMenuImageFile" accept="image/*" />
                 <button type="button" class="btn-outline-sm" id="newMenuImageClear">제거</button>
               </div>
+              <input type="hidden" name="imageUrl" id="newMenuImageUrl" value="" />
               <input
                 type="text"
-                name="imageUrl"
-                id="newMenuImageUrl"
+                id="newMenuImageUrlDisplay"
                 placeholder="이미지 주소가 자동으로 채워집니다"
                 readonly
+                tabindex="-1"
+                aria-hidden="true"
               />
               <small class="field-hint" id="newMenuImageMsg">
                 파일을 선택하면 서버에 업로드되고 주소가 자동으로 채워져요.

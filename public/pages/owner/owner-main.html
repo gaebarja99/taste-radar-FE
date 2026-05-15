@@ -27,37 +27,66 @@
         Taste Radar
         <span class="topbar-brand-tag">사장용</span>
       </a>
-      <a class="topbar-menu" href="/" title="메인으로" aria-label="메인으로 이동">
+      <a class="topbar-menu" href="/index.html" title="메인으로" aria-label="메인으로 이동">
         <i class="ti ti-home" aria-hidden="true"></i>
       </a>
       </div>
     </header>
 
-    <div class="app">
-      <aside class="sidebar" aria-label="사이드 메뉴">
-        <div class="sidebar-group" data-collapsed="false">
-          <div class="sidebar-group-label">불러오는 중…</div>
-        </div>
-      </aside>
-
-      <main class="main">
-        <section class="card" aria-labelledby="todayOrdersTitle">
+    <div class="app app--dashboard">
+      <main class="main dashboard-grid" aria-label="사장 대시보드">
+        <article class="card dashboard-sales-card" aria-labelledby="weeklySalesTitle">
           <header class="card-header">
-            <h1 id="todayOrdersTitle" class="card-title">오늘의 주문</h1>
-            <p id="todaySummaryTotal" class="card-subtitle">불러오는 중…</p>
+            <div>
+              <h2 id="weeklySalesTitle" class="card-title">이번 주 매출</h2>
+              <p id="weeklySalesChange" class="card-subtitle dashboard-change">불러오는 중…</p>
+            </div>
+            <p id="weeklySalesTotal" class="dashboard-metric-value">—</p>
           </header>
-          <ul id="storeBreakdownList" class="order-summary-list">
+          <div
+            id="weeklySalesChart"
+            class="weekly-sales-chart"
+            role="img"
+            aria-label="이번 주 일별 매출 차트"
+          >
+            <p class="weekly-sales-chart-loading">불러오는 중…</p>
+          </div>
+        </article>
+
+        <article class="card dashboard-rating-card" aria-labelledby="ratingSummaryTitle">
+          <h2 id="ratingSummaryTitle" class="card-title">평균 별점</h2>
+          <div class="dashboard-rating-head">
+            <p id="ratingSummaryValue" class="dashboard-rating-value" aria-live="polite">—</p>
+            <div id="ratingSummaryStars" class="dashboard-rating-stars" aria-hidden="true"></div>
+            <p id="ratingSummaryMeta" class="dashboard-rating-meta">불러오는 중…</p>
+          </div>
+          <div class="rating-distribution" aria-labelledby="ratingDistTitle">
+            <p id="ratingDistTitle" class="rating-distribution-title">별점 분포</p>
+            <div id="ratingDistribution" class="rating-distribution-bars">
+              <p class="rating-distribution-loading">불러오는 중…</p>
+            </div>
+          </div>
+        </article>
+
+        <section class="card today-orders-card" aria-labelledby="todayOrdersTitle">
+          <header class="card-header today-orders-header">
+            <div>
+              <h2 id="todayOrdersTitle" class="card-title">오늘의 주문</h2>
+              <p id="todayOrdersMeta" class="today-orders-meta">전체 가게 · 오늘 00:00~현재</p>
+            </div>
+            <p id="todayOrdersTotal" class="today-orders-total" aria-live="polite">—</p>
+          </header>
+          <ul id="storeBreakdownList" class="order-summary-list today-orders-list">
             <li>
               <span class="order-summary-label">불러오는 중…</span>
               <span class="order-summary-count">—</span>
             </li>
           </ul>
-          <p class="card-note">* 가게별 오늘 주문 합계입니다. 폐업한 가게는 「폐업」 배지로 표시돼요.</p>
         </section>
 
         <aside class="card store-status-card" aria-labelledby="storeStatusTitle">
           <h2 id="storeStatusTitle" class="card-title">영업 상태</h2>
-          <div id="storeStatusList" style="display:flex;flex-direction:column;gap:14px">
+          <div id="storeStatusList" class="store-status-scroll">
             <p class="empty-state" style="margin:0">불러오는 중…</p>
           </div>
         </aside>
