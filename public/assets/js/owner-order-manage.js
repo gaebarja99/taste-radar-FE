@@ -20,6 +20,7 @@
     page: 0,
     totalPages: 0,
     totalElements: 0,
+    lookupStatus: null, // 우측 패널에서 조회한 주문 상태 (거절 가능 여부 판단)
   }
 
   document.addEventListener('DOMContentLoaded', init)
@@ -51,9 +52,15 @@
     document.getElementById('orderIdInput').addEventListener('keydown', (e) => {
       if (e.key === 'Enter') handleLookup()
     })
-    document.getElementById('orderIdInput').addEventListener('input', updateRejectButtonEnabled)
+    document.getElementById('orderIdInput').addEventListener('input', () => {
+      state.lookupStatus = null
+      updateRejectBlockVisibility()
+      updateRejectButtonEnabled()
+    })
     document.getElementById('rejectReason').addEventListener('input', updateRejectButtonEnabled)
 
+    updateRejectBlockVisibility()
+    updateRejectPanelFields()
     updateRejectButtonEnabled()
     showTodayDate()
     await loadAll()
@@ -362,6 +369,10 @@
   async function handleLookup() {
     const id = getOrderId()
     if (!id) return
+    state.lookupStatus = null
+    updateRejectBlockVisibility()
+    updateRejectButtonEnabled()
+    updateRejectPanelFields()
     const info = document.getElementById('orderInfo')
     const hintEl = document.getElementById('rejectHint')
     info.hidden = false
@@ -371,22 +382,18 @@
       const data = await api.orders.detail(id)
       info.innerHTML = renderOrderInfo(data)
       const status = String(data.status ?? data.orderStatus ?? '').toUpperCase()
-      if (hintEl) {
+      state.lookupStatus = status
+      if (hintEl && status === 'PENDING') {
         hintEl.style.color = ''
-        hintEl.textContent =
-          status === 'PENDING'
-            ? '신규(PENDING) 주문이에요. 사유를 입력하고 거절 버튼을 누르세요.'
-            : `현재 상태: ${OwnerShared.statusLabel(status)} — 거절은 신규(PENDING) 주문에만 가능합니다.`
+        hintEl.textContent = '신규(PENDING) 주문이에요. 사유를 입력하고 거절 버튼을 누르세요.'
       }
     } catch (e) {
+      state.lookupStatus = null
       info.textContent = OwnerShared.errorMessage(e, '주문 정보를 가져오지 못했습니다.')
       info.style.color = 'var(--color-cancel)'
-      if (hintEl) {
-        hintEl.style.color = 'var(--color-text-muted)'
-        hintEl.textContent =
-          '상세 조회는 실패했지만, 사유 입력 후 거절을 시도할 수 있어요.'
-      }
     }
+    updateRejectBlockVisibility()
+    updateRejectPanelFields()
     updateRejectButtonEnabled()
   }
 
@@ -405,12 +412,36 @@
     `
   }
 
+  function canRejectSelectedOrder() {
+    return state.lookupStatus === 'PENDING'
+  }
+
+  function updateRejectBlockVisibility() {
+    const block = document.getElementById('rejectBlock')
+    if (!block) return
+    const show = canRejectSelectedOrder()
+    block.hidden = !show
+    if (!show) {
+      const textarea = document.getElementById('rejectReason')
+      if (textarea) textarea.value = ''
+    }
+  }
+
+  function updateRejectPanelFields() {
+    const textarea = document.getElementById('rejectReason')
+    if (!textarea) return
+    const rejectable = canRejectSelectedOrder()
+    textarea.disabled = !rejectable
+    if (!rejectable) textarea.setAttribute('aria-disabled', 'true')
+    else textarea.removeAttribute('aria-disabled')
+  }
+
   function updateRejectButtonEnabled() {
     const btn = document.getElementById('btnReject')
     if (!btn) return
     const id = (document.getElementById('orderIdInput')?.value || '').trim()
     const reason = (document.getElementById('rejectReason')?.value || '').trim()
-    btn.disabled = !(id && reason)
+    btn.disabled = !(id && reason && canRejectSelectedOrder())
   }
 
   async function handleRejectFromPanel() {
@@ -419,6 +450,10 @@
     const reason = (textarea.value || '').trim()
     if (!id) {
       alert('주문 ID를 입력하세요.')
+      return
+    }
+    if (!canRejectSelectedOrder()) {
+      alert('신규(PENDING) 주문만 거절할 수 있습니다.')
       return
     }
     if (!reason) {
@@ -440,7 +475,8 @@
     } catch (e) {
       alert(OwnerShared.errorMessage(e, '거절 실패'))
     } finally {
-      textarea.disabled = false
+      updateRejectBlockVisibility()
+      updateRejectPanelFields()
       updateRejectButtonEnabled()
     }
   }
