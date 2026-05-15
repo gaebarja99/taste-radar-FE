@@ -80,28 +80,31 @@
           return
         }
 
-        if (window.api && api.auth && typeof api.auth.setTokens === 'function') {
-          api.auth.setTokens(accessToken, refreshToken)
-        } else {
-          localStorage.setItem('accessToken', accessToken)
-          localStorage.setItem('refreshToken', refreshToken)
-        }
-
         const userId = params.get('userId')
         const email = params.get('email')
         const nickname = params.get('nickname')
         const role = params.get('role')
-        if (userId) localStorage.setItem('userId', userId)
-        if (email) localStorage.setItem('email', email)
-        if (nickname) localStorage.setItem('nickname', nickname)
-        if (role) localStorage.setItem('role', role)
+
+        if (window.api && api.auth && typeof api.auth.saveSession === 'function') {
+          api.auth.saveSession({ accessToken, refreshToken, userId, email, nickname, role })
+        } else {
+          localStorage.setItem('accessToken', accessToken)
+          localStorage.setItem('refreshToken', refreshToken)
+          if (userId) localStorage.setItem('userId', userId)
+          if (email) localStorage.setItem('email', email)
+          if (nickname) localStorage.setItem('nickname', nickname)
+          if (role) localStorage.setItem('role', role)
+        }
 
         history.replaceState(null, '', '/pages/auth/callback.html')
 
         const goHome = () => { window.location.replace('/') }
-        const goTaste = () => { window.location.replace('/pages/taste-onboarding.html') }
+        const goOwner = () => { window.location.replace('/pages/owner/owner-main.html') }
+        const roleUpper = (role || '').toUpperCase()
 
-        if ((role || '').toUpperCase() === 'CUSTOMER' && window.api?.users?.me) {
+        if (roleUpper === 'OWNER') {
+          goOwner()
+        } else if (roleUpper === 'CUSTOMER' && window.api?.users?.me) {
           api.users
             .me()
             .then((me) => {
