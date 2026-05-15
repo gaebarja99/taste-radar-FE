@@ -80,7 +80,6 @@
     }
 
     const nickname = localStorage.getItem('nickname') || '회원'
-    const roleLabel = role === 'OWNER' ? '사장' : '고객'
     const profileHref = role === 'CUSTOMER' ? '/pages/my-profile.html' : '/'
 
     host.hidden = false
@@ -91,7 +90,6 @@
         </span>
         <div class="drawer-user-text">
           <strong>${escapeHtml(nickname)}</strong>
-          <small>${escapeHtml(roleLabel)}</small>
         </div>
         <i class="ti ti-chevron-right drawer-user-chevron" aria-hidden="true"></i>
       </a>`
