@@ -901,7 +901,7 @@
   color: var(--color-text-muted);
 }
 .form-grid label.col-span-2 { grid-column: 1 / -1; }
-.form-grid input,
+.form-grid input:not([type='file']):not([type='hidden']),
 .form-grid select,
 .form-grid textarea {
   height: 36px;
@@ -1050,11 +1050,42 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 4px 0;
+  margin: 6px 0;
 }
-.upload-row input[type="file"] {
+.upload-row .btn-outline-sm {
+  flex-shrink: 0;
+  height: 36px;
+}
+.upload-row input[type='file'] {
   flex: 1;
+  min-width: 0;
+  height: 36px;
+  margin: 0;
+  padding: 0 10px;
+  font: inherit;
   font-size: 13px;
+  line-height: 36px;
+  box-sizing: border-box;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-bg-card);
+  color: var(--color-text-main);
+  vertical-align: middle;
+}
+.upload-row input[type='file']::file-selector-button,
+.upload-row input[type='file']::-webkit-file-upload-button {
+  margin: 0 10px 0 0;
+  padding: 0 10px;
+  height: 26px;
+  line-height: 26px;
+  vertical-align: middle;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-bg-page);
+  color: var(--color-text-main);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
 }
 
 .review-card {
