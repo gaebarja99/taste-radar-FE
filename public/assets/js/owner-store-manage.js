@@ -96,6 +96,83 @@
     return detail?.imgUrl ?? detail?.images?.[0]?.imgUrl ?? ''
   }
 
+  const IMAGE_MAX_BYTES = 5 * 1024 * 1024
+
+  function setImageHint(el, text, isError) {
+    if (!el) return
+    el.textContent = text
+    el.style.color = isError ? 'var(--color-cancel)' : 'var(--color-text-muted)'
+    if (!isError && text.includes('완료')) {
+      el.style.color = 'var(--color-delivering)'
+    }
+  }
+
+  function bindThumbUrlPreview(urlInput, thumbWrap) {
+    if (!urlInput || !thumbWrap) return
+    urlInput.addEventListener('input', () => {
+      const v = (urlInput.value || '').trim()
+      thumbWrap.classList.remove('is-broken')
+      if (v) {
+        thumbWrap.classList.remove('store-detail-thumb--placeholder')
+        thumbWrap.innerHTML = `<img src="${OwnerShared.escapeHtml(v)}" alt="" onerror="this.parentNode.classList.add('is-broken')"/>`
+      } else {
+        thumbWrap.classList.add('store-detail-thumb--placeholder')
+        thumbWrap.innerHTML = '<i class="ti ti-building-store" aria-hidden="true"></i>'
+      }
+    })
+  }
+
+  async function uploadStoreImageFile(file, { urlInput, thumbWrap, hintEl, msgEl, fileInput, doneHint }) {
+    if (!file) return
+    if (!urlInput) {
+      setImageHint(hintEl, '이미지 주소 입력란을 찾을 수 없어요. 페이지를 새로고침해 주세요.', true)
+      return
+    }
+    if (!file.type.startsWith('image/')) {
+      setImageHint(hintEl, '이미지 파일만 업로드할 수 있어요. (JPEG·WebP·PNG, 5MB 이하)', true)
+      if (msgEl) showMsg(msgEl, '이미지 파일만 업로드할 수 있어요.', true)
+      if (fileInput) fileInput.value = ''
+      return
+    }
+    if (file.size > IMAGE_MAX_BYTES) {
+      setImageHint(hintEl, '5MB 이하 파일만 업로드할 수 있어요.', true)
+      if (msgEl) showMsg(msgEl, '5MB 이하 파일만 업로드할 수 있어요.', true)
+      if (fileInput) fileInput.value = ''
+      return
+    }
+
+    const previewUrl = URL.createObjectURL(file)
+    if (thumbWrap) {
+      thumbWrap.classList.remove('store-detail-thumb--placeholder')
+      const img = document.createElement('img')
+      img.alt = ''
+      img.src = previewUrl
+      img.onload = () => URL.revokeObjectURL(previewUrl)
+      thumbWrap.replaceChildren(img)
+    }
+
+    setImageHint(hintEl, '이미지 업로드 중…', false)
+    if (msgEl) showMsg(msgEl, '이미지 업로드 중…', false)
+
+    try {
+      const res = await api.uploads.image(file)
+      const uploadedUrl = (res?.url ?? '').trim()
+      if (!uploadedUrl) {
+        throw new Error('업로드 응답에 이미지 주소가 없습니다.')
+      }
+      urlInput.value = uploadedUrl
+      urlInput.dispatchEvent(new Event('input', { bubbles: true }))
+      setImageHint(hintEl, doneHint || '업로드 완료. 저장하면 반영돼요.', false)
+      if (msgEl) showMsg(msgEl, '이미지 업로드 완료.', false)
+    } catch (err) {
+      setImageHint(hintEl, OwnerShared.errorMessage(err, '업로드 실패'), true)
+      if (msgEl) showMsg(msgEl, OwnerShared.errorMessage(err, '업로드 실패'), true)
+      urlInput.value = ''
+      urlInput.dispatchEvent(new Event('input', { bubbles: true }))
+      if (fileInput) fileInput.value = ''
+    }
+  }
+
   function renderViewBody(store, detail) {
     const status = (detail?.status || 'PREPARING').toUpperCase()
     const pillCls = statusPillCls(status)
@@ -324,19 +401,7 @@
     const fileInput = form.querySelector('#createStoreImageFile')
     const card = host.querySelector('.store-detail-card')
 
-    if (urlInput && thumbWrap) {
-      urlInput.addEventListener('input', () => {
-        const v = (urlInput.value || '').trim()
-        thumbWrap.classList.remove('is-broken')
-        if (v) {
-          thumbWrap.classList.remove('store-detail-thumb--placeholder')
-          thumbWrap.innerHTML = `<img src="${OwnerShared.escapeHtml(v)}" alt="" onerror="this.parentNode.classList.add('is-broken')"/>`
-        } else {
-          thumbWrap.classList.add('store-detail-thumb--placeholder')
-          thumbWrap.innerHTML = '<i class="ti ti-building-store" aria-hidden="true"></i>'
-        }
-      })
-    }
+    bindThumbUrlPreview(urlInput, thumbWrap)
 
     host.querySelector('[data-act="address-search"]')?.addEventListener('click', () => {
       if (card) openAddressSearch(card)
@@ -344,71 +409,17 @@
 
     bindGeocodeHelpers(host)
 
-    fileInput?.addEventListener('change', async (e) => {
-      const file = e.currentTarget.files?.[0]
+    fileInput?.addEventListener('change', (e) => {
       const msgEl = form.querySelector('[data-create-msg]')
-      if (!file) return
-      if (!urlInput) {
-        if (hintEl) {
-          hintEl.textContent = '이미지 주소 입력란을 찾을 수 없어요. 페이지를 새로고침해 주세요.'
-          hintEl.style.color = 'var(--color-cancel)'
-        }
-        return
-      }
-
-      if (!file.type.startsWith('image/')) {
-        setCreateImageHint(hintEl, '이미지 파일만 업로드할 수 있어요.', true)
-        if (msgEl) showMsg(msgEl, '이미지 파일만 업로드할 수 있어요.', true)
-        e.currentTarget.value = ''
-        return
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        setCreateImageHint(hintEl, '5MB 이하 파일만 업로드할 수 있어요.', true)
-        if (msgEl) showMsg(msgEl, '5MB 이하 파일만 업로드할 수 있어요.', true)
-        e.currentTarget.value = ''
-        return
-      }
-
-      const previewUrl = URL.createObjectURL(file)
-      if (thumbWrap) {
-        thumbWrap.classList.remove('store-detail-thumb--placeholder')
-        const img = document.createElement('img')
-        img.alt = ''
-        img.src = previewUrl
-        img.onload = () => URL.revokeObjectURL(previewUrl)
-        thumbWrap.replaceChildren(img)
-      }
-
-      setCreateImageHint(hintEl, '이미지 업로드 중…', false)
-      if (msgEl) showMsg(msgEl, '이미지 업로드 중…', false)
-
-      try {
-        const res = await api.uploads.image(file)
-        const uploadedUrl = (res?.url ?? '').trim()
-        if (!uploadedUrl) {
-          throw new Error('업로드 응답에 이미지 주소가 없습니다.')
-        }
-        urlInput.value = uploadedUrl
-        urlInput.dispatchEvent(new Event('input', { bubbles: true }))
-        setCreateImageHint(hintEl, '업로드 완료. 이 주소로 가게가 등록돼요.', false)
-        if (msgEl) showMsg(msgEl, '이미지 업로드 완료.', false)
-      } catch (err) {
-        setCreateImageHint(hintEl, OwnerShared.errorMessage(err, '업로드 실패'), true)
-        if (msgEl) showMsg(msgEl, OwnerShared.errorMessage(err, '업로드 실패'), true)
-        urlInput.value = ''
-        urlInput.dispatchEvent(new Event('input', { bubbles: true }))
-        e.currentTarget.value = ''
-      }
+      uploadStoreImageFile(e.currentTarget.files?.[0], {
+        urlInput,
+        thumbWrap,
+        hintEl,
+        msgEl,
+        fileInput: e.currentTarget,
+        doneHint: '업로드 완료. 이 주소로 가게가 등록돼요.',
+      })
     })
-  }
-
-  function setCreateImageHint(el, text, isError) {
-    if (!el) return
-    el.textContent = text
-    el.style.color = isError ? 'var(--color-cancel)' : 'var(--color-text-muted)'
-    if (!isError && text.includes('완료')) {
-      el.style.color = 'var(--color-delivering)'
-    }
   }
 
   async function handleCreate(e) {
@@ -498,10 +509,17 @@
         <header class="store-detail-head">
           <div class="store-detail-thumb-edit">
             ${renderThumb(thumbUrl)}
-            <label class="field-label" for="editImgUrl">대표 이미지 URL</label>
-            <input id="editImgUrl" class="store-edit-thumb-input" type="url"
+            <label class="field-label">대표 이미지</label>
+            <div class="upload-row">
+              <input type="file" accept="image/*" data-act="edit-image" />
+            </div>
+            <input class="store-edit-thumb-input" type="text"
                    name="imgUrl" value="${OwnerShared.escapeHtml(thumbUrl)}"
-                   placeholder="https://..." data-act="thumb-url" />
+                   placeholder="이미지 주소 (파일 업로드 시 자동 입력)"
+                   data-act="thumb-url" />
+            <small data-edit-image-msg class="field-hint">
+              파일을 선택하면 서버에 업로드되고 주소가 자동으로 채워져요. URL을 직접 붙여넣을 수도 있어요.
+            </small>
           </div>
           <div class="store-detail-title">
             <input class="store-edit-name" type="text" name="name"
@@ -668,22 +686,24 @@
     form.addEventListener('submit', (e) => handleEdit(e, storeId, card))
     card.querySelector('[data-act="edit-cancel"]').addEventListener('click', () => loadStores())
 
-    // 대표 이미지 URL 미리보기 갱신
     const urlInput = card.querySelector('[data-act="thumb-url"]')
     const thumbWrap = card.querySelector('.store-detail-thumb-edit .store-detail-thumb')
-    if (urlInput && thumbWrap) {
-      urlInput.addEventListener('input', () => {
-        const v = (urlInput.value || '').trim()
-        thumbWrap.classList.remove('is-broken')
-        if (v) {
-          thumbWrap.classList.remove('store-detail-thumb--placeholder')
-          thumbWrap.innerHTML = `<img src="${OwnerShared.escapeHtml(v)}" alt="" onerror="this.parentNode.classList.add('is-broken')"/>`
-        } else {
-          thumbWrap.classList.add('store-detail-thumb--placeholder')
-          thumbWrap.innerHTML = '<i class="ti ti-building-store" aria-hidden="true"></i>'
-        }
+    const hintEl = card.querySelector('[data-edit-image-msg]')
+    const fileInput = card.querySelector('[data-act="edit-image"]')
+    const msgEl = form.querySelector('[data-edit-msg]')
+
+    bindThumbUrlPreview(urlInput, thumbWrap)
+
+    fileInput?.addEventListener('change', (e) => {
+      uploadStoreImageFile(e.currentTarget.files?.[0], {
+        urlInput,
+        thumbWrap,
+        hintEl,
+        msgEl,
+        fileInput: e.currentTarget,
+        doneHint: '업로드 완료. 저장하면 반영돼요.',
       })
-    }
+    })
 
     // 다음(카카오) 우편번호 — 주소 검색
     const addressSearchBtn = card.querySelector('[data-act="address-search"]')
