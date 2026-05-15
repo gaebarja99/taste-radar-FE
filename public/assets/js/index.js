@@ -63,6 +63,13 @@
       window.location.replace('/pages/cart.html')
       return
     }
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('openNotifications') === '1') {
+      window.history.replaceState(null, '', window.location.pathname)
+      if (api.auth.isLoggedIn() && (localStorage.getItem('role') || '').toUpperCase() === 'CUSTOMER') {
+        window.CustomerNotifications?.openPanel?.()
+      }
+    }
     await initKakaoMap()
   }
 
@@ -99,6 +106,8 @@
     state.cart = null
     applyAuthUi()
     closeAllDrawers()
+    window.CustomerNotifications?.closePanel?.()
+    window.CustomerNotifications?.refreshBadge?.()
   }
 
   /* ----------------------------- 역할 선택 모달 ----------------------------- */
@@ -186,7 +195,6 @@
     const userBox = document.getElementById('menuDrawerUser')
     const guestBox = document.getElementById('menuDrawerGuest')
     const nick = document.getElementById('menuDrawerNickname')
-    const roleEl = document.getElementById('menuDrawerRole')
     const list = document.getElementById('menuDrawerList')
 
     const loggedIn = api.auth.isLoggedIn()
@@ -200,7 +208,6 @@
         userBox.href = role === 'CUSTOMER' ? '/pages/my-profile.html' : '/'
       }
       nick.textContent = localStorage.getItem('nickname') || '회원'
-      roleEl.textContent = role === 'OWNER' ? '사장' : '고객'
     } else if (userBox) {
       userBox.hidden = true
     }
