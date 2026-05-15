@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>로그인 — Taste Radar</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.26.0/dist/tabler-icons.min.css"
+    />
+    <link rel="stylesheet" href="/assets/css/auth-local.css" />
+    <link rel="stylesheet" href="/assets/css/kakao-auth.css" />
+    <script src="/assets/js/kakao-brand.js" defer></script>
+    <script src="/assets/js/api.js" defer></script>
+    <script src="/assets/js/auth-shared.js" defer></script>
+    <script src="/assets/js/auth-login.js" defer></script>
+  </head>
+  <body class="auth-page">
+    <header class="auth-page-header">
+      <a class="auth-page-brand" href="/">Taste Radar</a>
+    </header>
+
+    <main class="auth-page-main">
+      <div class="auth-card">
+        <span id="roleBadge" class="auth-role-badge">고객</span>
+        <h1 class="auth-card-title">이메일 로그인</h1>
+        <p class="auth-card-subtitle">가입한 이메일과 비밀번호로 로그인해요.</p>
+
+        <form id="loginForm" class="auth-form" novalidate>
+          <div class="auth-field">
+            <label for="email">이메일</label>
+            <input id="email" name="email" type="email" autocomplete="email" required placeholder="you@example.com" />
+          </div>
+          <div class="auth-field">
+            <label for="password">비밀번호</label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              required
+              minlength="8"
+              placeholder="8자 이상"
+            />
+          </div>
+          <p id="formError" class="auth-error" hidden></p>
+          <button type="submit" class="auth-submit" id="btnSubmit">로그인</button>
+        </form>
+
+        <p class="auth-divider">또는</p>
+        <a id="kakaoLink" class="auth-kakao-link" href="#">
+          <svg class="kakao-logo" viewBox="0 0 24 24" aria-hidden="true" width="20" height="20">
+            <path
+              fill="currentColor"
+              d="M12 3c5.523 0 10 3.582 10 8 0 2.558-1.294 4.832-3.333 6.274L19 22l-5.2-2.86C14.89 19.378 13.47 19.5 12 19.5 6.477 19.5 2 15.918 2 11.5 2 7.082 6.477 3.5 12 3.5z"
+            />
+          </svg>
+          카카오로 계속
+        </a>
+
+        <p class="auth-footer-links">
+          계정이 없으신가요?
+          <a id="registerLink" href="./register.html">회원가입</a>
+          · <a href="/">홈으로</a>
+        </p>
+      </div>
+    </main>
+  </body>
+</html>
