@@ -2,17 +2,6 @@
 
 **Taste Radar**는 고객이 입맛 프로필에 맞는 가게를 찾고, 장바구니에 메뉴를 담아 주문하며, 사장님이 가게·메뉴·주문·리뷰를 관리할 수 있는 배달 주문 서비스입니다.
 
-멀티 페이지 HTML과 바닐라 JavaScript로 UI를 구현했으며, `fetch` 기반 API 클라이언트(`api.js`)로 **Spring Boot** REST API 서버와 연동합니다. 로컬 개발 시 **Vite** 개발 서버와 프록시로 CORS 없이 백엔드(`http://localhost:8080`)에 요청합니다.
-
-| 항목 | 내용 |
-| --- | --- |
-| **Project** | Taste Radar FE |
-| **Service** | 입맛 기반 배달 주문 · 가게/메뉴/주문/리뷰 관리 |
-| **Team** | — |
-| **Period** | — |
-
----
-
 ## 📍 목차
 
 - [화면](#화면)
@@ -25,22 +14,61 @@
 ---
 
 ## 화면
+<details>
+  <summary>🔍 고객</summary>
 
-### 고객
+  ### 메인 화면(가게 검색) -> 가게·메뉴 검색
+<img width="1956" height="1897" alt="image" src="https://github.com/user-attachments/assets/1e115104-afc4-4a2d-b8a9-65413a9aeb7c" />
 
-| 화면 | 경로 | 설명 |
-| --- | --- | --- |
-| 메인(가게 검색) | `/index.html` | 가게·메뉴 검색, 장바구니 드로어, 알림 |
-| 가게 상세 | `/pages/store.html` | 메뉴 조회, 장바구니 담기, 입맛 레이더 비교 |
-| 장바구니 | `/pages/cart.html` | 담은 메뉴 확인·수량 변경 |
-| 주문/결제 | `/pages/checkout.html` | 주문 생성, 카카오페이 결제 |
-| 결제 완료 | `/pages/payment/kakao-success.html` | 카카오페이 결제 결과 |
-| 주문 내역 | `/pages/my-orders.html` | 주문 목록·상세 |
-| 리뷰 작성 | `/pages/write-review.html` | 주문 후 리뷰·별점·입맛 태그 |
-| 내 리뷰 | `/pages/my-reviews.html` | 작성한 리뷰 목록 |
-| 입맛 온보딩 | `/pages/taste-onboarding.html` | 입맛 프로필 설정 |
-| 내 프로필 | `/pages/my-profile.html` | 닉네임·비밀번호 등 계정 정보 |
-| 알림 | `/pages/notifications.html` | 주문·리뷰 등 알림 목록 |
+
+
+  ### 가게 상세 -> 메뉴 조회, 장바구니 담기, 입맛 레이더 비교
+  <img width="1763" height="1873" alt="image" src="https://github.com/user-attachments/assets/7e29dfa6-898e-4356-a371-1b21bfd29c77" />
+
+
+
+  ### 장바구니 -> 담은 메뉴 확인·수량 변경
+  <img width="1736" height="792" alt="image" src="https://github.com/user-attachments/assets/d4e3eedc-d826-4171-9b4c-7bbe732c50ec" />
+
+
+
+  ### 주문/결제 -> 주문 생성, 카카오페이 결제
+  <img width="1745" height="1203" alt="image" src="https://github.com/user-attachments/assets/8cea14fd-8920-457b-9f78-e58eab64b88f" />
+  <img width="726" height="731" alt="image" src="https://github.com/user-attachments/assets/4254d745-aad2-4c88-b4bd-63f999bf7c3e" />
+
+
+
+  ### 결제 완료 -> 카카오페이 결제 결과
+  <img width="1058" height="396" alt="image" src="https://github.com/user-attachments/assets/b40125bb-d09a-4691-8490-6fc58f947fad" />
+
+
+
+  ### 주문 내역 -> 주문 목록·상세
+  <img width="1748" height="1207" alt="image" src="https://github.com/user-attachments/assets/92a9db0f-0ec9-43db-b43a-d39562887525" />
+
+
+
+  ### 리뷰 작성 -> 주문 후 리뷰·별점·입맛 태그
+  <img width="1760" height="1660" alt="image" src="https://github.com/user-attachments/assets/f339a2dc-2d2f-4183-9d8f-c3e9b3089d24" />
+
+
+
+  ### 입맛 온보딩 -> 입맛 프로필 설정
+  <img width="763" height="577" alt="image" src="https://github.com/user-attachments/assets/09e48526-e227-4fb5-b244-8de827d2d48f" />
+
+
+
+  ### 내 프로필 -> 닉네임·비밀번호 등 계정 정보
+  <img width="1519" height="1236" alt="제목 없음" src="https://github.com/user-attachments/assets/f26cf147-1ac4-43d9-b35f-8111b84dd983" />
+
+
+
+  ### 알림 -> 주문·리뷰 등 알림 목록
+  <img width="760" height="878" alt="image" src="https://github.com/user-attachments/assets/bfeb50be-1776-45a2-884f-a358fc9b5f18" />
+
+
+
+</details>
 
 ### 인증
 
@@ -96,18 +124,6 @@
 ### 입맛(Taste) 기능
 
 - 온보딩·리뷰·가게 상세에서 **입맛 레이더 차트**로 사용자·가게 프로필을 시각화합니다 (`review-shared.js`, `store.js`).
-
----
-
-## 역할 분담
-
-| 구분 | 담당 | 주요 작업 |
-| --- | --- | --- |
-| FE | — | 고객/사장님 UI, `api.js`, 페이지별 JS·CSS |
-| BE | — | REST API, 인증, 주문·결제·리뷰 도메인 |
-| 기획·디자인 | — | 화면 정의, UX 플로우 |
-
-> 팀·기간·담당자는 프로젝트에 맞게 표를 수정해 주세요.
 
 ---
 
