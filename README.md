@@ -212,6 +212,4 @@
     │   └── vite.svg
     └── components/
         └── BackendPing.jsx
-```
-```
 
