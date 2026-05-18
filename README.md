@@ -65,11 +65,26 @@
 
   ### 알림 -> 주문·리뷰 등 알림 목록
   <img width="760" height="878" alt="image" src="https://github.com/user-attachments/assets/bfeb50be-1776-45a2-884f-a358fc9b5f18" />
+</details>
+<details>
+  <summary>🔍 사장</summary>
+  
+  ### 대시보드 -> 매출·주문 요약
+  <img width="1777" height="1185" alt="image" src="https://github.com/user-attachments/assets/e2d9b836-bc42-4832-9506-d42b5e06b721" />
 
+  ### 가게 관리 -> 가게 정보·영업 설정
+  <img width="1753" height="1353" alt="image" src="https://github.com/user-attachments/assets/b7243cda-f750-4094-a142-17cd106d942d" />
 
+  ### 메뉴 관리 -> 메뉴 CRUD
+  <img width="1752" height="1400" alt="image" src="https://github.com/user-attachments/assets/c7499a28-b206-4d07-9e35-b7c0aa9ab969" />
+
+  ### 주문 관리 -> 주문 접수·상태 변경
+  <img width="1752" height="1405" alt="image" src="https://github.com/user-attachments/assets/8f8c8d80-9b30-4247-9391-0dc3c7eb3492" />
+
+  ### 리뷰 관리 -> 고객 리뷰 조회·응답
+  <img width="1722" height="1619" alt="image" src="https://github.com/user-attachments/assets/4cc2210e-32ae-4746-a30e-5d46d68ebfe1" />
 
 </details>
-
 ### 인증
 
 | 화면 | 경로 | 설명 |
