@@ -4,12 +4,9 @@
 
 ## 📍 목차
 
-- [화면](#화면)
-- [기술 스택](#기술-스택)
-- [설계](#설계)
-- [역할 분담](#역할-분담)
-- [프로젝트 구조](#프로젝트-구조)
-- [실행 방법](#실행-방법)
+[![화면](https://img.shields.io/badge/화면-FF6B6B?style=for-the-badge)](#화면)
+[![기술 스택](https://img.shields.io/badge/기술%20스택-4DABF7?style=for-the-badge)](#기술-스택)
+[![프로젝트 구조](https://img.shields.io/badge/프로젝트%20구조-ADB5BD?style=for-the-badge)](#프로젝트-구조)
 
 ---
 
@@ -151,11 +148,12 @@
 
 ## 프로젝트 구조
 
-```
+```text
 .
 ├── .gitignore
-├── index.html                 # 메인(가게 검색)
+├── index.html                 # 메인(가게 검색·지도)
 ├── package.json
+├── package-lock.json
 ├── vite.config.js
 ├── eslint.config.js
 ├── README.md
@@ -163,36 +161,98 @@
 ├── public/
 │   ├── favicon.svg
 │   ├── icons.svg
+│   │
 │   ├── assets/
-│   │   ├── css/               # 페이지·컴포넌트별 스타일
+│   │   ├── css/
+│   │   │   ├── auth-local.css
+│   │   │   ├── cart-pages.css
+│   │   │   ├── checkout-pages.css
+│   │   │   ├── customer-buttons.css
+│   │   │   ├── customer-drawer.css
+│   │   │   ├── index.css
+│   │   │   ├── kakao-auth.css
+│   │   │   ├── my-orders-pages.css
+│   │   │   ├── notification-dropdown.css
+│   │   │   ├── notifications-pages.css
+│   │   │   ├── owner-main.css
+│   │   │   ├── owner-order-manage.css
+│   │   │   ├── owner-pages.css
+│   │   │   ├── profile-pages.css
+│   │   │   ├── review-pages.css
+│   │   │   ├── store-pages.css
+│   │   │   ├── tabler-icons.min.css
+│   │   │   └── taste-onboarding.css
+│   │   │
+│   │   ├── fonts/
+│   │   │   ├── tabler-icons.woff
+│   │   │   └── tabler-icons.woff2
+│   │   │
 │   │   └── js/
-│   │       ├── api.js         # 백엔드 API 클라이언트
-│   │       ├── auth-*.js      # 로그인·회원가입
-│   │       ├── index.js       # 메인 페이지
-│   │       ├── store.js       # 가게 상세
+│   │       ├── api.js                 # 백엔드 API 클라이언트
+│   │       ├── auth-login.js
+│   │       ├── auth-register.js
+│   │       ├── auth-shared.js
 │   │       ├── cart-page.js
 │   │       ├── checkout-page.js
-│   │       ├── owner-*.js     # 사장님 화면 공통·개별
-│   │       └── ...
+│   │       ├── customer-menu.js
+│   │       ├── customer-notifications.js
+│   │       ├── index.js                 # 메인 페이지
+│   │       ├── kakao-brand.js
+│   │       ├── kakao-pay-return.js
+│   │       ├── my-orders-page.js
+│   │       ├── my-profile-page.js
+│   │       ├── my-reviews-page.js
+│   │       ├── owner-main.js
+│   │       ├── owner-menu-manage.js
+│   │       ├── owner-order-manage.js
+│   │       ├── owner-review-manage.js
+│   │       ├── owner-shared.js
+│   │       ├── owner-store-manage.js
+│   │       ├── review-shared.js
+│   │       ├── store.js
+│   │       ├── taste-onboarding-page.js
+│   │       └── write-review-page.js
+│   │
 │   └── pages/
-│       ├── auth/              # login, register, callback
-│       ├── cart.html
-│       ├── checkout.html
-│       ├── store.html
-│       ├── my-orders.html
-│       ├── my-reviews.html
-│       ├── my-profile.html
-│       ├── write-review.html
-│       ├── taste-onboarding.html
-│       ├── notifications.html
+│       ├── auth/
+│       │   ├── callback.html
+│       │   ├── login.html
+│       │   └── register.html
+│       │
+│       ├── owner/
+│       │   ├── owner-main.html
+│       │   ├── owner-menu-manage.html
+│       │   ├── owner-order-manage.html
+│       │   ├── owner-review-manage.html
+│       │   └── owner-store-manage.html
+│       │
 │       ├── payment/
 │       │   └── kakao-success.html
-│       └── owner/             # 사장님 관리 화면
+│       │
+│       ├── cart.html
+│       ├── checkout.html
+│       ├── my-orders.html
+│       ├── my-profile.html
+│       ├── my-reviews.html
+│       ├── notifications.html
+│       ├── store.html
+│       ├── taste-onboarding.html
+│       └── write-review.html
 │
-└── src/                       # Vite + React (보조)
+└── src/                         # Vite + React (보조·개발용)
     ├── main.jsx
     ├── App.jsx
-    ├── api/client.js
+    ├── App.css
+    ├── index.css
+    ├── load-kakao-map.js
+    ├── api/
+    │   └── client.js
+    ├── assets/
+    │   ├── hero.png
+    │   ├── react.svg
+    │   └── vite.svg
     └── components/
+        └── BackendPing.jsx
+```
 ```
 
