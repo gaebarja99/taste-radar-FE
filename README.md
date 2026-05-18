@@ -1,4 +1,4 @@
-<img width="692" height="1101" alt="image" src="https://github.com/user-attachments/assets/bc6379a0-e44a-4e3e-9f82-a3aee7ad21bb" /># 🍽️ Taste Radar | HTML · CSS · JavaScript 기반 UI
+# 🍽️ Taste Radar | HTML · CSS · JavaScript 기반 UI
 
 **Taste Radar**는 고객이 입맛 프로필에 맞는 가게를 찾고, 장바구니에 메뉴를 담아 주문하며, 사장님이 가게·메뉴·주문·리뷰를 관리할 수 있는 배달 주문 서비스입니다.
 
@@ -196,38 +196,3 @@
     └── components/
 ```
 
----
-
-## 실행 방법
-
-### 사전 요구
-
-- Node.js 18+
-- [taste-radar-BE](https://github.com/) Spring Boot 서버 로컬 실행 (`http://localhost:8080`)
-
-### 설치 및 개발 서버
-
-```bash
-npm install
-npm run dev
-```
-
-브라우저에서 터미널에 표시된 주소(보통 `http://localhost:5173`)로 접속합니다.
-
-### 빌드·미리보기
-
-```bash
-npm run build    # 프로덕션 빌드
-npm run preview  # 빌드 결과 미리보기
-npm run lint     # ESLint
-```
-
-### 환경 변수
-
-API 기본 URL은 `public/assets/js/api.js`의 `COMMON_URL`(`http://localhost:8080`)을 사용합니다. 배포 환경에 맞게 수정하거나 빌드 단계에서 치환해 주세요.
-
----
-
-## 관련 저장소
-
-- **Backend**: `taste-radar-BE` (Spring Boot REST API)
