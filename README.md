@@ -1,4 +1,4 @@
-# 🍽️ Taste Radar | HTML · CSS · JavaScript 기반 UI
+<img width="692" height="1101" alt="image" src="https://github.com/user-attachments/assets/bc6379a0-e44a-4e3e-9f82-a3aee7ad21bb" /># 🍽️ Taste Radar | HTML · CSS · JavaScript 기반 UI
 
 **Taste Radar**는 고객이 입맛 프로필에 맞는 가게를 찾고, 장바구니에 메뉴를 담아 주문하며, 사장님이 가게·메뉴·주문·리뷰를 관리할 수 있는 배달 주문 서비스입니다.
 
@@ -85,13 +85,20 @@
   <img width="1722" height="1619" alt="image" src="https://github.com/user-attachments/assets/4cc2210e-32ae-4746-a30e-5d46d68ebfe1" />
 
 </details>
-### 인증
+<details>
+  <summary>🔍 로그인</summary>
+  
+   ### 역할 분기
+   <img width="639" height="650" alt="image" src="https://github.com/user-attachments/assets/69b2e673-9f4d-4b0a-befe-532a80ae6705" />
+   
+   ### 이메일 로그인
+   <img width="715" height="800" alt="image" src="https://github.com/user-attachments/assets/7365a2e9-c991-44e5-a25b-8573f0c23573" />
+   
+   ### 회원가입
+   <img width="692" height="1101" alt="image" src="https://github.com/user-attachments/assets/89724c8e-9fd2-44dd-b552-7f4da81fd375" />
 
-| 화면 | 경로 | 설명 |
-| --- | --- | --- |
-| 로그인 | `/pages/auth/login.html` | 이메일·카카오 로그인 |
-| 회원가입 | `/pages/auth/register.html` | 이메일 회원가입 |
-| OAuth 콜백 | `/pages/auth/callback.html` | 카카오 로그인 토큰 처리 |
+
+</details>
 
 ### 사장님(Owner)
 
