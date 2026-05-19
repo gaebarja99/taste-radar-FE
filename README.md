@@ -2,10 +2,10 @@
 
 **Taste Radar**는 고객이 입맛 프로필에 맞는 가게를 찾고, 장바구니에 메뉴를 담아 주문하며, 사장님이 가게·메뉴·주문·리뷰를 관리할 수 있는 배달 주문 서비스입니다.
 
-### 🔗 관련 자원
+### 관련 자원
 [![Backend Repository](https://img.shields.io/badge/Backend_Repo-007396?style=flat-square&logo=springboot&logoColor=white)]([https://github.com/gaebarja99/taste-radar-BE.git](https://github.com/gaebarja99/taste-radar-BE.git)) [![Presentation PPT](https://img.shields.io/badge/Presentation_PPT-D14836?style=flat-square)](https://canva.link/q7ztzu8r36yatno)
 
-## 📍 목차
+## 목차
 
 [![화면](https://img.shields.io/badge/화면-FF6B6B?style=for-the-badge)](#화면)
 [![기술 스택](https://img.shields.io/badge/기술%20스택-4DABF7?style=for-the-badge)](#기술-스택)
@@ -15,7 +15,7 @@
 
 ## 화면
 <details>
-  <summary>🔍 고객</summary>
+  <summary>🔍 고객(click)</summary>
 
   ### 메인 화면(가게 검색) -> 가게·메뉴 검색
 <img width="1956" height="1897" alt="image" src="https://github.com/user-attachments/assets/1e115104-afc4-4a2d-b8a9-65413a9aeb7c" />
@@ -67,7 +67,7 @@
   <img width="760" height="878" alt="image" src="https://github.com/user-attachments/assets/bfeb50be-1776-45a2-884f-a358fc9b5f18" />
 </details>
 <details>
-  <summary>🔍 사장</summary>
+  <summary>🔍 사장(click)</summary>
   
   ### 대시보드 -> 매출·주문 요약
   <img width="1777" height="1185" alt="image" src="https://github.com/user-attachments/assets/e2d9b836-bc42-4832-9506-d42b5e06b721" />
@@ -86,7 +86,7 @@
 
 </details>
 <details>
-  <summary>🔍 로그인</summary>
+  <summary>🔍 로그인(click)</summary>
   
    ### 역할 분기
    <img width="639" height="650" alt="image" src="https://github.com/user-attachments/assets/69b2e673-9f4d-4b0a-befe-532a80ae6705" />
@@ -108,7 +108,7 @@
 
 
 
-### 📂 프로젝트 구조 (Frontend Components)
+## 프로젝트 구조 (Frontend Components)
 
 ```text
 frontend
