@@ -2,6 +2,9 @@
 
 **Taste Radar**는 고객이 입맛 프로필에 맞는 가게를 찾고, 장바구니에 메뉴를 담아 주문하며, 사장님이 가게·메뉴·주문·리뷰를 관리할 수 있는 배달 주문 서비스입니다.
 
+### 🔗 Related Resources
+[![Backend Repository](https://img.shields.io/badge/Backend_Repo-007396?style=flat-square&logo=springboot&logoColor=white)](https://github.com/gaebarja99/taste-radar-BE.git) [![Presentation PPT](https://img.shields.io/badge/Presentation_PPT-D14836?style=flat-square)](https://canva.link/q7ztzu8r36yatno)
+
 ## 📍 목차
 
 [![화면](https://img.shields.io/badge/화면-FF6B6B?style=for-the-badge)](#화면)
