@@ -105,111 +105,18 @@
 
 
 
-## 프로젝트 구조
+### 📂 프로젝트 구조 (Frontend Components)
 
 ```text
-.
-├── .gitignore
-├── index.html                 # 메인(가게 검색·지도)
-├── package.json
-├── package-lock.json
-├── vite.config.js
-├── eslint.config.js
-├── README.md
-│
+frontend
 ├── public/
-│   ├── favicon.svg
-│   ├── icons.svg
-│   │
 │   ├── assets/
-│   │   ├── css/
-│   │   │   ├── auth-local.css
-│   │   │   ├── cart-pages.css
-│   │   │   ├── checkout-pages.css
-│   │   │   ├── customer-buttons.css
-│   │   │   ├── customer-drawer.css
-│   │   │   ├── index.css
-│   │   │   ├── kakao-auth.css
-│   │   │   ├── my-orders-pages.css
-│   │   │   ├── notification-dropdown.css
-│   │   │   ├── notifications-pages.css
-│   │   │   ├── owner-main.css
-│   │   │   ├── owner-order-manage.css
-│   │   │   ├── owner-pages.css
-│   │   │   ├── profile-pages.css
-│   │   │   ├── review-pages.css
-│   │   │   ├── store-pages.css
-│   │   │   ├── tabler-icons.min.css
-│   │   │   └── taste-onboarding.css
-│   │   │
-│   │   ├── fonts/
-│   │   │   ├── tabler-icons.woff
-│   │   │   └── tabler-icons.woff2
-│   │   │
-│   │   └── js/
-│   │       ├── api.js                 # 백엔드 API 클라이언트
-│   │       ├── auth-login.js
-│   │       ├── auth-register.js
-│   │       ├── auth-shared.js
-│   │       ├── cart-page.js
-│   │       ├── checkout-page.js
-│   │       ├── customer-menu.js
-│   │       ├── customer-notifications.js
-│   │       ├── index.js                 # 메인 페이지
-│   │       ├── kakao-brand.js
-│   │       ├── kakao-pay-return.js
-│   │       ├── my-orders-page.js
-│   │       ├── my-profile-page.js
-│   │       ├── my-reviews-page.js
-│   │       ├── owner-main.js
-│   │       ├── owner-menu-manage.js
-│   │       ├── owner-order-manage.js
-│   │       ├── owner-review-manage.js
-│   │       ├── owner-shared.js
-│   │       ├── owner-store-manage.js
-│   │       ├── review-shared.js
-│   │       ├── store.js
-│   │       ├── taste-onboarding-page.js
-│   │       └── write-review-page.js
-│   │
-│   └── pages/
-│       ├── auth/
-│       │   ├── callback.html
-│       │   ├── login.html
-│       │   └── register.html
-│       │
-│       ├── owner/
-│       │   ├── owner-main.html
-│       │   ├── owner-menu-manage.html
-│       │   ├── owner-order-manage.html
-│       │   ├── owner-review-manage.html
-│       │   └── owner-store-manage.html
-│       │
-│       ├── payment/
-│       │   └── kakao-success.html
-│       │
-│       ├── cart.html
-│       ├── checkout.html
-│       ├── my-orders.html
-│       ├── my-profile.html
-│       ├── my-reviews.html
-│       ├── notifications.html
-│       ├── store.html
-│       ├── taste-onboarding.html
-│       └── write-review.html
-│
-└── src/                         # Vite + React (보조·개발용)
-    ├── main.jsx
-    ├── App.jsx
-    ├── App.css
-    ├── index.css
-    ├── load-kakao-map.js
-    ├── api/
-    │   └── client.js
-    ├── assets/
-    │   ├── hero.png
-    │   ├── react.svg
-    │   └── vite.svg
-    └── components/
-        └── BackendPing.jsx
+│   │   ├── css/      # 기능별 모듈화된 독립 스타일시트 (.css)
+│   │   └── js/       # UI 인터랙션 및 백엔드 연동 API 클라이언트 비즈니스 로직
+│   └── pages/        # 도메인별 HTML 화면 파일
+│       ├── auth/     # 일반 회원가입 / 로그인 / 카카오 소셜 로그인 콜백
+│       ├── owner/    # 사장님 전용 관리 페이지 (매장·메뉴·주문·리뷰 관리)
+│       ├── payment/  # 카카오페이 결제 승인 및 성공 처리
+│       └── customer/ # 고객 메인(지도 검색), 장바구니, 주문, 리뷰, 입맛 온보딩
+└── src/              # Vite 개발 환경 세팅 및 공통 컴포넌트 관리
 
