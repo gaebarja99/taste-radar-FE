@@ -109,17 +109,143 @@
 
 ## 프로젝트 구조 (Frontend Components)
 
-```text
-frontend
-├── public/
-│   ├── assets/
-│   │   ├── css/      # 기능별 모듈화된 독립 스타일시트 (.css)
-│   │   └── js/       # UI 인터랙션 및 백엔드 연동 API 클라이언트 비즈니스 로직
-│   └── pages/        # 도메인별 HTML 화면 파일
-│       ├── auth/     # 일반 회원가입 / 로그인 / 카카오 소셜 로그인 콜백
-│       ├── owner/    # 사장님 전용 관리 페이지 (매장·메뉴·주문·리뷰 관리)
-│       ├── payment/  # 카카오페이 결제 승인 및 성공 처리
-│       └── customer/ # 고객 메인(지도 검색), 장바구니, 주문, 리뷰, 입맛 온보딩
-└── src/              # Vite 개발 환경 세팅 및 공통 컴포넌트 관리
+- `window.api` 네임스페이스로 인증, 가게, 메뉴, 장바구니, 주문, 리뷰, 결제, 알림 등 REST 엔드포인트를 래핑합니다.
+- `accessToken` / `refreshToken`은 `localStorage`에 저장하며, 요청 시 `Authorization` 헤더를 붙입니다.
 
+### 페이지 구성
+
+- **고객**: `index.html` + `public/pages/` 하위 HTML, 페이지별 JS·CSS 분리
+- **사장님**: `public/pages/owner/` + `owner-shared.js`의 `bootstrap()`으로 공통 인증·사이드바·가게 컨텍스트 로드
+
+### 로컬 개발 프록시 (`vite.config.js`)
+
+브라우저는 Vite(`5173`)에만 요청하고, `/api`, `/oauth2`, `/login` 경로는 Spring Boot(`8080`)로 프록시됩니다.
+
+### 입맛(Taste) 기능
+
+- 온보딩·리뷰·가게 상세에서 **입맛 레이더 차트**로 사용자·가게 프로필을 시각화합니다 (`review-shared.js`, `store.js`).
+
+---
+
+## 역할 분담
+
+| 구분 | 담당 | 주요 작업 |
+| --- | --- | --- |
+| FE | — | 고객/사장님 UI, `api.js`, 페이지별 JS·CSS |
+| BE | — | REST API, 인증, 주문·결제·리뷰 도메인 |
+| 기획·디자인 | — | 화면 정의, UX 플로우 |
+
+> 팀·기간·담당자는 프로젝트에 맞게 표를 수정해 주세요.
+
+---
+
+## 디렉터리 구조
+
+> GitHub는 줄 맨 앞의 ASCII `|`를 표로 인식합니다. 아래는 `├──` 트리 형식입니다.
+
+```text
+.
+├── .gitignore
+├── index.html                 # 메인(가게 검색·지도)
+├── package.json
+├── package-lock.json
+├── vite.config.js
+├── eslint.config.js
+├── README.md
+│
+├── public/
+│   ├── favicon.svg
+│   ├── icons.svg
+│   │
+│   ├── assets/
+│   │   ├── css/
+│   │   │   ├── auth-local.css
+│   │   │   ├── cart-pages.css
+│   │   │   ├── checkout-pages.css
+│   │   │   ├── customer-buttons.css
+│   │   │   ├── customer-drawer.css
+│   │   │   ├── index.css
+│   │   │   ├── kakao-auth.css
+│   │   │   ├── my-orders-pages.css
+│   │   │   ├── notification-dropdown.css
+│   │   │   ├── notifications-pages.css
+│   │   │   ├── owner-main.css
+│   │   │   ├── owner-order-manage.css
+│   │   │   ├── owner-pages.css
+│   │   │   ├── profile-pages.css
+│   │   │   ├── review-pages.css
+│   │   │   ├── store-pages.css
+│   │   │   ├── tabler-icons.min.css
+│   │   │   └── taste-onboarding.css
+│   │   │
+│   │   ├── fonts/
+│   │   │   ├── tabler-icons.woff
+│   │   │   └── tabler-icons.woff2
+│   │   │
+│   │   └── js/
+│   │       ├── api.js                 # 백엔드 API 클라이언트
+│   │       ├── auth-login.js
+│   │       ├── auth-register.js
+│   │       ├── auth-shared.js
+│   │       ├── cart-page.js
+│   │       ├── checkout-page.js
+│   │       ├── customer-menu.js
+│   │       ├── customer-notifications.js
+│   │       ├── index.js                 # 메인 페이지
+│   │       ├── kakao-brand.js
+│   │       ├── kakao-pay-return.js
+│   │       ├── my-orders-page.js
+│   │       ├── my-profile-page.js
+│   │       ├── my-reviews-page.js
+│   │       ├── owner-main.js
+│   │       ├── owner-menu-manage.js
+│   │       ├── owner-order-manage.js
+│   │       ├── owner-review-manage.js
+│   │       ├── owner-shared.js
+│   │       ├── owner-store-manage.js
+│   │       ├── review-shared.js
+│   │       ├── store.js
+│   │       ├── taste-onboarding-page.js
+│   │       └── write-review-page.js
+│   │
+│   └── pages/
+│       ├── auth/
+│       │   ├── callback.html
+│       │   ├── login.html
+│       │   └── register.html
+│       │
+│       ├── owner/
+│       │   ├── owner-main.html
+│       │   ├── owner-menu-manage.html
+│       │   ├── owner-order-manage.html
+│       │   ├── owner-review-manage.html
+│       │   └── owner-store-manage.html
+│       │
+│       ├── payment/
+│       │   └── kakao-success.html
+│       │
+│       ├── cart.html
+│       ├── checkout.html
+│       ├── my-orders.html
+│       ├── my-profile.html
+│       ├── my-reviews.html
+│       ├── notifications.html
+│       ├── store.html
+│       ├── taste-onboarding.html
+│       └── write-review.html
+│
+└── src/                         # Vite + React (보조·개발용)
+    ├── main.jsx
+    ├── App.jsx
+    ├── App.css
+    ├── index.css
+    ├── load-kakao-map.js
+    ├── api/
+    │   └── client.js
+    ├── assets/
+    │   ├── hero.png
+    │   ├── react.svg
+    │   └── vite.svg
+    └── components/
+        └── BackendPing.jsx
 ```
