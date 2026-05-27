@@ -2,84 +2,112 @@
 
 **Taste Radar**는 고객이 입맛 프로필에 맞는 가게를 찾고, 장바구니에 메뉴를 담아 주문하며, 사장님이 가게·메뉴·주문·리뷰를 관리할 수 있는 배달 주문 서비스입니다.
 
-멀티 페이지 HTML과 바닐라 JavaScript로 UI를 구현했으며, `fetch` 기반 API 클라이언트(`api.js`)로 **Spring Boot** REST API 서버와 연동합니다. 로컬 개발 시 **Vite** 개발 서버와 프록시로 CORS 없이 백엔드(`http://localhost:8080`)에 요청합니다.
+### 관련 자원
+[![Backend Repository](https://img.shields.io/badge/Backend_Repo-007396?style=flat-square&logo=springboot&logoColor=white)]([https://github.com/gaebarja99/taste-radar-BE.git](https://github.com/gaebarja99/taste-radar-BE.git)) [![Presentation PPT](https://img.shields.io/badge/Presentation_PPT-D14836?style=flat-square)](https://canva.link/q7ztzu8r36yatno)
 
-| 항목 | 내용 |
-| --- | --- |
-| **Project** | Taste Radar FE |
-| **Service** | 입맛 기반 배달 주문 · 가게/메뉴/주문/리뷰 관리 |
-| **Team** | — |
-| **Period** | — |
+## 목차
 
----
-
-## 📍 목차
-
-- [화면](#화면)
-- [기술 스택](#기술-스택)
-- [설계](#설계)
-- [역할 분담](#역할-분담)
-- [프로젝트 구조](#프로젝트-구조)
-- [실행 방법](#실행-방법)
+[![화면](https://img.shields.io/badge/화면-FF6B6B?style=for-the-badge)](#화면)
+[![기술 스택](https://img.shields.io/badge/기술%20스택-4DABF7?style=for-the-badge)](#기술-스택)
+[![프로젝트 구조](https://img.shields.io/badge/프로젝트%20구조-ADB5BD?style=for-the-badge)](#프로젝트-구조)
 
 ---
 
-## 화면
+## 🖼️ 주요 서비스 화면
 
-### 고객
+<details>
+  <summary>🔍 고객(click)</summary>
 
-| 화면 | 경로 | 설명 |
-| --- | --- | --- |
-| 메인(가게 검색) | `/index.html` | 가게·메뉴 검색, 장바구니 드로어, 알림 |
-| 가게 상세 | `/pages/store.html` | 메뉴 조회, 장바구니 담기, 입맛 레이더 비교 |
-| 장바구니 | `/pages/cart.html` | 담은 메뉴 확인·수량 변경 |
-| 주문/결제 | `/pages/checkout.html` | 주문 생성, 카카오페이 결제 |
-| 결제 완료 | `/pages/payment/kakao-success.html` | 카카오페이 결제 결과 |
-| 주문 내역 | `/pages/my-orders.html` | 주문 목록·상세 |
-| 리뷰 작성 | `/pages/write-review.html` | 주문 후 리뷰·별점·입맛 태그 |
-| 내 리뷰 | `/pages/my-reviews.html` | 작성한 리뷰 목록 |
-| 입맛 온보딩 | `/pages/taste-onboarding.html` | 입맛 프로필 설정 |
-| 내 프로필 | `/pages/my-profile.html` | 닉네임·비밀번호 등 계정 정보 |
-| 알림 | `/pages/notifications.html` | 주문·리뷰 등 알림 목록 |
+  ### 1. 메인 화면 (가게 및 메뉴 검색)
+  <img src="https://github.com/user-attachments/assets/1e115104-afc4-4a2d-b8a9-65413a9aeb7c" height="300" alt="가게 검색 화면"/>
 
-### 인증
+  ---
 
-| 화면 | 경로 | 설명 |
-| --- | --- | --- |
-| 로그인 | `/pages/auth/login.html` | 이메일·카카오 로그인 |
-| 회원가입 | `/pages/auth/register.html` | 이메일 회원가입 |
-| OAuth 콜백 | `/pages/auth/callback.html` | 카카오 로그인 토큰 처리 |
+  ### 2. 가게 상세 및 비교 (메뉴 조회, 레이더 비교)
+  <img src="https://github.com/user-attachments/assets/7e29dfa6-898e-4356-a371-1b21bfd29c77" height="300" alt="가게 상세 화면"/>
 
-### 사장님(Owner)
+  ---
 
-| 화면 | 경로 | 설명 |
-| --- | --- | --- |
-| 대시보드 | `/pages/owner/owner-main.html` | 매출·주문 요약 |
-| 가게 관리 | `/pages/owner/owner-store-manage.html` | 가게 정보·영업 설정 |
-| 메뉴 관리 | `/pages/owner/owner-menu-manage.html` | 메뉴 CRUD |
-| 주문 관리 | `/pages/owner/owner-order-manage.html` | 주문 접수·상태 변경 |
-| 리뷰 관리 | `/pages/owner/owner-review-manage.html` | 고객 리뷰 조회·응답 |
+  ### 3. 장바구니 관리 (수량 변경 및 확인)
+  <img src="https://github.com/user-attachments/assets/d4e3eedc-d826-4171-9b4c-7bbe732c50ec" height="150" alt="장바구니 화면"/>
+
+  ---
+
+  ### 4. 주문 및 결제 (주문 생성, 카카오페이)
+  <img src="https://github.com/user-attachments/assets/8cea14fd-8920-457b-9f78-e58eab64b88f" height="300" alt="주문 결제 화면"/>
+  <img src="https://github.com/user-attachments/assets/4254d745-aad2-4c88-b4bd-63f999bf7c3e" height="300" alt="카카오페이 QR 화면"/>
+
+  ---
+
+  ### 5. 주문 내역 조회 (목록 및 상세)
+  <img src="https://github.com/user-attachments/assets/92a9db0f-0ec9-43db-b43a-d39562887525" height="250" alt="주문 내역 화면"/>
+
+  ---
+
+  ### 6. 리뷰 작성 (별점, 입맛 태그 설정)
+  <img src="https://github.com/user-attachments/assets/f339a2dc-2d2f-4183-9d8f-c3e9b3089d24" height="300" alt="리뷰 작성 화면"/>
+
+  ---
+
+  ### 7. 입맛 프로필 설정 (온보딩)
+  <img src="https://github.com/user-attachments/assets/09e48526-e227-4fb5-b244-8de827d2d48f" height="200" alt="입맛 온보딩 화면"/>
+
+  ---
+
+  ### 8. 내 프로필 및 알림 (계정 정보, 주문 알림)
+  <img src="https://github.com/user-attachments/assets/f26cf147-1ac4-43d9-b35f-8111b84dd983" height="300" alt="프로필 화면"/>
+  <img src="https://github.com/user-attachments/assets/bfeb50be-1776-45a2-884f-a358fc9b5f18" height="300" alt="알림 화면"/>
+</details>
+
+<details>
+  <summary>🔍 사장(click)</summary>
+
+  ### 1. 사장 대시보드 (매출 및 주문 현황 요약)
+  <img src="https://github.com/user-attachments/assets/e2d9b836-bc42-4832-9506-d42b5e06b721" height="300" alt="대시보드 화면"/>
+
+  ---
+
+  ### 2. 가게 정보 관리 (가게 상세, 영업 설정)
+  <img src="https://github.com/user-attachments/assets/b7243cda-f750-4094-a142-17cd106d942d" height="300" alt="가게 관리 화면"/>
+
+  ---
+
+  ### 3. 메뉴 통합 관리 (등록, 조회, 수정, 삭제)
+  <img src="https://github.com/user-attachments/assets/c7499a28-b206-4d07-9e35-b7c0aa9ab969" height="300" alt="메뉴 관리 화면"/>
+
+  ---
+
+  ### 4. 실시간 주문 접수 (상태 변경 및 처리)
+  <img src="https://github.com/user-attachments/assets/8f8c8d80-9b30-4247-9391-0dc3c7eb3492" height="300" alt="주문 관리 화면"/>
+
+  ---
+
+  ### 5. 고객 리뷰 관리 (조회 및 응답)
+  <img src="https://github.com/user-attachments/assets/4cc2210e-32ae-4746-a30e-5d46d68ebfe1" height="300" alt="리뷰 관리 화면"/>
+</details>
+
+<details>
+  <summary>🔍 인증 및 가입(click)</summary>
+
+  ### 1. 로그인 (역할 분기)
+  <img src="https://github.com/user-attachments/assets/69b2e673-9f4d-4b0a-befe-532a80ae6705" height="250" alt="로그인 분기 화면"/>
+  <img src="https://github.com/user-attachments/assets/7365a2e9-c991-44e5-a25b-8573f0c23573" height="250" alt="이메일 로그인 화면"/>
+
+  ---
+
+  ### 2. 회원가입 (고객 및 사장 구분)
+  <img src="https://github.com/user-attachments/assets/89724c8e-9fd2-44dd-b552-7f4da81fd375" height="300" alt="회원가입 화면"/>
+</details>
 
 ---
 
 ## 기술 스택
 
-| 구분 | 기술 |
-| --- | --- |
-| 마크업·스타일 | HTML5, CSS3 |
-| 스크립트 | JavaScript (ES Modules + IIFE 페이지 스크립트) |
-| 빌드·개발 서버 | Vite |
-| API 연동 | `fetch`, REST, JWT (`localStorage`) |
-| 백엔드 | Spring Boot (`taste-radar-BE`) |
-| 외부 연동 | 카카오 로그인(OAuth2), 카카오페이, 카카오맵 |
-| UI 리소스 | Tabler Icons, Noto Sans KR |
-| 보조 | React (`src/`) — 개발용·확장 영역 |
+<img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=HTML5&logoColor=white"> <img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=CSS3&logoColor=white"> <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=JavaScript&logoColor=black"> <img src="https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=React&logoColor=black"> <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=Vite&logoColor=white"> <img src="https://img.shields.io/badge/Fetch API (REST)-005A70?style=for-the-badge&logoColor=white">
 
----
 
-## 설계
 
-### API 클라이언트 (`public/assets/js/api.js`)
+## 프로젝트 구조 (Frontend Components)
 
 - `window.api` 네임스페이스로 인증, 가게, 메뉴, 장바구니, 주문, 리뷰, 결제, 알림 등 REST 엔드포인트를 래핑합니다.
 - `accessToken` / `refreshToken`은 `localStorage`에 저장하며, 요청 시 `Authorization` 헤더를 붙입니다.
@@ -111,7 +139,7 @@
 
 ---
 
-## 프로젝트 구조
+## 디렉터리 구조
 
 > GitHub는 줄 맨 앞의 ASCII `|`를 표로 인식합니다. 아래는 `├──` 트리 형식입니다.
 
@@ -221,39 +249,3 @@
     └── components/
         └── BackendPing.jsx
 ```
-
----
-
-## 실행 방법
-
-### 사전 요구
-
-- Node.js 18+
-- [taste-radar-BE](https://github.com/) Spring Boot 서버 로컬 실행 (`http://localhost:8080`)
-
-### 설치 및 개발 서버
-
-```bash
-npm install
-npm run dev
-```
-
-브라우저에서 터미널에 표시된 주소(보통 `http://localhost:5173`)로 접속합니다.
-
-### 빌드·미리보기
-
-```bash
-npm run build    # 프로덕션 빌드
-npm run preview  # 빌드 결과 미리보기
-npm run lint     # ESLint
-```
-
-### 환경 변수
-
-API 기본 URL은 `public/assets/js/api.js`의 `COMMON_URL`(`http://localhost:8080`)을 사용합니다. 배포 환경에 맞게 수정하거나 빌드 단계에서 치환해 주세요.
-
----
-
-## 관련 저장소
-
-- **Backend**: `taste-radar-BE` (Spring Boot REST API)
