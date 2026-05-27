@@ -159,15 +159,9 @@
         )
       } else {
         items.push({
-          icon: 'ti-mail',
-          label: '이메일 로그인',
+          icon: 'ti-login',
+          label: '로그인',
           href: '/pages/auth/login.html?role=CUSTOMER',
-        })
-        items.push({
-          icon: 'ti-brand-kakao-talk',
-          label: '카카오 로그인',
-          kakao: true,
-          action: promptLogin,
         })
       }
     }
