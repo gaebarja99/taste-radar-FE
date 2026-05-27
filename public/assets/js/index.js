@@ -227,7 +227,7 @@
       closeDrawer(document.getElementById('menuDrawer'))
       openRoleModal()
     }
-    document.getElementById('menuDrawerKakaoStart')?.addEventListener('click', openLogin)
+    document.getElementById('menuDrawerLoginStart')?.addEventListener('click', openLogin)
   }
 
   function setupCartActions() {
