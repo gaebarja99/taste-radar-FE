@@ -6,6 +6,19 @@
 
   const DAY_LABELS = ['\uc6d4', '\ud654', '\uc218', '\ubaa9', '\uae08', '\ud1a0', '\uc77c']
 
+  /** PPT 캡처용: ?demo=1 또는 매출/별점 데이터가 없을 때 표시 */
+  const DEMO_WEEKLY_AMOUNTS = [420_000, 385_000, 510_000, 478_000, 692_000, 845_000, 598_000]
+  const DEMO_WEEKLY_COUNTS = [18, 15, 21, 19, 28, 34, 24]
+  const DEMO_LAST_WEEK_TOTAL = 3_180_000
+  const DEMO_RATING = {
+    averageRating: 4.6,
+    reviewCount: 128,
+    fiveStarCount: 72,
+    fourStarCount: 38,
+    threeStarCount: 12,
+    lowStarCount: 6,
+  }
+
   document.addEventListener('DOMContentLoaded', init)
 
   async function init() {
@@ -28,7 +41,12 @@
     if (!changeEl || !totalEl || !chartEl) return
 
     try {
-      const data = await api.dashboard.weeklySales()
+      let data = await api.dashboard.weeklySales()
+      let demoMode = shouldUseDemoDashboard(data)
+      if (demoMode) {
+        data = buildDemoWeeklySales()
+      }
+
       const days = Array.isArray(data?.days) ? data.days : []
       const thisTotal = Number(data?.thisWeekTotal ?? 0)
       const lastTotal = Number(data?.lastWeekTotal ?? 0)
@@ -38,7 +56,7 @@
       changeEl.textContent = formatChangeLabel(change, lastTotal)
       changeEl.className = `card-subtitle dashboard-change${change > 0 ? ' is-up' : change < 0 ? ' is-down' : ''}`
 
-      chartEl.innerHTML = renderWeeklyChart(days)
+      chartEl.innerHTML = renderWeeklyChart(days, { demoMode })
       chartEl.setAttribute(
         'aria-label',
         `\uc774\ubc88 \uc8fc \uc77c\ubcc4 \ub9e4\ucd9c: ${days.map((d) => `${formatDayLabel(d.date)} ${formatWon(d.salesAmount)}`).join(', ')}`,
@@ -61,7 +79,11 @@
     if (!valueEl || !metaEl || !starsEl || !distEl) return
 
     try {
-      const data = await api.dashboard.ratingSummary()
+      let data = await api.dashboard.ratingSummary()
+      if (shouldUseDemoDashboard(null, data)) {
+        data = { ...DEMO_RATING, storeCount: Number(data?.storeCount ?? 3) }
+      }
+
       const rating = Number(data?.averageRating ?? 0)
       const reviewCount = Number(data?.reviewCount ?? 0)
       const storeCount = Number(data?.storeCount ?? 0)
@@ -110,7 +132,7 @@
       .join('')
   }
 
-  function renderWeeklyChart(days) {
+  function renderWeeklyChart(days, { demoMode = false } = {}) {
     if (!days.length) {
       return '<p class="weekly-sales-chart-loading">\uc774\ubc88 \uc8fc \ub9e4\ucd9c \ub370\uc774\ud130\uac00 \uc5c6\uc5b4\uc694.</p>'
     }
@@ -119,6 +141,7 @@
     const max = Math.max(
       ...days
         .filter((d) => {
+          if (demoMode) return true
           const iso = toDateIso(d.date)
           return iso && iso <= todayIso
         })
@@ -131,7 +154,7 @@
         const amount = Number(d.salesAmount ?? 0)
         const label = formatDayLabel(d.date, i)
         const dateIso = toDateIso(d.date)
-        const isFuture = dateIso && dateIso > todayIso
+        const isFuture = !demoMode && dateIso && dateIso > todayIso
 
         if (isFuture) {
           return (
@@ -170,6 +193,57 @@
       }
     }
     return html
+  }
+
+  function isDemoDashboardForced() {
+    const q = new URLSearchParams(location.search).get('demo')
+    if (q === '1' || q === 'true') return true
+    return localStorage.getItem('tasteRadar.demoDashboard') === '1'
+  }
+
+  function shouldUseDemoDashboard(weeklyData, ratingData) {
+    if (isDemoDashboardForced()) return true
+    if (weeklyData != null) {
+      const total = Number(weeklyData?.thisWeekTotal ?? 0)
+      const days = Array.isArray(weeklyData?.days) ? weeklyData.days : []
+      const hasSales = days.some((d) => Number(d?.salesAmount ?? 0) > 0)
+      if (total <= 0 && !hasSales) return true
+    }
+    if (ratingData != null) {
+      if (Number(ratingData?.reviewCount ?? 0) <= 0) return true
+    }
+    return false
+  }
+
+  function seoulWeekStartIso() {
+    const todayIso = seoulTodayIso()
+    const d = new Date(`${todayIso}T12:00:00`)
+    const dow = d.getDay()
+    const mondayOffset = dow === 0 ? 6 : dow - 1
+    d.setDate(d.getDate() - mondayOffset)
+    return d.toISOString().slice(0, 10)
+  }
+
+  function addDaysIso(iso, days) {
+    const d = new Date(`${iso}T12:00:00`)
+    d.setDate(d.getDate() + days)
+    return d.toISOString().slice(0, 10)
+  }
+
+  function buildDemoWeeklySales() {
+    const weekStart = seoulWeekStartIso()
+    const days = DEMO_WEEKLY_AMOUNTS.map((salesAmount, i) => ({
+      date: addDaysIso(weekStart, i),
+      salesAmount,
+      orderCount: DEMO_WEEKLY_COUNTS[i] ?? 0,
+    }))
+    const thisWeekTotal = DEMO_WEEKLY_AMOUNTS.reduce((sum, n) => sum + n, 0)
+    const lastWeekTotal = DEMO_LAST_WEEK_TOTAL
+    const changePercent =
+      lastWeekTotal > 0
+        ? Math.round(((thisWeekTotal - lastWeekTotal) / lastWeekTotal) * 1000) / 10
+        : 100
+    return { days, thisWeekTotal, lastWeekTotal, changePercent }
   }
 
   function seoulTodayIso() {
@@ -254,6 +328,16 @@
       let total = parseTodayTotal(totalRes)
       if (total === 0 && statsMap.size > 0) {
         total = [...statsMap.values()].reduce((sum, n) => sum + n, 0)
+      }
+
+      if (total === 0 && shouldUseDemoDashboard({ thisWeekTotal: 0, days: [] }, null)) {
+        const demoCounts = [19, 14, 14]
+        mergedStores.forEach((s, i) => {
+          s.totalCount = demoCounts[i % demoCounts.length]
+        })
+        total = mergedStores.length
+          ? demoCounts.slice(0, mergedStores.length).reduce((sum, n) => sum + n, 0)
+          : 47
       }
 
       totalEl.textContent = total.toLocaleString('ko-KR')
