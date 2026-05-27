@@ -186,6 +186,43 @@ a {
   background: var(--color-primary-light);
 }
 
+.btn-login {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-bg-card);
+  color: var(--color-text-main);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s, color 0.15s, background 0.15s, transform 0.15s;
+}
+
+.btn-login[hidden] {
+  display: none !important;
+}
+
+.btn-login:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-light);
+}
+
+.btn-login:active {
+  transform: scale(0.99);
+}
+
+.btn-login .ti {
+  font-size: 17px;
+}
+
 /* ---------- Header icon buttons ---------- */
 .icon-btn,
 a.icon-btn {
@@ -220,6 +257,20 @@ a.icon-btn.is-active {
 
 .icon-btn .ti {
   font-size: 18px;
+}
+
+@media (max-width: 720px) {
+  .header-actions .btn-login span {
+    display: none;
+  }
+
+  .header-actions .btn-login {
+    padding: 8px 10px;
+  }
+
+  .header-actions .btn-login .ti {
+    font-size: 18px;
+  }
 }
 
 .icon-badge {
@@ -1468,7 +1519,7 @@ a.icon-btn.is-active {
   color: var(--color-text-muted);
 }
 
-.drawer-kakao-start {
+.drawer-login-start {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1476,28 +1527,28 @@ a.icon-btn.is-active {
   width: 100%;
   margin-top: 14px;
   padding: 13px 16px;
-  border: none;
+  border: 1px solid var(--color-primary);
   border-radius: 12px;
-  background: #fee500;
-  color: #191600;
+  background: var(--color-primary);
+  color: #fff;
   font: inherit;
   font-size: 15px;
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
-  transition: filter 0.15s, transform 0.15s;
+  transition: background 0.15s, border-color 0.15s, transform 0.15s;
 }
 
-.drawer-kakao-start .kakao-logo {
-  width: 20px;
-  height: 20px;
+.drawer-login-start .ti {
+  font-size: 18px;
 }
 
-.drawer-kakao-start:hover {
-  filter: brightness(0.97);
+.drawer-login-start:hover {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
 }
 
-.drawer-kakao-start:active {
+.drawer-login-start:active {
   transform: scale(0.99);
 }
 
