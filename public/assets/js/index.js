@@ -833,14 +833,14 @@
 
     if (searchQuery) {
       el.textContent = state.tasteFilters.size
-        ? `\u201c${searchQuery}\u201d \uac80\uc0c9 \uacb0\uacfc \uc911 \uc785\ub9db\uc5d0 \ub9de\ub294 ${n.toLocaleString('ko-KR')}\uac1c\ub9db\uc9d4\uc744 \ub808\uc774\ub354\uc5d0 \ud3ec\uce69\ud588\uc5b4\uc694!`
-        : `\u201c${searchQuery}\u201d\uc5d0\uc11c ${t.toLocaleString('ko-KR')}\uac1c\uc758 \ub9db\uc9d4\uc744 \ucc3e\uc558\uc5b4\uc694!`
+        ? `\u201c${searchQuery}\u201d \uac80\uc0c9 \uacb0\uacfc \uc911 \uc785\ub9db\uc5d0 \ub9de\ub294 ${n.toLocaleString('ko-KR')}\uac1c \ub9db\uc9d1\uc744 \ub808\uc774\ub354\uc5d0 \ud3ec\ucc29\ud588\uc5b4\uc694!`
+        : `\u201c${searchQuery}\u201d\uc5d0\uc11c ${t.toLocaleString('ko-KR')}\uac1c\uc758 \ub9db\uc9d1\uc744 \ucc3e\uc558\uc5b4\uc694!`
       return
     }
 
     const km = radiusKm ?? state.nearbyRadiusKm ?? 3
     el.textContent = state.tasteFilters.size
-      ? `\ub0b4 \uc8fc\ubcc0 ${km}km \uc548\uc5d0 ${n.toLocaleString('ko-KR')}\uac1c \ub9db\uc9d4 \uc911 \uc785\ub9db\uc5d0 \ub9de\ub294 \uac00\uac8c\ub97c \ub808\uc774\ub354\uc5d0 \ud3ec\uce69\ud588\uc5b4\uc694!`
+      ? `\ub0b4 \uc8fc\ubcc0 ${km}km \uc548\uc5d0 ${n.toLocaleString('ko-KR')}\uac1c \ub9db\uc9d1 \uc911 \uc785\ub9db\uc5d0 \ub9de\ub294 \uac00\uac8c\ub97c \ub808\uc774\ub354\uc5d0 \ud3ec\ucc29\ud588\uc5b4\uc694!`
       : `\ub0b4 \uc8fc\ubcc0 ${km}km \uc548\uc5d0 ${t.toLocaleString('ko-KR')}\uac1c \uac00\uac8c\uac00 \ub808\uc774\ub354\uc5d0 \uac78\ub838\uc5b4\uc694!`
   }
 
