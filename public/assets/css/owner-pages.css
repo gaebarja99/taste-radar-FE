@@ -137,6 +137,43 @@
   flex-shrink: 0;
 }
 
+.btn-login {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 1px solid var(--color-border, #ede8e0);
+  border-radius: 6px;
+  background: var(--color-bg-card, #fff);
+  color: var(--color-text-main, #2c2c2c);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s, color 0.15s, background 0.15s, transform 0.15s;
+}
+
+.btn-login[hidden] {
+  display: none !important;
+}
+
+.btn-login:hover {
+  border-color: var(--color-primary, #ff6b47);
+  color: var(--color-primary, #ff6b47);
+  background: var(--color-primary-light, #fff5f2);
+}
+
+.btn-login:active {
+  transform: scale(0.99);
+}
+
+.btn-login .ti {
+  font-size: 17px;
+}
+
 /* 메인 .site-main 과 동일한 가로 폭·여백 (사이드바+본문 전체) */
 .app {
   max-width: var(--max-width);
@@ -154,6 +191,21 @@
 @media (max-width: 720px) {
   .app {
     padding: 0 16px;
+  }
+
+  .header-actions .btn-login span,
+  .store-topbar-actions .btn-login span {
+    display: none;
+  }
+
+  .header-actions .btn-login,
+  .store-topbar-actions .btn-login {
+    padding: 8px 10px;
+  }
+
+  .header-actions .btn-login .ti,
+  .store-topbar-actions .btn-login .ti {
+    font-size: 18px;
   }
 
   .topbar-inner {
