@@ -106,40 +106,7 @@
 <img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=HTML5&logoColor=white"> <img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=CSS3&logoColor=white"> <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=JavaScript&logoColor=black"> <img src="https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=React&logoColor=black"> <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=Vite&logoColor=white"> <img src="https://img.shields.io/badge/Fetch API (REST)-005A70?style=for-the-badge&logoColor=white">
 
 
-
-## 프로젝트 구조 (Frontend Components)
-
-- `window.api` 네임스페이스로 인증, 가게, 메뉴, 장바구니, 주문, 리뷰, 결제, 알림 등 REST 엔드포인트를 래핑합니다.
-- `accessToken` / `refreshToken`은 `localStorage`에 저장하며, 요청 시 `Authorization` 헤더를 붙입니다.
-
-### 페이지 구성
-
-- **고객**: `index.html` + `public/pages/` 하위 HTML, 페이지별 JS·CSS 분리
-- **사장님**: `public/pages/owner/` + `owner-shared.js`의 `bootstrap()`으로 공통 인증·사이드바·가게 컨텍스트 로드
-
-### 로컬 개발 프록시 (`vite.config.js`)
-
-브라우저는 Vite(`5173`)에만 요청하고, `/api`, `/oauth2`, `/login` 경로는 Spring Boot(`8080`)로 프록시됩니다.
-
-### 입맛(Taste) 기능
-
-- 온보딩·리뷰·가게 상세에서 **입맛 레이더 차트**로 사용자·가게 프로필을 시각화합니다 (`review-shared.js`, `store.js`).
-
----
-
-## 역할 분담
-
-| 구분 | 담당 | 주요 작업 |
-| --- | --- | --- |
-| FE | — | 고객/사장님 UI, `api.js`, 페이지별 JS·CSS |
-| BE | — | REST API, 인증, 주문·결제·리뷰 도메인 |
-| 기획·디자인 | — | 화면 정의, UX 플로우 |
-
----
-
 ## 디렉터리 구조
-
-> GitHub는 줄 맨 앞의 ASCII `|`를 표로 인식합니다. 아래는 `├──` 트리 형식입니다.
 
 ```text
 .
