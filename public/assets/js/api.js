@@ -12,7 +12,35 @@
 (function () {
   'use strict'
 
-  const COMMON_URL = 'http://localhost:8080'
+  function readApiOriginFromDom() {
+    try {
+      const meta =
+        document.querySelector('meta[name="taste-radar-api-origin"]') ||
+        document.querySelector('meta[name="api-origin"]')
+      const content = meta?.getAttribute?.('content')
+      return content ? content.trim() : ''
+    } catch {
+      return ''
+    }
+  }
+
+  function normalizeOrigin(origin) {
+    if (!origin) return ''
+    return String(origin).replace(/\/+$/, '')
+  }
+
+  const COMMON_URL = (() => {
+    const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+    if (isLocal) return 'http://localhost:8080'
+
+    // 배포 환경에서는 프론트(CloudFront/S3)와 백엔드가 분리되는 경우가 많아서,
+    // 아래 우선순위로 API 오리진을 찾아 사용합니다.
+    // 1) window 전역 오버라이드  2) meta 태그  3) 현재 origin (최후 fallback)
+    const fromWindow =
+      normalizeOrigin(window.__TASTE_RADAR_API_ORIGIN__) || normalizeOrigin(window.__API_ORIGIN__) || ''
+    const fromMeta = normalizeOrigin(readApiOriginFromDom())
+    return fromWindow || fromMeta || window.location.origin
+  })()
   const TOKEN_KEY = 'accessToken'
   const REFRESH_KEY = 'refreshToken'
 
