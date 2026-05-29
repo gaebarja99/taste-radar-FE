@@ -5,6 +5,12 @@
 ### 관련 자원
 [![Backend Repository](https://img.shields.io/badge/Backend_Repo-007396?style=flat-square&logo=springboot&logoColor=white)]([https://github.com/gaebarja99/taste-radar-BE.git](https://github.com/gaebarja99/taste-radar-BE.git)) [![Presentation PPT](https://img.shields.io/badge/Presentation_PPT-D14836?style=flat-square)](https://canva.link/q7ztzu8r36yatno)
 
+## Demo (포트폴리오)
+
+- 샘플 가게/메뉴는 **서울 강남 일대(위도 `37.497942`, 경도 `127.027621`)** 기준입니다.
+- 메인 화면에서 **「데모: 강남역 주변」**을 누르거나, 브라우저 위치를 허용하면 주변 가게를 볼 수 있습니다.
+- 백엔드에 `DEMO_SEED_ENABLED=true` 로 `[데모]` 가게 시드가 들어가 있어야 목록이 표시됩니다.
+
 ## 목차
 
 [![화면](https://img.shields.io/badge/화면-FF6B6B?style=for-the-badge)](#화면)

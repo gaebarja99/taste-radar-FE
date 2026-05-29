@@ -517,9 +517,56 @@
   /* ----------------------------- ?????? ----------------------------- */
   function setupNearby() {
     document.getElementById('btnUseMyLocation').addEventListener('click', useMyLocation)
+    document.getElementById('btnDemoGangnam')?.addEventListener('click', useDemoLocation)
     document.getElementById('nearbyRadius').addEventListener('change', () => {
       if (state.userPos) loadNearbyStores()
     })
+  }
+
+  /**
+   * 포트폴리오 데모: BE /api/demo/locations 프리셋(강남역)으로 주변 가게 조회.
+   * 면접관이 어디에 있든 동일한 샘플 데이터를 볼 수 있게 합니다.
+   */
+  async function useDemoLocation(locationId = 'gangnam-station') {
+    const btn = document.getElementById('btnDemoGangnam')
+    if (!window.api?.demo?.locations) {
+      setNearbyStatus('데모 API를 사용할 수 없습니다. 백엔드를 최신 버전으로 배포했는지 확인해 주세요.', true)
+      return
+    }
+    if (btn) btn.disabled = true
+    setNearbyStatus('데모 위치(강남역)를 불러오는 중…')
+    try {
+      const locations = await api.demo.locations()
+      const list = Array.isArray(locations) ? locations : []
+      const loc =
+        list.find((l) => l.id === locationId) ||
+        list.find((l) => l.recommended) ||
+        list[0]
+      if (!loc) {
+        setNearbyStatus('데모 위치 정보가 없습니다. 서버에 DEMO_SEED_ENABLED=true 로 샘플 가게를 넣었는지 확인해 주세요.', true)
+        return
+      }
+      const lat = Number(loc.lat)
+      const lng = Number(loc.lng)
+      const radiusKm = Number(loc.radiusKm) || 3
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+        setNearbyStatus('데모 좌표 형식이 올바르지 않습니다.', true)
+        return
+      }
+      state.userPos = { lat, lng }
+      const radiusEl = document.getElementById('nearbyRadius')
+      if (radiusEl) radiusEl.value = String(radiusKm)
+      saveNearbySession()
+      if (state.map) {
+        applyUserLocationToMap()
+      }
+      await loadNearbyStores()
+      setNearbyStatus(`데모: ${loc.label || '강남역 주변'} (${radiusKm}km) — 샘플 가게를 표시합니다.`)
+    } catch (e) {
+      setNearbyStatus(errorMessage(e), true)
+    } finally {
+      if (btn) btn.disabled = false
+    }
   }
 
   async function initKakaoMap() {

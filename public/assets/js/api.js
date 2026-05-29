@@ -482,7 +482,19 @@
     },
   }
 
-  /* ========================== 9. Notifications ====================== */
+  /* ========================== 9. Demo (portfolio) ===================== */
+  const demo = {
+    /** 데모 안내 + nearby 예시 URL */
+    info() {
+      return request('GET', '/api/demo', { auth: false })
+    },
+    /** 위치 프리셋 목록 (예: 강남역) */
+    locations() {
+      return request('GET', '/api/demo/locations', { auth: false })
+    },
+  }
+
+  /* ========================== 10. Notifications ===================== */
   const notifications = {
     list(query) {
       return request('GET', '/api/notifications', { query })
@@ -514,6 +526,7 @@
     reviews,
     ai,
     payment,
+    demo,
     notifications,
   }
 })()
